@@ -398,7 +398,7 @@ end on. If available:
 ```
 Cinematic camera slowly pushing forward toward the entrance of a modern white
 residential apartment building, approaching the front door, architectural
-visualization, warm amber light glowing from the entrance doorway, dramatic
+visualization, soft teal light glowing from the entrance doorway, dramatic
 exterior lighting, dusk atmosphere, photorealistic, no people, smooth camera
 movement, the building fills more and more of the frame as camera approaches
 ```
@@ -891,7 +891,7 @@ The frame edges darken (vignette). The scroll controls the camera speed exactly 
 scroll faster, camera moves faster. Pause scrolling, camera pauses.
 
 At the end of the 150vh scroll: the camera is right at the entrance. The door fills
-much of the frame. A warm amber light pulses from the entrance. The screen is about
+much of the frame. A soft teal light pulses from the entrance. The screen is about
 to bloom.
 
 ### GSAP ScrollTrigger Configuration
@@ -925,7 +925,7 @@ Driven by the same ScrollTrigger via a separate GSAP scrub on opacity.
 At 60% scroll progress through Scene 3:
 A small warm radial glow begins to appear at the center of frame where the entrance is.
 This is a CSS `position: fixed` div with:
-`background: radial-gradient(circle at center, rgba(245,166,35,0.15) 0%, transparent 60%)`
+`background: radial-gradient(circle at center, rgba(102,151,159,0.15) 0%, transparent 60%)`
 Starts invisible, fades in over the remaining 40% of scroll progress.
 Signals to the user: "there is light inside. you are almost there."
 
@@ -940,7 +940,7 @@ Signals to the user: "there is light inside. you are almost there."
 ### What the User Sees
 
 At the end of the approach scroll, the user pushes slightly further.
-A radial bloom of warm amber light erupts from the center of the screen.
+A radial bloom of teal light erupts from the center of the screen.
 The light expands until it fills ~90% of the screen in near-white.
 The last approach frame is held on canvas during this bloom.
 
@@ -958,15 +958,15 @@ A full-screen fixed div with `z-index: 20`:
   pointer-events: none;
   background: radial-gradient(
     circle at 50% 55%,    /* slightly below center = door position */
-    rgba(245, 166, 35, 0) 0%,
-    rgba(255, 248, 230, 0) 0%
+    rgba(102, 151, 159, 0) 0%,
+    rgba(200, 225, 230, 0) 0%
   );
   opacity: 0;
 }
 ```
 
 GSAP ScrollTrigger (20vh scroll range):
-- 0% → 50%: bloom expands, center color → rgba(245,166,35,0.9), outer → rgba(255,253,247,0.95)
+- 0% → 50%: bloom expands, center color → rgba(102,151,159,0.9), outer → rgba(220,238,240,0.95)
 - 50%: peak — near white screen
 - 50% → 100%: bloom recedes, opacity returns to 0
 - At 50% mark: canvas display set to none, Scene 5 becomes visible
@@ -1050,7 +1050,7 @@ All other nodes dim.
 - Each node staggered pulse start: +0ms, +400ms, +800ms, +1200ms, +1600ms, +2000ms
 
 **Hover/Active state:**
-- Outer ring: `--color-threshold` (#F5A623), scale transition to 1.2x
+- Outer ring: `--color-threshold` (#66979f), scale transition to 1.2x
 - Inner dot: `--color-threshold`, scale to 1.5x
 - All other nodes: opacity → 0.25 (150ms transition)
 - Connector line draws (see below)
@@ -1068,7 +1068,7 @@ Thin `--color-border` lines above and below the text.
 
 **On node hover:**
 - Default text: `translateY(-100%) opacity(0)` exits upward (300ms, ease-exit)
-- Amber line: 2px, `--color-threshold`, 40px wide, slides in from left
+- Threshold line: 2px, `--color-threshold`, 40px wide, slides in from left
 - Heading: slides in from below (translateY(30px)→0, opacity 0→1, 350ms)
 - Body copy: slides in 80ms after heading
 
@@ -1250,7 +1250,7 @@ Adding a new project in Sanity automatically adds a card here. No code changes n
 - "IN DEVELOPMENT" badge: small pill, `--color-threshold` text, darker background
 - CTA text: "REGISTER INTEREST →" (not "VIEW PROJECT")
 - CTA links to: `/projects/almond`
-- Subtle amber glow on the image (very faint radial gradient, threshold color)
+- Subtle teal glow on the image (very faint radial gradient, threshold color)
   — signals this is active and available, not just historical
 
 **How CTA type is determined:**
@@ -1342,7 +1342,7 @@ Words are positioned across 3 lines:
 - Line 1: "LET'S BUILD" — `text-display-lg`, weight 300
 - Line 2: "SOMETHING" — `text-display-lg`, weight 300
 - Line 3: "TOGETHER." — `text-display-lg`, weight 300, color: `--color-threshold`
-  (the period and the word have a warm amber tint — subtle but intentional)
+  (the period and the word have a soft teal tint — subtle but intentional)
 
 ### CTA Button
 
@@ -1403,7 +1403,7 @@ since the homepage opts out of the global layout).
 | `--color-surface` | `#1A1A1A` | Secondary backgrounds, cards |
 | `--color-paper` | `#F5F0E8` | All primary text, default cursor |
 | `--color-stone` | `#8C8C8C` | Secondary text, labels, metadata |
-| `--color-threshold` | `#F5A623` | Accent only — active nodes, CTA hover, numbers, "TOGETHER." |
+| `--color-threshold` | `#66979f` | Accent only — active nodes, CTA hover, numbers, "TOGETHER." |
 | `--color-glass` | `rgba(255,255,255,0.04)` | Subtle overlays |
 | `--color-border` | `rgba(255,255,255,0.08)` | Lines, dividers |
 
@@ -1770,7 +1770,7 @@ This spring is what gives the interaction its premium feel.
 | State | Trigger | Visual |
 |-------|---------|--------|
 | Default | Everywhere | 12px circle, paper border |
-| Hover | `data-cursor="hover"` on buttons/links | Expands to 40px, fills threshold amber |
+| Hover | `data-cursor="hover"` on buttons/links | Expands to 40px, fills threshold teal |
 | Node | `data-cursor="node"` on anatomy nodes | Expands to 60px, crosshair lines appear |
 | View | `data-cursor="view"` on project images | Expands to 80px, "VIEW" text inside |
 | Scroll | During active scroll/image sequence | Shrinks to 6px solid dot |

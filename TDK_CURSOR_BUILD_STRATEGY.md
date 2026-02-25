@@ -510,7 +510,7 @@ Colors (from TDK_HOMEPAGE_EXPERIENCE.md Section 14):
 --color-surface: #1A1A1A
 --color-paper: #F5F0E8
 --color-stone: #8C8C8C
---color-threshold: #F5A623
+--color-threshold: #66979f
 --color-glass: rgba(255, 255, 255, 0.04)
 --color-border: rgba(255, 255, 255, 0.08)
 
@@ -546,7 +546,7 @@ Then update tailwind.config.ts to:
 - Add all easing tokens to transitionTimingFunction
 - Add all duration tokens to transitionDuration
 - Set the base font to Josefin Sans
-- Add a custom text-selection color (threshold amber on void background)
+- Add a custom text-selection color (threshold teal on void background)
 
 Also add @font-face declarations for Josefin Sans (variable font from /public/fonts/)
 and JetBrains Mono. Use font-display: swap.
@@ -646,7 +646,7 @@ In globals.css, after the CSS variables, add base styles:
 **Check before moving on:**
 - All type classes visible and correct in Storybook or a test page
 - Font rendering is smooth (antialiased)
-- Selection color is amber on void
+- Selection color is teal on void
 
 ---
 
@@ -1425,7 +1425,7 @@ Left panel — node active state (on hover):
 - New text slides in from below: translateY(100%) → 0 + opacity 0 → 1
 - Content: heading (text-heading) + body (text-body-lg)
 - Use the copy from TDK_HOMEPAGE_EXPERIENCE.md Section 8.2 for each node
-- A thin amber line (2px, --color-threshold) appears above the heading
+- A thin threshold line (2px, --color-threshold) appears above the heading
 
 Connector line:
 - When a node is active: a thin SVG line draws from the node to the left edge of the screen
@@ -1880,7 +1880,7 @@ For now, build the layout with placeholder content. We'll wire Sanity later.
 Sections:
 1. Hero — service name (TextReveal), full-width, service hero image as background at 30% opacity
 2. Description — two columns: left large pull quote, right paragraphs
-3. Process/Approach — numbered list, each step has a thin amber number, heading, description
+3. Process/Approach — numbered list, each step has a thin teal number, heading, description
    Steps appear staggered on scroll
 4. Related Projects — 2-3 project cards in a row (horizontal cards: image left, text right)
    Hover: image zooms, border appears
@@ -2040,7 +2040,7 @@ BUILD THESE SECTION COMPONENTS — one file per section in /src/components/secti
    - Every other row: --color-surface at 20% opacity background
    - Status cell:
      'available' → green dot (#4CAF50) + "Available"
-     'reserved' → amber dot (--color-threshold) + "Reserved"
+     'reserved' → teal dot (--color-threshold) + "Reserved"
      'sold' → gray dot + "Sold", entire row at 40% opacity
    - Mobile: horizontal scroll on table, first column sticky
    - Note below table in text-label, --color-stone (e.g. "Pricing available on enquiry")
@@ -2056,7 +2056,7 @@ BUILD THESE SECTION COMPONENTS — one file per section in /src/components/secti
    - Submit: primary button, full width, "REGISTER INTEREST →"
    - Validation: Zod, client + server
    - Success: form fades out, "INTEREST REGISTERED" + checkmark animation
-   - Error: field borders go amber, error text below field
+   - Error: field borders go threshold, error text below field
    - On submit → POST to /api/project-interest
    - GA4 event (client-side): trackProjectInterestSubmit(project.slug, unitPreference)
    - Hidden when ctaType = 'showcase' or ctaType = 'contact'
@@ -2284,7 +2284,7 @@ Sections:
    Validation: Zod schema, validated client-side on submit + server-side in API route
    
    Success state: form slides out, "MESSAGE RECEIVED" appears with a thin check animation
-   Error state: field borders turn amber (--color-threshold), error message in text-label below field
+   Error state: field borders turn threshold (--color-threshold), error message in text-label below field
 
 3. Contact info (right column on desktop):
    Address, Email, Phone — each with icon (thin line SVG) and hover animation
@@ -3149,7 +3149,7 @@ Run through this checklist and fix every issue:
 
 2. Keyboard navigation:
    - Tab through every interactive element on every page
-   - Focus is always visible (add a custom :focus-visible style — amber outline)
+   - Focus is always visible (add a custom :focus-visible style — threshold outline)
    - Modal/lightbox traps focus correctly
    - Escape closes modals
    - Hamburger menu is keyboard accessible

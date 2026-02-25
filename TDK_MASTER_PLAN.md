@@ -215,7 +215,7 @@ Every element has a reason. Motion is narrative, not decoration.
 | `--color-surface` | `#1A1A1A` | Cards, secondary backgrounds |
 | `--color-paper` | `#F5F0E8` | Primary text |
 | `--color-stone` | `#8C8C8C` | Secondary text, labels |
-| `--color-threshold` | `#F5A623` | Accent — ONE element at a time |
+| `--color-threshold` | `#66979f` | Accent — ONE element at a time |
 | `--color-glass` | `rgba(255,255,255,0.04)` | Overlays |
 | `--color-border` | `rgba(255,255,255,0.08)` | Lines, dividers |
 
@@ -360,7 +360,7 @@ Two Sanity fields control the page behavior:
 **SECTION 1 — HERO**
 - Full-bleed image (`heroImageId` — Cloudinary)
 - Building name — from Sanity `title` field
-- Status badge — driven by `status`: "COMPLETED" (stone) | "IN DEVELOPMENT" (amber) | "UPCOMING" (stone)
+- Status badge — driven by `status`: "COMPLETED" (stone) | "IN DEVELOPMENT" (teal) | "UPCOMING" (stone)
 - Location + type + year/expected completion — Sanity fields
 - Gradient overlay bottom-to-top for text legibility
 - CTA button — if `ctaType = register-interest`: "REGISTER INTEREST →" (anchors to form)
@@ -422,7 +422,7 @@ All values from Sanity. Thin vertical dividers.
 - Section heading — Sanity text field (e.g. "AVAILABLE UNITS" or "UNIT BREAKDOWN")
 - Table columns: Floor | Unit Type | Size (m²) | Status
 - Each row is a unit entry in Sanity: `{ floor, unitType, sizeM2, status }`
-- Status display: Available (green dot) · Reserved (amber dot) · Sold (gray, row dimmed)
+- Status display: Available (green dot) · Reserved (teal dot) · Sold (gray, row dimmed)
 - TDK updates any unit's status in Sanity → table updates via ISR automatically
 - Note below table — Sanity text field (e.g. "Pricing available on enquiry")
 - If units array is empty → section does not render
@@ -1127,7 +1127,7 @@ All redirects: `permanent: true` (HTTP 301)
 
 - WCAG 2.1 AA minimum
 - Semantic HTML, one H1 per page, correct heading hierarchy
-- Keyboard navigable — custom amber focus ring
+- Keyboard navigable — custom threshold focus ring
 - ARIA labels: nav, mobile menu, anatomy nodes, project filters, unit status indicators
 - Color contrast: `--color-paper` on `--color-void` ~12:1 (passes)
 - Alt text on all Cloudinary images
