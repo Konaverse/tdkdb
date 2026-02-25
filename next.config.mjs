@@ -31,6 +31,22 @@ const nextConfig = {
             key: 'Strict-Transport-Security',
             value: 'max-age=31536000; includeSubDomains; preload',
           },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https://res.cloudinary.com https://cdn.sanity.io https://www.google-analytics.com https://www.googletagmanager.com",
+              "font-src 'self' data:",
+              "connect-src 'self' https://*.sanity.io https://www.google-analytics.com https://www.googletagmanager.com https://www.clarity.ms https://res.cloudinary.com",
+              "media-src 'self' blob: https://res.cloudinary.com",
+              "frame-src 'self'",
+              "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join('; '),
+          },
         ],
       },
       {
