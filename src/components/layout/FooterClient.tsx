@@ -64,7 +64,7 @@ export default function FooterClient() {
               TDK
             </Link>
             <p className="text-label text-stone">Design. Build. Last.</p>
-            <address className="not-italic flex flex-col gap-2">
+            <address className="flex flex-col gap-2 not-italic">
               <p className="text-body text-stone">
                 28th October 12
                 <br />
@@ -142,10 +142,7 @@ export default function FooterClient() {
       </div>
 
       {/* ── Curtain — rendered last so it sits on top ─────────────────────── */}
-      <div
-        ref={curtainRef}
-        className="pointer-events-none absolute inset-0 bg-surface"
-      />
+      <div ref={curtainRef} className="pointer-events-none absolute inset-0 bg-surface" />
     </footer>
   );
 }

@@ -163,10 +163,7 @@ export default function NavbarClient() {
             <div className="flex items-center gap-1.5 text-label">
               <span className="text-paper">EN</span>
               <span className="text-stone opacity-60">|</span>
-              <span
-                className="cursor-not-allowed text-stone opacity-40"
-                title="Greek coming soon"
-              >
+              <span className="cursor-not-allowed text-stone opacity-40" title="Greek coming soon">
                 EL
               </span>
             </div>

@@ -1,5 +1,5 @@
 export const SEQUENCE_CONFIG = {
-  assembly: { frameCount: 40,  fps: 24, path: '/sequences/assembly/frame-', extension: '.webp' },
+  assembly: { frameCount: 40, fps: 24, path: '/sequences/assembly/frame-', extension: '.webp' },
   approach: { frameCount: 52, fps: 24, path: '/sequences/approach/frame-', extension: '.webp' },
 } as const;
 
