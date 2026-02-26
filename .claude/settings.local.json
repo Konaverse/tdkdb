@@ -10,7 +10,10 @@
       "Bash(where:*)",
       "Bash(grep:*)",
       "Bash(cat:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(npx prettier:*)",
+      "Bash(\"C:\\\\Program Files\\\\nodejs\\\\node.exe\":*)",
+      "Bash(powershell:*)"
     ]
   }
 }

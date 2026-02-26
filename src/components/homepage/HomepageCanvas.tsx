@@ -45,7 +45,7 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dpr = window.devicePixelRatio || 1;
-    canvas.width  = window.innerWidth  * dpr;
+    canvas.width = window.innerWidth * dpr;
     canvas.height = window.innerHeight * dpr;
   }, []);
 
@@ -53,9 +53,14 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
     const ctx = canvasRef.current?.getContext('2d');
     if (!ctx || assemblyFrames.current.length === 0) return;
     setPhase('assembly');
-    rafCleanupRef.current = playAssembly(assemblyFrames.current, ctx, () => {
-      setPhase('hero');
-    }, SEQUENCE_CONFIG.assembly.fps);
+    rafCleanupRef.current = playAssembly(
+      assemblyFrames.current,
+      ctx,
+      () => {
+        setPhase('hero');
+      },
+      SEQUENCE_CONFIG.assembly.fps,
+    );
   }, []);
 
   useEffect(() => {

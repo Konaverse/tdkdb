@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils/cn';
 
 interface FadeUpProps {
   children: React.ReactNode;
-  delay?: number;    // ms
+  delay?: number; // ms
   duration?: number; // ms
   distance?: number; // px
   className?: string;

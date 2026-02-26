@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils/cn';
 
 interface StaggerGroupProps {
   children: React.ReactNode;
-  stagger?: number;                      // ms between each item, default 80
+  stagger?: number; // ms between each item, default 80
   trigger?: 'viewport' | 'immediate';
   className?: string;
 }

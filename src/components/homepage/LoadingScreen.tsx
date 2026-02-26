@@ -26,7 +26,8 @@ export default function LoadingScreen({ progress, onComplete }: LoadingScreenPro
     if (progress < 1 || completedRef.current) return;
     completedRef.current = true;
 
-    gsap.timeline({ delay: 0.2 })
+    gsap
+      .timeline({ delay: 0.2 })
       .to(textRef.current, { opacity: 0, duration: 0.4, ease: 'power2.out' })
       .to(overlayRef.current, { opacity: 0, duration: 0.5, ease: 'power2.out' })
       .call(onComplete);
@@ -45,7 +46,7 @@ export default function LoadingScreen({ progress, onComplete }: LoadingScreenPro
         >
           TDK
         </span>
-        <div className="relative h-px w-[200px] overflow-hidden bg-paper/20">
+        <div className="bg-paper/20 relative h-px w-[200px] overflow-hidden">
           <span
             className="absolute inset-0 origin-left bg-paper"
             style={{ transform: `scaleX(${progress})` }}

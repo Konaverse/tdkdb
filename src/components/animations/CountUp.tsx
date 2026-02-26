@@ -11,12 +11,7 @@ interface CountUpProps {
   className?: string;
 }
 
-export default function CountUp({
-  target,
-  suffix = '',
-  duration = 2000,
-  className,
-}: CountUpProps) {
+export default function CountUp({ target, suffix = '', duration = 2000, className }: CountUpProps) {
   const spanRef = useRef<HTMLSpanElement>(null);
   const counter = useRef({ value: 0 });
 

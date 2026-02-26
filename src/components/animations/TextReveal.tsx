@@ -13,12 +13,7 @@ interface TextRevealProps {
   className?: string;
 }
 
-export default function TextReveal({
-  children,
-  tag = 'p',
-  delay = 0,
-  className,
-}: TextRevealProps) {
+export default function TextReveal({ children, tag = 'p', delay = 0, className }: TextRevealProps) {
   const ref = useRef<HTMLElement>(null);
 
   useLayoutEffect(() => {
