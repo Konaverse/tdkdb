@@ -4,21 +4,12 @@ import { useLayoutEffect, useRef } from 'react';
 import { gsap, gsapInit } from '@/lib/animations/gsap';
 import { cn } from '@/lib/utils/cn';
 
-interface FadeUpProps {
-  children: React.ReactNode;
-  delay?: number;    // ms
-  duration?: number; // ms
-  distance?: number; // px
+interface DividerProps {
   className?: string;
+  delay?: number; // ms
 }
 
-export default function FadeUp({
-  children,
-  delay = 0,
-  duration = 800,
-  distance = 40,
-  className,
-}: FadeUpProps) {
+export default function Divider({ className, delay = 0 }: DividerProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -30,11 +21,10 @@ export default function FadeUp({
     const ctx = gsap.context(() => {
       gsap.fromTo(
         ref.current,
-        { opacity: 0, y: distance },
+        { scaleX: 0, transformOrigin: 'left center' },
         {
-          opacity: 1,
-          y: 0,
-          duration: duration / 1000,
+          scaleX: 1,
+          duration: 1.2,
           delay: delay / 1000,
           ease: 'power3.out',
           scrollTrigger: {
@@ -47,11 +37,14 @@ export default function FadeUp({
     });
 
     return () => ctx.revert();
-  }, [delay, duration, distance]);
+  }, [delay]);
 
   return (
-    <div ref={ref} className={cn('will-change-transform', className)}>
-      {children}
-    </div>
+    <div
+      ref={ref}
+      role="separator"
+      aria-hidden="true"
+      className={cn('h-px w-full bg-border will-change-transform', className)}
+    />
   );
 }

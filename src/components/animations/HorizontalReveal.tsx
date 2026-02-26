@@ -4,21 +4,17 @@ import { useLayoutEffect, useRef } from 'react';
 import { gsap, gsapInit } from '@/lib/animations/gsap';
 import { cn } from '@/lib/utils/cn';
 
-interface FadeUpProps {
+interface HorizontalRevealProps {
   children: React.ReactNode;
-  delay?: number;    // ms
-  duration?: number; // ms
-  distance?: number; // px
+  direction?: 'left' | 'right';
   className?: string;
 }
 
-export default function FadeUp({
+export default function HorizontalReveal({
   children,
-  delay = 0,
-  duration = 800,
-  distance = 40,
+  direction = 'left',
   className,
-}: FadeUpProps) {
+}: HorizontalRevealProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -27,15 +23,16 @@ export default function FadeUp({
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
 
+    const startX = direction === 'left' ? -60 : 60;
+
     const ctx = gsap.context(() => {
       gsap.fromTo(
         ref.current,
-        { opacity: 0, y: distance },
+        { opacity: 0, x: startX },
         {
           opacity: 1,
-          y: 0,
-          duration: duration / 1000,
-          delay: delay / 1000,
+          x: 0,
+          duration: 1.0,
           ease: 'power3.out',
           scrollTrigger: {
             trigger: ref.current,
@@ -47,7 +44,7 @@ export default function FadeUp({
     });
 
     return () => ctx.revert();
-  }, [delay, duration, distance]);
+  }, [direction]);
 
   return (
     <div ref={ref} className={cn('will-change-transform', className)}>
