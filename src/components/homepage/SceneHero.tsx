@@ -196,11 +196,11 @@ export default function SceneHero({ isVisible, scrollProgress }: SceneHeroProps)
       ))}
       <div
         ref={indicatorRef}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+        className="absolute bottom-10 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2"
       >
-        <span className="text-label uppercase tracking-[0.2em] text-paper/60">Scroll</span>
+        <span className="text-paper/60 text-label uppercase tracking-[0.2em]">Scroll</span>
         <div className="overflow-hidden" style={{ width: '1px', height: '40px' }}>
-          <div ref={lineRef} className="h-full w-px bg-paper/60" />
+          <div ref={lineRef} className="bg-paper/60 h-full w-px" />
         </div>
       </div>
     </div>
