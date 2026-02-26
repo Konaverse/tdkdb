@@ -1,22 +1,16 @@
-'use client';
-
-import { usePathname } from 'next/navigation';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
 
-// Matches /en and /el (with or without trailing slash) — the homepage
-// which manages its own nav/footer within the cinematic scroll experience.
-const HOME_RE = /^\/(en|el)\/?$/;
+// NOTE: HOME_RE suppression lives here once Phase 4 (HomepageCanvas) is built.
+// The canvas experience manages its own nav/footer — restore the client-side
+// pathname check and remove Navbar/Footer from the homepage at that point.
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isHomepage = HOME_RE.test(pathname);
-
   return (
     <>
-      {!isHomepage && <Navbar />}
+      <Navbar />
       {children}
-      {!isHomepage && <Footer />}
+      <Footer />
     </>
   );
 }
