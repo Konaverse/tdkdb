@@ -1,5 +1,4 @@
 import dynamic from 'next/dynamic';
-import SceneHero from '@/components/homepage/SceneHero';
 import SceneAnatomy from '@/components/homepage/SceneAnatomy';
 import ScenePhilosophy from '@/components/homepage/ScenePhilosophy';
 import SceneProjects from '@/components/homepage/SceneProjects';
@@ -13,9 +12,7 @@ const HomepageCanvas = dynamic(() => import('@/components/homepage/HomepageCanva
 export default function HomePage() {
   return (
     <>
-      <HomepageCanvas>
-        <SceneHero />
-      </HomepageCanvas>
+      <HomepageCanvas />
       <SceneAnatomy />
       <ScenePhilosophy />
       <SceneProjects />
