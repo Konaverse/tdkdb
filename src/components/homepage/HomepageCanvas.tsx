@@ -4,6 +4,7 @@ import { createContext, useCallback, useEffect, useRef, useState, type ReactNode
 import { SEQUENCE_CONFIG } from '@/lib/homepage/sequenceConfig';
 import { drawFrame, preloadSequence } from '@/lib/homepage/imageSequence';
 import LoadingScreen from './LoadingScreen';
+import SceneHero from './SceneHero';
 
 export type HomepagePhase = 'loading' | 'assembly' | 'hero' | 'approach' | 'threshold' | 'complete';
 export const HomepagePhaseContext = createContext<HomepagePhase>('loading');
@@ -36,6 +37,7 @@ function playAssembly(
 export default function HomepageCanvas({ children }: { children?: ReactNode }) {
   const [phase, setPhase] = useState<HomepagePhase>('loading');
   const [loadProgress, setLoadProgress] = useState<number>(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const assemblyFrames = useRef<HTMLImageElement[]>([]);
   const approachFrames = useRef<HTMLImageElement[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -67,6 +69,13 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
+    const handleScroll = () => {
+      const range = window.innerHeight * 1.5;
+      const progress = Math.min(window.scrollY / range, 1);
+      setScrollProgress(progress);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
     let aLoaded = 0;
     let bLoaded = 0;
     const total = SEQUENCE_CONFIG.assembly.frameCount + SEQUENCE_CONFIG.approach.frameCount;
@@ -91,6 +100,7 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
 
     return () => {
       window.removeEventListener('resize', resizeCanvas);
+      window.removeEventListener('scroll', handleScroll);
       rafCleanupRef.current?.();
     };
   }, [resizeCanvas]);
@@ -104,6 +114,12 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
         ref={canvasRef}
         className="fixed inset-0 z-0 h-screen w-screen"
         style={{ display: 'block' }}
+      />
+      {/* Dark veil — dims the bright building so white text is legible */}
+      <div className="pointer-events-none fixed inset-0 z-[1] bg-black/45" />
+      <SceneHero
+        isVisible={phase === 'hero' || phase === 'approach'}
+        scrollProgress={scrollProgress}
       />
       <div style={{ position: 'relative', height: '760vh' }} />
       {children}
