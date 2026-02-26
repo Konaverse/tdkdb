@@ -6,6 +6,11 @@ const defaultLocale = 'en';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Pass static assets directly — do not locale-redirect them
+  if (pathname.startsWith('/sequences/') || pathname.startsWith('/videos/')) {
+    return NextResponse.next();
+  }
+
   const pathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`,
   );
@@ -18,5 +23,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|studio|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)'],
+  matcher: ['/((?!api|studio|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|sequences|videos).*)'],
 };

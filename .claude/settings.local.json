@@ -6,7 +6,11 @@
       "Bash(pnpm lint:*)",
       "Bash(npx tsc:*)",
       "Bash(cmd:*)",
-      "Bash(pnpm tsc:*)"
+      "Bash(pnpm tsc:*)",
+      "Bash(where:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(wc:*)"
     ]
   }
 }
