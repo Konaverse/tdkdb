@@ -189,6 +189,8 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
         // AUDIO_CUE: threshold_bloom — soft ambient chime
         const canvas = canvasRef.current;
         if (!canvas) return;
+
+        // Fade canvas out
         canvas.style.transition = 'opacity 0.3s';
         canvas.style.opacity = '0';
         setTimeout(() => {
@@ -196,6 +198,24 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
           assemblyFrames.current = []; // frees ~16 MB RAM
           approachFrames.current = []; // frees ~26 MB RAM
         }, 300);
+
+        // Force bloom to 0 immediately — scrub: 1 lag can leave residual opacity
+        if (bloomRef.current) bloomRef.current.style.opacity = '0';
+
+        // Kill all overlay ScrollTriggers so they don't fire into subsequent sections.
+        // The glow ST fires at ~234vh (before anatomy at 260vh) and would show a teal
+        // gradient overlay; the vignette ST is done but its opacity is stuck at 0.8.
+        mainST.kill();
+        vignetteTween.scrollTrigger?.kill();
+        glowTween.scrollTrigger?.kill();
+
+        // Fade vignette and glow to 0 smoothly so they don't bleed over the anatomy section
+        if (vignetteRef.current) {
+          vignetteRef.current.style.transition = 'opacity 0.6s';
+          vignetteRef.current.style.opacity = '0';
+        }
+        if (glowRef.current) glowRef.current.style.opacity = '0';
+
         setPhase('complete');
       },
     });
