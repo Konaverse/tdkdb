@@ -13,7 +13,7 @@ export function preloadSequence(
   for (let i = 0; i < total; i++) {
     const img = new Image();
     frames[i] = img;
-    const url = config.path + String(i + 1).padStart(4, '0') + config.extension;
+    const url = config.path + String(i + 1).padStart(config.pad, '0') + config.extension;
 
     const loadPromise = new Promise<void>((resolve) => {
       img.onload = () => {

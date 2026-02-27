@@ -13,7 +13,10 @@
       "Bash(wc:*)",
       "Bash(npx prettier:*)",
       "Bash(\"C:\\\\Program Files\\\\nodejs\\\\node.exe\":*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }

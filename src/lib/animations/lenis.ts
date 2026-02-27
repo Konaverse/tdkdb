@@ -1,5 +1,5 @@
 import Lenis from '@studio-freight/lenis';
-import { gsap } from '@/lib/animations/gsap';
+import { gsap, ScrollTrigger } from '@/lib/animations/gsap';
 
 let lenisInstance: Lenis | null = null;
 let tickerCallback: ((time: number) => void) | null = null;
@@ -18,6 +18,8 @@ export function initLenis(): Lenis {
   tickerCallback = (time: number) => {
     lenisInstance?.raf(time * 1000);
   };
+
+  lenisInstance.on('scroll', ScrollTrigger.update);
 
   gsap.ticker.add(tickerCallback);
   gsap.ticker.lagSmoothing(0);
