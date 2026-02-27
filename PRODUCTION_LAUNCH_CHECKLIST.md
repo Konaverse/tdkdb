@@ -161,4 +161,4 @@ _Add any issues discovered during checks here._
 
 | Date | Issue | Status |
 |---|---|---|
-| | | |
+| 2026-02-27 | **Creative idea — transparent door on last approach frame:** Make the door opening in the final approach frame transparent/alpha-cut so the teal bloom gradient shows through it. Would reinforce the threshold metaphor visually. Low priority, deferred post-launch. | Idea |

@@ -45,6 +45,7 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
   const rafCleanupRef = useRef<(() => void) | null>(null);
   const vignetteRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
+  const bloomRef = useRef<HTMLDivElement>(null);
 
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -162,10 +163,48 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
       },
     );
 
+    const thresholdST = ScrollTrigger.create({
+      trigger: '#scroll-container',
+      start: `top+=${window.innerHeight * 1.5}px top`, // 150vh in px — avoids % ambiguity (% in trigger pos = trigger height, not viewport)
+      end: `+=${window.innerHeight * 0.2}`, // 20vh past start
+      scrub: 1,
+      onUpdate: (self) => {
+        if (!bloomRef.current) return;
+        const p = self.progress;
+        if (p <= 0.5) {
+          // Bloom expands: 0% → 50% progress
+          const intensity = p * 2; // 0 → 1
+          bloomRef.current.style.background = `radial-gradient(circle at 50% 55%, rgba(102,151,159,${(intensity * 0.9).toFixed(3)}) 0%, rgba(220,238,240,${(intensity * 0.95).toFixed(3)}) 60%)`;
+          bloomRef.current.style.opacity = String(intensity);
+        } else {
+          // Bloom recedes: 50% → 100% progress
+          const intensity = 1 - (p - 0.5) * 2; // 1 → 0
+          bloomRef.current.style.opacity = String(intensity);
+        }
+        if (p > 0) {
+          setPhase((prev) => (prev === 'approach' ? 'threshold' : prev));
+        }
+      },
+      onLeave: () => {
+        // AUDIO_CUE: threshold_bloom — soft ambient chime
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        canvas.style.transition = 'opacity 0.3s';
+        canvas.style.opacity = '0';
+        setTimeout(() => {
+          canvas.style.display = 'none'; // frees GPU memory
+          assemblyFrames.current = []; // frees ~16 MB RAM
+          approachFrames.current = []; // frees ~26 MB RAM
+        }, 300);
+        setPhase('complete');
+      },
+    });
+
     return () => {
       mainST.kill();
       vignetteTween.scrollTrigger?.kill();
       glowTween.scrollTrigger?.kill();
+      thresholdST.kill();
     };
   }, [hasAssembled]);
 
@@ -199,6 +238,12 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
           background:
             'radial-gradient(circle at 50% 55%, rgba(102,151,159,0.15) 0%, transparent 60%)',
         }}
+      />
+      {/* Threshold bloom — teal flash at the entrance crossing */}
+      <div
+        ref={bloomRef}
+        className="pointer-events-none fixed inset-0 z-[20]"
+        style={{ opacity: 0 }}
       />
       <SceneHero
         isVisible={phase === 'hero' || phase === 'approach'}
