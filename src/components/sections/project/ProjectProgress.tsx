@@ -12,7 +12,7 @@ export default function ProjectProgress({ percent, label }: ProjectProgressProps
     <Section>
       <GridWrapper>
         <FadeUp>
-          <p className="text-label mb-8 text-stone">CONSTRUCTION PROGRESS</p>
+          <p className="mb-8 text-label text-stone">CONSTRUCTION PROGRESS</p>
         </FadeUp>
         <FadeUp delay={100}>
           <div className="flex flex-col gap-4">

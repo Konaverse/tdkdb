@@ -11,7 +11,10 @@ interface ProjectInterestFormProps {
   projectName: string;
 }
 
-export default function ProjectInterestForm({ projectSlug, projectName }: ProjectInterestFormProps) {
+export default function ProjectInterestForm({
+  projectSlug,
+  projectName,
+}: ProjectInterestFormProps) {
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -43,10 +46,14 @@ export default function ProjectInterestForm({ projectSlug, projectName }: Projec
         setStatus('success');
         // GA4 event
         if (typeof window !== 'undefined') {
-          (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag?.('event', 'project_interest_submit', {
-            project_slug: projectSlug,
-            unit_preference: data.unitPreference,
-          });
+          (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag?.(
+            'event',
+            'project_interest_submit',
+            {
+              project_slug: projectSlug,
+              unit_preference: data.unitPreference,
+            },
+          );
         }
       } else {
         setStatus('error');
@@ -80,12 +87,18 @@ export default function ProjectInterestForm({ projectSlug, projectName }: Projec
     <Section background="surface">
       <GridWrapper>
         <FadeUp>
-          <p className="text-label mb-8 text-stone">REGISTER YOUR INTEREST</p>
+          <p className="mb-8 text-label text-stone">REGISTER YOUR INTEREST</p>
         </FadeUp>
         <FadeUp delay={100}>
           <form onSubmit={handleSubmit} className="flex max-w-2xl flex-col gap-6" noValidate>
             {/* Honeypot — hidden from users */}
-            <input type="text" name="_honeypot" className="hidden" tabIndex={-1} autoComplete="off" />
+            <input
+              type="text"
+              name="_honeypot"
+              className="hidden"
+              tabIndex={-1}
+              autoComplete="off"
+            />
 
             <div className="grid gap-6 sm:grid-cols-2">
               <div className="flex flex-col gap-2">
@@ -135,7 +148,7 @@ export default function ProjectInterestForm({ projectSlug, projectName }: Projec
                   name="unitPreference"
                   type="text"
                   placeholder="e.g. 2-bedroom, ground floor"
-                  className="border-b border-border bg-transparent pb-2 text-body text-paper outline-none transition-colors duration-fast ease-smooth placeholder:text-stone/50 focus:border-threshold"
+                  className="placeholder:text-stone/50 border-b border-border bg-transparent pb-2 text-body text-paper outline-none transition-colors duration-fast ease-smooth focus:border-threshold"
                 />
               </div>
             </div>
@@ -152,9 +165,7 @@ export default function ProjectInterestForm({ projectSlug, projectName }: Projec
               />
             </div>
 
-            {status === 'error' && (
-              <p className="text-body text-threshold">{errorMsg}</p>
-            )}
+            {status === 'error' && <p className="text-body text-threshold">{errorMsg}</p>}
 
             <TextButton>
               {status === 'submitting' ? 'SENDING...' : 'REGISTER INTEREST →'}

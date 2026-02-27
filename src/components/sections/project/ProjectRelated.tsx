@@ -22,15 +22,12 @@ export default function ProjectRelated({ projects }: ProjectRelatedProps) {
     <Section background="surface">
       <GridWrapper>
         <FadeUp>
-          <p className="text-label mb-12 text-stone">MORE PROJECTS</p>
+          <p className="mb-12 text-label text-stone">MORE PROJECTS</p>
         </FadeUp>
         <div className="grid gap-8 sm:grid-cols-2">
           {projects.map((project, i) => (
             <FadeUp key={project.slug} delay={i * 100}>
-              <Link
-                href={`/en/projects/${project.slug}`}
-                className="group flex flex-col gap-4"
-              >
+              <Link href={`/en/projects/${project.slug}`} className="group flex flex-col gap-4">
                 <div className="overflow-hidden">
                   <img
                     src={projectCard(project.imageId)}

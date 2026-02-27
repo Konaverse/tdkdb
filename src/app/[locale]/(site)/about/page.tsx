@@ -44,10 +44,10 @@ export default function AboutPage() {
           className="absolute inset-0 h-full w-full object-cover"
           style={{ opacity: 0.2 }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-void via-void/60 to-transparent" />
+        <div className="via-void/60 absolute inset-0 bg-gradient-to-t from-void to-transparent" />
         <GridWrapper className="relative z-10">
-          <p className="text-label mb-4 text-stone">WHO WE ARE</p>
-          <TextReveal tag="h1" className="text-display-lg max-w-3xl text-paper">
+          <p className="mb-4 text-label text-stone">WHO WE ARE</p>
+          <TextReveal tag="h1" className="max-w-3xl text-display-lg text-paper">
             BUILDING WITH PURPOSE. DESIGNING FOR LIFE.
           </TextReveal>
         </GridWrapper>
@@ -58,7 +58,7 @@ export default function AboutPage() {
         <GridWrapper>
           <div className="grid gap-16 lg:grid-cols-2 lg:gap-24">
             <FadeUp>
-              <p className="text-display-md text-threshold leading-tight">
+              <p className="text-display-md leading-tight text-threshold">
                 &ldquo;Every structure we raise is a commitment to the people who will live inside
                 it.&rdquo;
               </p>
@@ -75,8 +75,9 @@ export default function AboutPage() {
               <FadeUp delay={200}>
                 <p className="text-body-lg text-stone">
                   We are a fully integrated studio — architects, construction managers, and interior
-                  designers working under one roof. This seamless collaboration means fewer handoffs,
-                  more coherence, and a finished result that feels intentional at every level.
+                  designers working under one roof. This seamless collaboration means fewer
+                  handoffs, more coherence, and a finished result that feels intentional at every
+                  level.
                 </p>
               </FadeUp>
               <FadeUp delay={300}>
@@ -96,13 +97,13 @@ export default function AboutPage() {
         <GridWrapper>
           <div className="grid gap-16 lg:grid-cols-2 lg:gap-24">
             <FadeUp>
-              <p className="text-label mb-4 text-stone">OUR MISSION</p>
+              <p className="mb-4 text-label text-stone">OUR MISSION</p>
               <TextReveal tag="h2" className="text-display-md text-paper">
                 TO ELEVATE THE STANDARD OF BUILT LIFE IN CYPRUS.
               </TextReveal>
             </FadeUp>
             <FadeUp delay={150}>
-              <p className="text-label mb-4 text-stone">OUR VISION</p>
+              <p className="mb-4 text-label text-stone">OUR VISION</p>
               <TextReveal tag="h2" className="text-display-md text-threshold" delay={150}>
                 SPACES THAT ENDURE, DETAILS THAT MATTER.
               </TextReveal>
@@ -141,8 +142,8 @@ export default function AboutPage() {
       <Section background="surface">
         <GridWrapper>
           <FadeUp>
-            <p className="text-label mb-4 text-stone">THE TEAM</p>
-            <h2 className="text-heading mb-16 text-paper">The People Behind the Work</h2>
+            <p className="mb-4 text-label text-stone">THE TEAM</p>
+            <h2 className="mb-16 text-heading text-paper">The People Behind the Work</h2>
           </FadeUp>
           <StaggerGroup className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {teamMembers.map((member) => (
@@ -152,7 +153,7 @@ export default function AboutPage() {
                   <div className="h-full w-full bg-gradient-to-br from-surface to-void transition-transform duration-medium ease-smooth group-hover:scale-[1.03]" />
                 </div>
                 <div>
-                  <p className="text-label mb-1 transition-colors duration-fast ease-smooth group-hover:text-threshold">
+                  <p className="mb-1 text-label transition-colors duration-fast ease-smooth group-hover:text-threshold">
                     {member.name}
                   </p>
                   <p className="text-body text-stone">{member.role}</p>
@@ -169,7 +170,7 @@ export default function AboutPage() {
         <GridWrapper>
           <FadeUp>
             <div className="flex flex-col items-start gap-8">
-              <TextReveal tag="h2" className="text-display-md max-w-xl text-paper">
+              <TextReveal tag="h2" className="max-w-xl text-display-md text-paper">
                 READY TO BUILD? LET&apos;S TALK.
               </TextReveal>
               <GhostButton href="/contact">Get in Touch</GhostButton>

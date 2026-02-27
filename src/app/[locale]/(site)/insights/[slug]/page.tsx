@@ -191,9 +191,7 @@ const articleBodies: Record<string, PortableTextBlock[]> = {
       _type: 'block',
       _key: 'c3',
       style: 'h2',
-      children: [
-        { _type: 'span', _key: 's1', text: 'Quiet Minimalism vs. Maximalism', marks: [] },
-      ],
+      children: [{ _type: 'span', _key: 's1', text: 'Quiet Minimalism vs. Maximalism', marks: [] }],
       markDefs: [],
     },
     {

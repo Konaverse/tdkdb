@@ -111,7 +111,7 @@ export default function ContactClient() {
       {/* ── Hero ── */}
       <section className="flex min-h-[40vh] items-end pb-24 pt-40">
         <GridWrapper>
-          <TextReveal tag="h1" className="text-display-lg max-w-2xl text-paper">
+          <TextReveal tag="h1" className="max-w-2xl text-display-lg text-paper">
             LET&apos;S TALK.
           </TextReveal>
           <p className="mt-4 text-body-lg text-stone">
@@ -248,19 +248,19 @@ export default function ContactClient() {
             <FadeUp delay={200}>
               <div className="flex flex-col gap-10">
                 <div>
-                  <p className="text-label mb-3 text-stone">OFFICE</p>
+                  <p className="mb-3 text-label text-stone">OFFICE</p>
                   <p className="text-body text-paper">Nicosia, Cyprus</p>
                 </div>
                 <div>
-                  <p className="text-label mb-3 text-stone">EMAIL</p>
+                  <p className="mb-3 text-label text-stone">EMAIL</p>
                   <p className="text-body text-paper">info@tdkdb.com</p>
                 </div>
                 <div>
-                  <p className="text-label mb-3 text-stone">PHONE</p>
+                  <p className="mb-3 text-label text-stone">PHONE</p>
                   <p className="text-body text-paper">+357 22 000 000</p>
                 </div>
                 <div>
-                  <p className="text-label mb-3 text-stone">HOURS</p>
+                  <p className="mb-3 text-label text-stone">HOURS</p>
                   <p className="text-body text-stone">Monday – Friday</p>
                   <p className="text-body text-stone">9:00 – 18:00</p>
                 </div>

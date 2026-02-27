@@ -55,19 +55,19 @@ export default function ProjectCard({ project, className }: ProjectCardProps) {
           className="h-full w-full object-cover transition-transform duration-slow ease-smooth group-hover:scale-[1.05]"
         />
         {/* Dark overlay that slides up on hover */}
-        <div className="absolute inset-x-0 bottom-0 translate-y-full bg-void/90 p-6 transition-transform duration-medium ease-smooth group-hover:translate-y-0">
+        <div className="bg-void/90 absolute inset-x-0 bottom-0 translate-y-full p-6 transition-transform duration-medium ease-smooth group-hover:translate-y-0">
           <p className="text-label text-paper">{project.title}</p>
-          <p className="text-body mt-1 text-stone">{project.location}</p>
+          <p className="mt-1 text-body text-stone">{project.location}</p>
           <p className="text-body text-stone">{project.year}</p>
-          <p className="text-label mt-4 text-threshold">{ctaLabel[project.ctaType]}</p>
+          <p className="mt-4 text-label text-threshold">{ctaLabel[project.ctaType]}</p>
         </div>
       </div>
 
       {/* Status badge */}
-      <div className="absolute top-4 right-4">
+      <div className="absolute right-4 top-4">
         <span
           className={cn(
-            'text-label border px-3 py-1',
+            'border px-3 py-1 text-label',
             'bg-void/80 backdrop-blur-sm',
             statusColor[project.status],
           )}

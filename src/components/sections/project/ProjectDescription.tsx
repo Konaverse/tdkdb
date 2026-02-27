@@ -14,7 +14,7 @@ export default function ProjectDescription({ title, body }: ProjectDescriptionPr
       <GridWrapper>
         <div className="grid gap-16 lg:grid-cols-2 lg:gap-24">
           <FadeUp>
-            <TextReveal tag="h2" className="text-display-md text-threshold leading-tight">
+            <TextReveal tag="h2" className="text-display-md leading-tight text-threshold">
               {title}
             </TextReveal>
           </FadeUp>

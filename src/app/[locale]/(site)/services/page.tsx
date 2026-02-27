@@ -73,8 +73,8 @@ export default function ServicesPage() {
       {/* ── Hero ── */}
       <section className="flex min-h-[50vh] items-end pb-24 pt-40">
         <GridWrapper>
-          <p className="text-label mb-4 text-stone">WHAT WE DO</p>
-          <TextReveal tag="h1" className="text-display-lg max-w-3xl text-paper">
+          <p className="mb-4 text-label text-stone">WHAT WE DO</p>
+          <TextReveal tag="h1" className="max-w-3xl text-display-lg text-paper">
             FOUR DISCIPLINES. ONE VISION.
           </TextReveal>
         </GridWrapper>
@@ -95,7 +95,7 @@ export default function ServicesPage() {
                   </span>
                   <div className="flex flex-1 flex-col gap-4">
                     <h2 className="text-heading text-paper">{service.name}</h2>
-                    <p className="text-body-lg flex-1 text-stone">{service.description}</p>
+                    <p className="flex-1 text-body-lg text-stone">{service.description}</p>
                   </div>
                   <span className="text-label text-stone transition-colors duration-fast ease-smooth group-hover:text-paper">
                     EXPLORE →
@@ -111,13 +111,13 @@ export default function ServicesPage() {
       <Section background="surface">
         <GridWrapper>
           <FadeUp>
-            <p className="text-label mb-12 text-stone">OUR PROCESS</p>
+            <p className="mb-12 text-label text-stone">OUR PROCESS</p>
           </FadeUp>
           {/* Desktop horizontal timeline */}
           <div className="hidden lg:block">
             <div className="relative flex items-start gap-0">
               {/* Connecting line */}
-              <div className="absolute top-3 left-0 right-0 h-px bg-border" />
+              <div className="absolute left-0 right-0 top-3 h-px bg-border" />
               {processSteps.map((step) => (
                 <div key={step.step} className="relative flex flex-1 flex-col gap-4 pr-8">
                   {/* Step dot */}
@@ -149,7 +149,7 @@ export default function ServicesPage() {
         <GridWrapper>
           <FadeUp>
             <div className="flex flex-col items-start gap-8">
-              <TextReveal tag="h2" className="text-display-md max-w-xl text-paper">
+              <TextReveal tag="h2" className="max-w-xl text-display-md text-paper">
                 HAVE A PROJECT IN MIND?
               </TextReveal>
               <GhostButton href="/contact">Start a Conversation</GhostButton>

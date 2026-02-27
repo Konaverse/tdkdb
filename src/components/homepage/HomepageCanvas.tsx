@@ -249,7 +249,8 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
         isVisible={phase === 'hero' || phase === 'approach'}
         scrollProgress={scrollProgress}
       />
-      <div id="scroll-container" style={{ position: 'relative', height: '760vh' }} />
+      {/* 200vh: approach runs 0→150vh, threshold bloom 150→170vh, 30vh buffer before next section */}
+      <div id="scroll-container" style={{ position: 'relative', height: '200vh' }} />
       {children}
     </HomepagePhaseContext.Provider>
   );

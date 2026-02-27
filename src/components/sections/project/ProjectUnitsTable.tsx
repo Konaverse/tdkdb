@@ -36,7 +36,7 @@ export default function ProjectUnitsTable({ units }: ProjectUnitsTableProps) {
     <Section>
       <GridWrapper>
         <FadeUp>
-          <p className="text-label mb-8 text-stone">UNIT AVAILABILITY</p>
+          <p className="mb-8 text-label text-stone">UNIT AVAILABILITY</p>
         </FadeUp>
         <FadeUp delay={100}>
           {/* Horizontal scroll on mobile, sticky first column */}
@@ -44,13 +44,13 @@ export default function ProjectUnitsTable({ units }: ProjectUnitsTableProps) {
             <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-label sticky left-0 bg-void py-4 pr-8 text-left text-stone">
+                  <th className="sticky left-0 bg-void py-4 pr-8 text-left text-label text-stone">
                     TYPE
                   </th>
-                  <th className="text-label py-4 pr-8 text-left text-stone">AREA</th>
-                  <th className="text-label py-4 pr-8 text-left text-stone">FLOOR</th>
-                  <th className="text-label py-4 pr-8 text-left text-stone">PRICE</th>
-                  <th className="text-label py-4 text-left text-stone">STATUS</th>
+                  <th className="py-4 pr-8 text-left text-label text-stone">AREA</th>
+                  <th className="py-4 pr-8 text-left text-label text-stone">FLOOR</th>
+                  <th className="py-4 pr-8 text-left text-label text-stone">PRICE</th>
+                  <th className="py-4 text-left text-label text-stone">STATUS</th>
                 </tr>
               </thead>
               <tbody>

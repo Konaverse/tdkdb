@@ -27,7 +27,7 @@ export default function ProjectRendersGallery({ heading, images }: ProjectRender
     <Section>
       <GridWrapper>
         <FadeUp>
-          <p className="text-label mb-12 text-stone">{heading}</p>
+          <p className="mb-12 text-label text-stone">{heading}</p>
         </FadeUp>
         {/* Featured image + thumbnails */}
         <div className="flex flex-col gap-4">
@@ -45,7 +45,7 @@ export default function ProjectRendersGallery({ heading, images }: ProjectRender
                 className="aspect-video w-full object-cover transition-transform duration-slow ease-smooth group-hover:scale-[1.02]"
               />
               <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-fast ease-smooth group-hover:opacity-100">
-                <span className="text-label border border-paper bg-void/80 px-4 py-2 text-paper backdrop-blur-sm">
+                <span className="bg-void/80 border border-paper px-4 py-2 text-label text-paper backdrop-blur-sm">
                   VIEW FULL SIZE
                 </span>
               </div>

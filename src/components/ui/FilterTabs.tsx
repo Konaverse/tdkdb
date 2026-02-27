@@ -18,7 +18,7 @@ export default function FilterTabs({ options, active, onChange, className }: Fil
           type="button"
           onClick={() => onChange(option)}
           className={cn(
-            'text-label pb-1 transition-colors duration-fast ease-smooth',
+            'pb-1 text-label transition-colors duration-fast ease-smooth',
             active === option
               ? 'border-b border-threshold text-threshold'
               : 'text-stone hover:text-paper',

@@ -120,7 +120,7 @@ const projects: Record<string, ProjectData> = {
     description: {
       title: 'A NEW ADDRESS IN NICOSIA.',
       body: [
-        'Almond is TDK\'s second residential development — a considered response to the growing demand for well-designed, owner-occupied apartments in Nicosia.',
+        "Almond is TDK's second residential development — a considered response to the growing demand for well-designed, owner-occupied apartments in Nicosia.",
         'The design takes cues from the Armonia experience: generous floor plates, quality material specification, and outdoor spaces that genuinely extend the interior.',
         'Details to be announced. Register your interest to receive updates as the project progresses.',
       ],
@@ -140,7 +140,10 @@ const projects: Record<string, ProjectData> = {
   },
 };
 
-const relatedProjectsMap: Record<string, { slug: string; title: string; location: string; imageId: string }[]> = {
+const relatedProjectsMap: Record<
+  string,
+  { slug: string; title: string; location: string; imageId: string }[]
+> = {
   armonia: [
     {
       slug: 'almond',
@@ -183,7 +186,9 @@ export default async function ProjectDetailPage({ params }: Props) {
   if (!project) notFound();
 
   const showProgress =
-    project.ctaType !== 'showcase' && project.status !== 'completed' && project.progressPercent !== undefined;
+    project.ctaType !== 'showcase' &&
+    project.status !== 'completed' &&
+    project.progressPercent !== undefined;
 
   const showInterestForm = project.ctaType === 'register-interest';
 
@@ -207,10 +212,7 @@ export default async function ProjectDetailPage({ params }: Props) {
       />
 
       {showProgress && project.progressPercent !== undefined && (
-        <ProjectProgress
-          percent={project.progressPercent}
-          label={project.progressLabel ?? ''}
-        />
+        <ProjectProgress percent={project.progressPercent} label={project.progressLabel ?? ''} />
       )}
 
       <ProjectPhotosGallery

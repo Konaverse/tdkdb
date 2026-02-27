@@ -12,9 +12,7 @@ interface ProjectCTAProps {
 
 export default function ProjectCTA({ ctaType }: ProjectCTAProps) {
   const heading =
-    ctaType === 'register-interest'
-      ? 'INTERESTED IN THIS DEVELOPMENT?'
-      : 'WANT TO WORK WITH US?';
+    ctaType === 'register-interest' ? 'INTERESTED IN THIS DEVELOPMENT?' : 'WANT TO WORK WITH US?';
 
   const subtext =
     ctaType === 'register-interest'
@@ -26,7 +24,7 @@ export default function ProjectCTA({ ctaType }: ProjectCTAProps) {
       <GridWrapper>
         <FadeUp>
           <div className="flex flex-col items-start gap-6">
-            <TextReveal tag="h2" className="text-display-md max-w-xl text-paper">
+            <TextReveal tag="h2" className="max-w-xl text-display-md text-paper">
               {heading}
             </TextReveal>
             <p className="text-body-lg text-stone">{subtext}</p>

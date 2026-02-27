@@ -27,7 +27,7 @@ export default function ProjectPhotosGallery({ heading, images }: ProjectPhotosG
     <Section background="surface">
       <GridWrapper>
         <FadeUp>
-          <p className="text-label mb-12 text-stone">{heading}</p>
+          <p className="mb-12 text-label text-stone">{heading}</p>
         </FadeUp>
         <div className="columns-1 gap-4 sm:columns-2 lg:columns-3">
           {images.map((img, i) => (
@@ -43,7 +43,7 @@ export default function ProjectPhotosGallery({ heading, images }: ProjectPhotosG
                   alt={`${heading} photo ${i + 1}`}
                   className="w-full object-cover transition-transform duration-medium ease-smooth group-hover:scale-[1.03]"
                 />
-                <div className="absolute inset-0 bg-void/0 transition-colors duration-fast ease-smooth group-hover:bg-void/20" />
+                <div className="bg-void/0 group-hover:bg-void/20 absolute inset-0 transition-colors duration-fast ease-smooth" />
               </button>
             </FadeUp>
           ))}

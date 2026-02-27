@@ -134,7 +134,8 @@ const services: Record<string, ServiceData> = {
       },
       {
         question: 'Can you manage a project designed by another architect?',
-        answer: 'Yes — we regularly step in as construction manager on externally designed projects.',
+        answer:
+          'Yes — we regularly step in as construction manager on externally designed projects.',
       },
     ],
   },
@@ -189,8 +190,7 @@ const services: Record<string, ServiceData> = {
       },
       {
         question: 'Can you source furniture internationally?',
-        answer:
-          'Yes. We work with suppliers across Europe and beyond, managing logistics to site.',
+        answer: 'Yes. We work with suppliers across Europe and beyond, managing logistics to site.',
       },
       {
         question: 'Do you do show apartments?',
@@ -311,10 +311,10 @@ export default async function ServiceDetailPage({ params }: Props) {
           className="absolute inset-0 h-full w-full object-cover"
           style={{ opacity: 0.3 }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-void via-void/60 to-transparent" />
+        <div className="via-void/60 absolute inset-0 bg-gradient-to-t from-void to-transparent" />
         <GridWrapper className="relative z-10">
-          <p className="text-label mb-4 text-threshold">SERVICE</p>
-          <TextReveal tag="h1" className="text-display-lg max-w-3xl text-paper">
+          <p className="mb-4 text-label text-threshold">SERVICE</p>
+          <TextReveal tag="h1" className="max-w-3xl text-display-lg text-paper">
             {service.heroTagline}
           </TextReveal>
           <p className="mt-4 text-heading font-light text-stone">{service.name}</p>
@@ -345,13 +345,13 @@ export default async function ServiceDetailPage({ params }: Props) {
       <Section background="surface">
         <GridWrapper>
           <FadeUp>
-            <p className="text-label mb-12 text-stone">HOW WE WORK</p>
+            <p className="mb-12 text-label text-stone">HOW WE WORK</p>
           </FadeUp>
           <div className="flex flex-col">
             {service.processSteps.map((step, i) => (
               <FadeUp key={i} delay={i * 80}>
                 <div className="grid grid-cols-[2rem_1fr] gap-8 border-b border-border py-8">
-                  <span className="text-label pt-1 text-threshold">0{i + 1}</span>
+                  <span className="pt-1 text-label text-threshold">0{i + 1}</span>
                   <div className="flex flex-col gap-2">
                     <h3 className="text-body font-semibold text-paper">{step.heading}</h3>
                     <p className="text-body text-stone">{step.description}</p>
@@ -368,7 +368,7 @@ export default async function ServiceDetailPage({ params }: Props) {
         <Section>
           <GridWrapper>
             <FadeUp>
-              <p className="text-label mb-12 text-stone">RELATED PROJECTS</p>
+              <p className="mb-12 text-label text-stone">RELATED PROJECTS</p>
             </FadeUp>
             <div className="grid gap-8 sm:grid-cols-2">
               {relatedProjects.map((project) => (
@@ -387,7 +387,7 @@ export default async function ServiceDetailPage({ params }: Props) {
                     <div className="flex flex-col justify-center gap-1">
                       <p className="text-label text-paper">{project.title}</p>
                       <p className="text-body text-stone">{project.location}</p>
-                      <p className="text-label mt-2 text-threshold transition-colors duration-fast ease-smooth group-hover:text-paper">
+                      <p className="mt-2 text-label text-threshold transition-colors duration-fast ease-smooth group-hover:text-paper">
                         VIEW →
                       </p>
                     </div>
@@ -403,7 +403,7 @@ export default async function ServiceDetailPage({ params }: Props) {
       <Section background="surface">
         <GridWrapper>
           <FadeUp>
-            <p className="text-label mb-12 text-stone">FREQUENTLY ASKED</p>
+            <p className="mb-12 text-label text-stone">FREQUENTLY ASKED</p>
           </FadeUp>
           <Accordion items={service.faqs} />
         </GridWrapper>
@@ -414,7 +414,7 @@ export default async function ServiceDetailPage({ params }: Props) {
         <GridWrapper>
           <FadeUp>
             <div className="flex flex-col items-start gap-8">
-              <TextReveal tag="h2" className="text-display-md max-w-xl text-paper">
+              <TextReveal tag="h2" className="max-w-xl text-display-md text-paper">
                 READY TO GET STARTED?
               </TextReveal>
               <GhostButton href="/contact">Discuss Your Project</GhostButton>

@@ -29,8 +29,8 @@ export default function InsightsClient({ articles }: InsightsClientProps) {
       {/* ── Hero ── */}
       <section className="flex min-h-[50vh] items-end pb-24 pt-40">
         <GridWrapper>
-          <p className="text-label mb-4 text-stone">PERSPECTIVES</p>
-          <TextReveal tag="h1" className="text-display-lg max-w-3xl text-paper">
+          <p className="mb-4 text-label text-stone">PERSPECTIVES</p>
+          <TextReveal tag="h1" className="max-w-3xl text-display-lg text-paper">
             INSIGHTS ON ARCHITECTURE & DESIGN.
           </TextReveal>
         </GridWrapper>

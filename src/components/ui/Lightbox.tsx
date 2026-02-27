@@ -41,7 +41,11 @@ export default function Lightbox({
     if (isOpen) {
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (!prefersReducedMotion) {
-        gsap.fromTo(overlayRef.current, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power2.out' });
+        gsap.fromTo(
+          overlayRef.current,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.3, ease: 'power2.out' },
+        );
       }
     }
   }, [isOpen]);
@@ -102,14 +106,14 @@ export default function Lightbox({
         ref={closeBtnRef}
         type="button"
         onClick={handleClose}
-        className="text-label absolute top-6 right-6 z-10 text-stone hover:text-paper"
+        className="absolute right-6 top-6 z-10 text-label text-stone hover:text-paper"
         aria-label="Close lightbox"
       >
         ✕ CLOSE
       </button>
 
       {/* Counter */}
-      <div className="text-label absolute top-6 left-6 text-stone">
+      <div className="absolute left-6 top-6 text-label text-stone">
         {initialIndex + 1} / {images.length}
       </div>
 
@@ -127,7 +131,7 @@ export default function Lightbox({
         <button
           type="button"
           onClick={() => onNavigate(initialIndex - 1)}
-          className="text-label absolute left-6 top-1/2 -translate-y-1/2 border border-border px-4 py-3 text-stone hover:border-paper hover:text-paper"
+          className="absolute left-6 top-1/2 -translate-y-1/2 border border-border px-4 py-3 text-label text-stone hover:border-paper hover:text-paper"
           aria-label="Previous image"
         >
           ← PREV
@@ -139,7 +143,7 @@ export default function Lightbox({
         <button
           type="button"
           onClick={() => onNavigate(initialIndex + 1)}
-          className="text-label absolute right-6 top-1/2 -translate-y-1/2 border border-border px-4 py-3 text-stone hover:border-paper hover:text-paper"
+          className="absolute right-6 top-1/2 -translate-y-1/2 border border-border px-4 py-3 text-label text-stone hover:border-paper hover:text-paper"
           aria-label="Next image"
         >
           NEXT →

@@ -82,14 +82,14 @@ export default function ArticleDetailClient({ article, body, related }: ArticleD
       <section className="pb-16 pt-40">
         <GridWrapper>
           <FadeUp>
-            <div className="flex flex-wrap items-center gap-4 mb-6">
+            <div className="mb-6 flex flex-wrap items-center gap-4">
               <span className="text-label text-threshold">{article.category.toUpperCase()}</span>
               <span className="text-label text-stone">·</span>
               <span className="text-label text-stone">{article.readTime}</span>
             </div>
           </FadeUp>
           <FadeUp delay={100}>
-            <h1 className="text-display-md mb-8 max-w-3xl text-paper">{article.title}</h1>
+            <h1 className="mb-8 max-w-3xl text-display-md text-paper">{article.title}</h1>
           </FadeUp>
           <FadeUp delay={200}>
             <div className="flex items-center gap-6 border-t border-border pt-6">
@@ -100,7 +100,7 @@ export default function ArticleDetailClient({ article, body, related }: ArticleD
               <button
                 type="button"
                 onClick={handleShare}
-                className="text-label ml-auto text-stone hover:text-paper transition-colors duration-fast ease-smooth"
+                className="ml-auto text-label text-stone transition-colors duration-fast ease-smooth hover:text-paper"
               >
                 SHARE →
               </button>
@@ -122,18 +122,16 @@ export default function ArticleDetailClient({ article, body, related }: ArticleD
             {toc.length > 0 && (
               <aside className="hidden lg:block">
                 <div className="sticky top-24">
-                  <p className="text-label mb-4 text-stone">CONTENTS</p>
+                  <p className="mb-4 text-label text-stone">CONTENTS</p>
                   <nav className="flex flex-col gap-2">
                     {toc.map(({ key, text, level }) => (
                       <a
                         key={key}
                         href={`#heading-${key}`}
-                        className={`text-body block transition-colors duration-fast ease-smooth ${
+                        className={`block text-body transition-colors duration-fast ease-smooth ${
                           level === 'h3' ? 'pl-4' : ''
                         } ${
-                          activeHeading === key
-                            ? 'text-threshold'
-                            : 'text-stone hover:text-paper'
+                          activeHeading === key ? 'text-threshold' : 'text-stone hover:text-paper'
                         }`}
                       >
                         {text}
@@ -155,7 +153,7 @@ export default function ArticleDetailClient({ article, body, related }: ArticleD
               <div className="h-16 w-16 flex-shrink-0 bg-void" />
               <div>
                 <p className="text-label text-paper">TDK DESIGN & BUILD</p>
-                <p className="text-body mt-2 text-stone">
+                <p className="mt-2 text-body text-stone">
                   TDK Design &amp; Build is a fully integrated architecture, construction, and
                   interior design studio based in Nicosia, Cyprus.
                 </p>
@@ -170,7 +168,7 @@ export default function ArticleDetailClient({ article, body, related }: ArticleD
         <Section>
           <GridWrapper>
             <FadeUp>
-              <p className="text-label mb-12 text-stone">MORE INSIGHTS</p>
+              <p className="mb-12 text-label text-stone">MORE INSIGHTS</p>
             </FadeUp>
             <div className="grid gap-12 sm:grid-cols-2">
               {related.map((a, i) => (

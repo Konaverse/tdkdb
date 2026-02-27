@@ -23,7 +23,7 @@ export default function CategoryFilter({
           type="button"
           onClick={() => onChange(cat)}
           className={cn(
-            'text-label pb-1 transition-colors duration-fast ease-smooth',
+            'pb-1 text-label transition-colors duration-fast ease-smooth',
             active === cat
               ? 'border-b border-threshold text-threshold'
               : 'text-stone hover:text-paper',

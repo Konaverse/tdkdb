@@ -28,10 +28,7 @@ function formatDate(dateStr: string): string {
 
 export default function ArticleCard({ article, className, featured = false }: ArticleCardProps) {
   return (
-    <Link
-      href={`/en/insights/${article.slug}`}
-      className={cn('group flex flex-col', className)}
-    >
+    <Link href={`/en/insights/${article.slug}`} className={cn('group flex flex-col', className)}>
       {/* Image */}
       <div className={cn('overflow-hidden', featured ? 'aspect-video' : 'aspect-[4/3]')}>
         <img
@@ -54,7 +51,7 @@ export default function ArticleCard({ article, className, featured = false }: Ar
         >
           {article.title}
         </h3>
-        <p className="text-body flex-1 text-stone">{article.excerpt}</p>
+        <p className="flex-1 text-body text-stone">{article.excerpt}</p>
         <p className="text-label text-stone">{formatDate(article.date)}</p>
       </div>
     </Link>

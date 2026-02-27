@@ -56,8 +56,8 @@ export default function ProjectsClient() {
       {/* ── Hero ── */}
       <section className="flex min-h-[50vh] items-end pb-24 pt-40">
         <GridWrapper>
-          <p className="text-label mb-4 text-stone">OUR WORK</p>
-          <TextReveal tag="h1" className="text-display-lg max-w-3xl text-paper">
+          <p className="mb-4 text-label text-stone">OUR WORK</p>
+          <TextReveal tag="h1" className="max-w-3xl text-display-lg text-paper">
             PROJECTS BUILT WITH PURPOSE.
           </TextReveal>
         </GridWrapper>

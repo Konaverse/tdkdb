@@ -19,7 +19,10 @@ export default function NotFoundAnimations() {
     if (prefersReducedMotion) {
       // Everything immediately visible
       [codeRef.current, headingRef.current, bodyRef.current, actionsRef.current].forEach((el) => {
-        if (el) { el.style.opacity = '1'; el.style.transform = 'none'; }
+        if (el) {
+          el.style.opacity = '1';
+          el.style.transform = 'none';
+        }
       });
       return;
     }
@@ -47,33 +50,17 @@ export default function NotFoundAnimations() {
 
   return (
     <div className="flex flex-col items-start gap-6 px-6" style={{ maxWidth: '480px' }}>
-      <p
-        ref={codeRef}
-        className="text-display-xl font-light text-stone"
-        style={{ opacity: 0 }}
-      >
+      <p ref={codeRef} className="text-display-xl font-light text-stone" style={{ opacity: 0 }}>
         404
       </p>
-      <p
-        ref={headingRef}
-        className="text-label text-stone"
-        style={{ opacity: 0 }}
-      >
+      <p ref={headingRef} className="text-label text-stone" style={{ opacity: 0 }}>
         PAGE NOT FOUND
       </p>
-      <p
-        ref={bodyRef}
-        className="text-body text-stone"
-        style={{ opacity: 0 }}
-      >
+      <p ref={bodyRef} className="text-body text-stone" style={{ opacity: 0 }}>
         The page you are looking for does not exist or has been moved. Try navigating back to the
         homepage or explore our projects.
       </p>
-      <div
-        ref={actionsRef}
-        className="flex flex-wrap items-center gap-6"
-        style={{ opacity: 0 }}
-      >
+      <div ref={actionsRef} className="flex flex-wrap items-center gap-6" style={{ opacity: 0 }}>
         <PrimaryButton href="/">Back to Home</PrimaryButton>
         <Link
           href="/en/projects"

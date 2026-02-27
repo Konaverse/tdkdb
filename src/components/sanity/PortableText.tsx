@@ -1,4 +1,7 @@
-import { PortableText as ReactPortableText, type PortableTextComponents } from '@portabletext/react';
+import {
+  PortableText as ReactPortableText,
+  type PortableTextComponents,
+} from '@portabletext/react';
 import type { PortableTextBlock } from '@portabletext/types';
 import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
 
@@ -11,7 +14,7 @@ const components: PortableTextComponents = {
     h2: ({ children, value }) => (
       <h2
         id={`heading-${(value as { _key?: string })._key ?? ''}`}
-        className="text-heading mb-4 mt-12 scroll-mt-24 text-paper"
+        className="mb-4 mt-12 scroll-mt-24 text-heading text-paper"
         data-heading="h2"
       >
         {children}
@@ -20,15 +23,13 @@ const components: PortableTextComponents = {
     h3: ({ children, value }) => (
       <h3
         id={`heading-${(value as { _key?: string })._key ?? ''}`}
-        className="text-body mb-3 mt-8 scroll-mt-24 font-semibold text-paper"
+        className="mb-3 mt-8 scroll-mt-24 text-body font-semibold text-paper"
         data-heading="h3"
       >
         {children}
       </h3>
     ),
-    normal: ({ children }) => (
-      <p className="text-body-lg mb-6 text-stone">{children}</p>
-    ),
+    normal: ({ children }) => <p className="mb-6 text-body-lg text-stone">{children}</p>,
     blockquote: ({ children }) => (
       <blockquote className="my-8 border-l-2 border-threshold pl-6 text-body-lg italic text-stone">
         {children}
@@ -47,7 +48,7 @@ const components: PortableTextComponents = {
       </a>
     ),
     code: ({ children }) => (
-      <code className="font-mono rounded bg-surface px-1.5 py-0.5 text-sm text-threshold">
+      <code className="rounded bg-surface px-1.5 py-0.5 font-mono text-sm text-threshold">
         {children}
       </code>
     ),

@@ -12,7 +12,7 @@ export default function ProjectLocation({ address, mapEmbedUrl }: ProjectLocatio
     <Section>
       <GridWrapper>
         <FadeUp>
-          <p className="text-label mb-8 text-stone">LOCATION</p>
+          <p className="mb-8 text-label text-stone">LOCATION</p>
         </FadeUp>
         <FadeUp delay={100}>
           <div className="flex flex-col gap-6">

@@ -4,8 +4,7 @@ import type { ArticleCardData } from '@/components/ui/ArticleCard';
 
 export const metadata: Metadata = {
   title: 'Insights | TDK Design & Build',
-  description:
-    'Perspectives on architecture, construction, and design from TDK Design & Build.',
+  description: 'Perspectives on architecture, construction, and design from TDK Design & Build.',
 };
 
 export const articles: ArticleCardData[] = [
@@ -14,7 +13,7 @@ export const articles: ArticleCardData[] = [
     title: 'Architecture in Nicosia Today',
     category: 'Architecture',
     excerpt:
-      'Nicosia is experiencing a quiet architectural renaissance. A new generation of developers and designers are pushing the city\'s built environment in a more considered direction.',
+      "Nicosia is experiencing a quiet architectural renaissance. A new generation of developers and designers are pushing the city's built environment in a more considered direction.",
     date: '2024-03-01',
     readTime: '5 min',
     heroImageId: 'clients/tdkdb/armonia/exterior/1',

@@ -69,7 +69,10 @@ export async function POST(req: NextRequest) {
   const toEmail = process.env.INTEREST_FORM_TO_EMAIL;
   if (!toEmail) {
     console.error('INTEREST_FORM_TO_EMAIL not configured');
-    return NextResponse.json({ success: false, error: 'Server configuration error' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: 'Server configuration error' },
+      { status: 500 },
+    );
   }
 
   try {

@@ -149,7 +149,7 @@ export default function SceneAnatomy() {
     const path = pathRef.current;
     if (!section || !path) return;
 
-    const node = NODES.find(n => n.id === nodeId);
+    const node = NODES.find((n) => n.id === nodeId);
     if (!node) return;
 
     const { width, height } = section.getBoundingClientRect();
@@ -212,7 +212,7 @@ export default function SceneAnatomy() {
   // Touch / click toggle — reads prev via functional updater to avoid stale closure
   const handleNodeClick = useCallback(
     (id: number) => {
-      setActiveNode(prev => {
+      setActiveNode((prev) => {
         if (prev === id) {
           clearConnector();
           return null;
@@ -236,20 +236,24 @@ export default function SceneAnatomy() {
       return;
     }
 
-    gsap.fromTo(continueRef.current, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' });
+    gsap.fromTo(
+      continueRef.current,
+      { opacity: 0, y: 10 },
+      { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' },
+    );
   }, [continueVisible]);
 
   return (
     // 200vh wrapper: 100vh visible height + 100vh scroll travel for the sticky pin.
     // CSS sticky avoids GSAP inserting a spacer sibling that React can't reconcile.
     <div ref={wrapperRef} style={{ height: '200vh' }}>
-    <section ref={sectionRef} className="sticky top-0 h-screen overflow-hidden bg-void">
-      {/* Node pulse keyframes.
+      <section ref={sectionRef} className="sticky top-0 h-screen overflow-hidden bg-void">
+        {/* Node pulse keyframes.
           - translate(-50%,-50%) is baked in so the transform composes with left/top positioning.
           - Starts at opacity 1 (was 0.8) so rings are clearly visible at the peak of each pulse.
           - animation-fill-mode:backwards (set on each ring via inline style) applies the 0%
             keyframe during the stagger delay, keeping rings centered before animation fires. */}
-      <style>{`
+        <style>{`
         @keyframes nodePulse {
           0%   { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
           100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
@@ -259,131 +263,131 @@ export default function SceneAnatomy() {
         }
       `}</style>
 
-      {/* Two-column grid */}
-      <div className="grid h-full grid-cols-2">
-        {/* ── LEFT PANEL ── */}
-        <div className="relative flex items-center justify-center overflow-hidden border-r border-border px-12 lg:px-20">
-          <div
-            ref={leftTextRef}
-            role="region"
-            aria-live="polite"
-            aria-label="Building detail"
-            className="w-full max-w-md will-change-transform"
-          >
-            {displayedNode === null ? (
-              <div className="flex flex-col items-center gap-3">
-                <div className="h-px w-12 bg-border" />
-                <span className="text-label text-stone">Explore the Building</span>
-                <div className="h-px w-12 bg-border" />
-              </div>
-            ) : (
-              (() => {
-                const node = NODES.find(n => n.id === displayedNode);
-                if (!node) return null;
-                return (
-                  <div>
-                    <div className="mb-4 h-0.5 w-10 bg-threshold" />
-                    <h3 className="text-heading mb-4 text-paper">{node.heading}</h3>
-                    <p className="text-body-lg text-stone">{node.body}</p>
-                  </div>
-                );
-              })()
-            )}
+        {/* Two-column grid */}
+        <div className="grid h-full grid-cols-2">
+          {/* ── LEFT PANEL ── */}
+          <div className="relative flex items-center justify-center overflow-hidden border-r border-border px-12 lg:px-20">
+            <div
+              ref={leftTextRef}
+              role="region"
+              aria-live="polite"
+              aria-label="Building detail"
+              className="w-full max-w-md will-change-transform"
+            >
+              {displayedNode === null ? (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="h-px w-12 bg-border" />
+                  <span className="text-label text-stone">Explore the Building</span>
+                  <div className="h-px w-12 bg-border" />
+                </div>
+              ) : (
+                (() => {
+                  const node = NODES.find((n) => n.id === displayedNode);
+                  if (!node) return null;
+                  return (
+                    <div>
+                      <div className="mb-4 h-0.5 w-10 bg-threshold" />
+                      <h3 className="mb-4 text-heading text-paper">{node.heading}</h3>
+                      <p className="text-body-lg text-stone">{node.body}</p>
+                    </div>
+                  );
+                })()
+              )}
+            </div>
+          </div>
+
+          {/* ── RIGHT PANEL ── */}
+          <div className="relative overflow-hidden">
+            <img
+              ref={imageRef}
+              src={heroImage('clients/tdkdb/armonia/exterior/armonia_front_angle_day')}
+              alt="Armonia building — interactive architectural overview"
+              className="h-full w-full object-cover will-change-transform"
+              draggable={false}
+            />
+
+            {/* 6 interactive hotspot nodes */}
+            {NODES.map((node, i) => (
+              <button
+                key={node.id}
+                aria-label={`Explore ${node.name}`}
+                className="absolute h-12 w-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-threshold"
+                style={{
+                  left: node.left,
+                  top: node.top,
+                  opacity: activeNode !== null && activeNode !== node.id ? 0.25 : 1,
+                  transition: 'opacity 150ms',
+                }}
+                onMouseEnter={() => handleNodeEnter(node.id)}
+                onMouseLeave={handleNodeLeave}
+                onClick={() => handleNodeClick(node.id)}
+              >
+                {/* Outer ring — pulse when inactive, solid teal when active */}
+                <div
+                  ref={(el) => {
+                    ringRefs.current[i] = el;
+                  }}
+                  className="node-pulse-ring absolute rounded-full border transition-colors duration-300"
+                  style={{
+                    width: 24,
+                    height: 24,
+                    left: '50%',
+                    top: '50%',
+                    // 0.65 opacity so the ring is clearly visible at the start of each pulse cycle
+                    borderColor:
+                      activeNode === node.id ? 'var(--color-threshold)' : 'rgba(245,240,232,0.65)',
+                    animation:
+                      activeNode === node.id
+                        ? 'none'
+                        : `nodePulse 2s ease-out infinite ${PULSE_DELAYS[i]}ms`,
+                    // backwards: apply the 0% keyframe (centered + opacity 1) during the stagger
+                    // delay so rings are visible and correctly placed before their animation fires
+                    animationFillMode: activeNode === node.id ? 'none' : 'backwards',
+                  }}
+                />
+                {/* Inner dot — slightly larger so it's visible even against a busy image */}
+                <div
+                  className="absolute rounded-full transition-colors duration-300"
+                  style={{
+                    width: 8,
+                    height: 8,
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    background:
+                      activeNode === node.id ? 'var(--color-threshold)' : 'rgba(245,240,232,0.75)',
+                  }}
+                />
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* ── RIGHT PANEL ── */}
-        <div className="relative overflow-hidden">
-          <img
-            ref={imageRef}
-            src={heroImage('clients/tdkdb/armonia/exterior/armonia_front_angle_day')}
-            alt="Armonia building — interactive architectural overview"
-            className="h-full w-full object-cover will-change-transform"
-            draggable={false}
-          />
-
-          {/* 6 interactive hotspot nodes */}
-          {NODES.map((node, i) => (
-            <button
-              key={node.id}
-              aria-label={`Explore ${node.name}`}
-              className="absolute h-12 w-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-threshold"
-              style={{
-                left: node.left,
-                top: node.top,
-                opacity: activeNode !== null && activeNode !== node.id ? 0.25 : 1,
-                transition: 'opacity 150ms',
-              }}
-              onMouseEnter={() => handleNodeEnter(node.id)}
-              onMouseLeave={handleNodeLeave}
-              onClick={() => handleNodeClick(node.id)}
-            >
-              {/* Outer ring — pulse when inactive, solid teal when active */}
-              <div
-                ref={el => {
-                  ringRefs.current[i] = el;
-                }}
-                className="node-pulse-ring absolute rounded-full border transition-colors duration-300"
-                style={{
-                  width: 24,
-                  height: 24,
-                  left: '50%',
-                  top: '50%',
-                  // 0.65 opacity so the ring is clearly visible at the start of each pulse cycle
-                  borderColor:
-                    activeNode === node.id ? 'var(--color-threshold)' : 'rgba(245,240,232,0.65)',
-                  animation:
-                    activeNode === node.id
-                      ? 'none'
-                      : `nodePulse 2s ease-out infinite ${PULSE_DELAYS[i]}ms`,
-                  // backwards: apply the 0% keyframe (centered + opacity 1) during the stagger
-                  // delay so rings are visible and correctly placed before their animation fires
-                  animationFillMode: activeNode === node.id ? 'none' : 'backwards',
-                }}
-              />
-              {/* Inner dot — slightly larger so it's visible even against a busy image */}
-              <div
-                className="absolute rounded-full transition-colors duration-300"
-                style={{
-                  width: 8,
-                  height: 8,
-                  left: '50%',
-                  top: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  background:
-                    activeNode === node.id ? 'var(--color-threshold)' : 'rgba(245,240,232,0.75)',
-                }}
-              />
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* SVG connector line — spans full section width, drawn from active node to left edge */}
-      <svg
-        ref={svgRef}
-        className="pointer-events-none absolute inset-0 z-10 h-full w-full"
-        aria-hidden="true"
-      >
-        <path
-          ref={pathRef}
-          stroke="var(--color-threshold)"
-          strokeWidth="1"
-          fill="none"
-          opacity="0"
-        />
-      </svg>
-
-      {/* ↓ CONTINUE prompt — appears after 8s or after hovering 3+ nodes */}
-      {continueVisible && (
-        <div
-          ref={continueRef}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 text-label text-stone opacity-0"
+        {/* SVG connector line — spans full section width, drawn from active node to left edge */}
+        <svg
+          ref={svgRef}
+          className="pointer-events-none absolute inset-0 z-10 h-full w-full"
+          aria-hidden="true"
         >
-          ↓ CONTINUE
-        </div>
-      )}
-    </section>
+          <path
+            ref={pathRef}
+            stroke="var(--color-threshold)"
+            strokeWidth="1"
+            fill="none"
+            opacity="0"
+          />
+        </svg>
+
+        {/* ↓ CONTINUE prompt — appears after 8s or after hovering 3+ nodes */}
+        {continueVisible && (
+          <div
+            ref={continueRef}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 text-label text-stone opacity-0"
+          >
+            ↓ CONTINUE
+          </div>
+        )}
+      </section>
     </div>
   );
 }
