@@ -1,13 +1,13 @@
 export const SEQUENCE_CONFIG = {
   assembly: {
-    frameCount: 40,
+    frameCount: 120,
     fps: 24,
     pad: 4,
     path: '/sequences/assembly/frame-',
     extension: '.webp',
   },
   approach: {
-    frameCount: 102,
+    frameCount: 152,
     fps: 24,
     pad: 3,
     path: '/sequences/approach/frame-',
