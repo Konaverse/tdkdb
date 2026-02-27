@@ -120,7 +120,7 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
     const mainST = ScrollTrigger.create({
       trigger: '#scroll-container',
       start: 'top top',
-      end: '+=150%',
+      end: `+=${window.innerHeight * 1.5}px`, // 150vh in px — approach fully plays 0→150vh
       scrub: 0.5,
       onUpdate: (self) => {
         const i = Math.round(self.progress * (approachFrames.current.length - 1));
@@ -142,7 +142,7 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
         scrollTrigger: {
           trigger: '#scroll-container',
           start: 'top top',
-          end: '+=150%',
+          end: `+=${window.innerHeight * 1.5}px`, // matches approach range — vignette fully dark at threshold
           scrub: 1.5,
         },
       },
@@ -249,8 +249,8 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
         isVisible={phase === 'hero' || phase === 'approach'}
         scrollProgress={scrollProgress}
       />
-      {/* 200vh: approach runs 0→150vh, threshold bloom 150→170vh, 30vh buffer before next section */}
-      <div id="scroll-container" style={{ position: 'relative', height: '200vh' }} />
+      {/* 260vh: approach runs 0→150vh, threshold bloom 150→170vh, 90vh buffer before next section */}
+      <div id="scroll-container" style={{ position: 'relative', height: '260vh' }} />
       {children}
     </HomepagePhaseContext.Provider>
   );
