@@ -44,7 +44,6 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafCleanupRef = useRef<(() => void) | null>(null);
   const vignetteRef = useRef<HTMLDivElement>(null);
-  const glowRef = useRef<HTMLDivElement>(null);
   const bloomRef = useRef<HTMLDivElement>(null);
 
   const resizeCanvas = useCallback(() => {
@@ -148,21 +147,6 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
       },
     );
 
-    const glowTween = gsap.fromTo(
-      glowRef.current,
-      { opacity: 0 },
-      {
-        opacity: 1,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: '#scroll-container',
-          start: 'top+=90% top',
-          end: '+=60%',
-          scrub: 1,
-        },
-      },
-    );
-
     const thresholdST = ScrollTrigger.create({
       trigger: '#scroll-container',
       start: `top+=${window.innerHeight * 1.5}px top`, // 150vh in px — avoids % ambiguity (% in trigger pos = trigger height, not viewport)
@@ -207,14 +191,11 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
         // gradient overlay; the vignette ST is done but its opacity is stuck at 0.8.
         mainST.kill();
         vignetteTween.scrollTrigger?.kill();
-        glowTween.scrollTrigger?.kill();
-
-        // Fade vignette and glow to 0 smoothly so they don't bleed over the anatomy section
+        // Fade vignette to 0 smoothly so it doesn't bleed over the anatomy section
         if (vignetteRef.current) {
           vignetteRef.current.style.transition = 'opacity 0.6s';
           vignetteRef.current.style.opacity = '0';
         }
-        if (glowRef.current) glowRef.current.style.opacity = '0';
 
         setPhase('complete');
       },
@@ -223,7 +204,6 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
     return () => {
       mainST.kill();
       vignetteTween.scrollTrigger?.kill();
-      glowTween.scrollTrigger?.kill();
       thresholdST.kill();
     };
   }, [hasAssembled]);
@@ -247,16 +227,6 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
         style={{
           opacity: 0.2,
           background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%)',
-        }}
-      />
-      {/* Entrance glow — teal warmth bleeds from the door in the final 40% */}
-      <div
-        ref={glowRef}
-        className="pointer-events-none fixed inset-0 z-[6]"
-        style={{
-          opacity: 0,
-          background:
-            'radial-gradient(circle at 50% 55%, rgba(102,151,159,0.15) 0%, transparent 60%)',
         }}
       />
       {/* Threshold bloom — teal flash at the entrance crossing */}
