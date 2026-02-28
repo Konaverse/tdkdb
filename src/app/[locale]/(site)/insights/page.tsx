@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'Perspectives on architecture, construction, and design from TDK Design & Build.',
 };
 
-export const articles: ArticleCardData[] = [
+const articles: ArticleCardData[] = [
   {
     slug: 'architecture-nicosia',
     title: 'Architecture in Nicosia Today',

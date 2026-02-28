@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
+import { MeshGradient } from '@paper-design/shaders-react';
+
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { drawFrame, preloadSequence } from '@/lib/homepage/imageSequence';
 import { SEQUENCE_CONFIG } from '@/lib/homepage/sequenceConfig';
@@ -12,8 +14,8 @@ const NODES = [
   {
     id: 1,
     name: 'Entrance',
-    left: '48%',
-    top: '72%',
+    left: '40%',
+    top: '65%',
     heading: 'The First Impression',
     body: 'Recessed lighting. Timber-lined walls. A door that announces arrival. The entrance of Armonia was designed to make every return home feel intentional.',
   },
@@ -28,8 +30,8 @@ const NODES = [
   {
     id: 3,
     name: 'Balconies',
-    left: '35%',
-    top: '52%',
+    left: '25%',
+    top: '50%',
     heading: 'Living Extended',
     body: 'The balconies are not additions. They are extensions of the living floor — same ceiling height, same material continuity, designed so the threshold between inside and outside is a question of temperature, not architecture.',
   },
@@ -44,16 +46,16 @@ const NODES = [
   {
     id: 5,
     name: 'Rooftop',
-    left: '50%',
-    top: '18%',
+    left: '25%',
+    top: '25%',
     heading: 'The Fifth Facade',
     body: "Most buildings forget their rooftops. Armonia's is designed to be inhabited — a private sky-level terrace with views across Lakatameia toward the Pentadaktylos mountains.",
   },
   {
     id: 6,
     name: 'Landscape',
-    left: '30%',
-    top: '82%',
+    left: '40%',
+    top: '75%',
     heading: 'Grounded',
     body: 'The boundary between public pavement and private threshold is handled in natural stone — a material that weathers slowly and gracefully, unlike concrete. This is how a building belongs to its street.',
   },
@@ -67,8 +69,6 @@ export default function SceneAnatomy() {
 
   const sectionRef = useRef<HTMLElement>(null);
   const leftTextRef = useRef<HTMLDivElement>(null);
-  const svgRef = useRef<SVGSVGElement>(null);
-  const pathRef = useRef<SVGPathElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ringRefs = useRef<(HTMLDivElement | null)[]>([]);
   const continueRef = useRef<HTMLDivElement>(null);
@@ -85,7 +85,7 @@ export default function SceneAnatomy() {
   const rafIdRef = useRef<number>(0);
   const currentFrameRef = useRef<number>(0);
   const isHoveredRef = useRef<boolean>(false);
-  const zoomTweenRef = useRef<gsap.core.Tween | null>(null);
+  const zoomTweenRef = useRef<gsap.core.Animation | null>(null);
   // Ref mirror of activeNode — avoids stale closure in handlePanelLeave
   const activeNodeRef = useRef<number | null>(null);
 
@@ -140,7 +140,7 @@ export default function SceneAnatomy() {
     window.addEventListener('resize', sizeCanvas);
 
     // Preload frames, start loop once first 30 are ready
-    preloadSequence(SEQUENCE_CONFIG.armonia360, () => {}).then((frames) => {
+    preloadSequence(SEQUENCE_CONFIG.armonia360, () => { }).then((frames) => {
       rotationFrames.current = frames;
       startRotation();
     });
@@ -191,64 +191,16 @@ export default function SceneAnatomy() {
     };
   }, [activeNode]);
 
-  // SVG connector line helpers
-  const drawConnector = useCallback((nodeId: number) => {
-    const section = sectionRef.current;
-    const path = pathRef.current;
-    if (!section || !path) return;
-
-    const node = NODES.find((n) => n.id === nodeId);
-    if (!node) return;
-
-    const { width, height } = section.getBoundingClientRect();
-    // Node is positioned as % of the RIGHT PANEL (50%–100% of section width)
-    const nodeXPx = width * 0.5 + (parseFloat(node.left) / 100) * width * 0.5;
-    const nodeYPx = (parseFloat(node.top) / 100) * height;
-
-    // Path draws from node position toward the left edge
-    const d = `M ${nodeXPx} ${nodeYPx} L 0 ${nodeYPx}`;
-    path.setAttribute('d', d);
-
-    const pathLength = nodeXPx;
-    path.style.strokeDasharray = `${pathLength}`;
-    path.style.strokeDashoffset = `${pathLength}`; // start hidden
-    path.style.opacity = '1';
-
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
-      path.style.strokeDashoffset = '0';
-    } else {
-      gsap.to(path, { strokeDashoffset: 0, duration: 0.4, ease: 'power2.out' });
-    }
-  }, []);
-
-  const clearConnector = useCallback(() => {
-    const path = pathRef.current;
-    if (!path) return;
-
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
-      path.style.opacity = '0';
-      path.setAttribute('d', '');
-    } else {
-      gsap.to(path, {
-        opacity: 0,
-        duration: 0.15,
-        onComplete: () => {
-          path.setAttribute('d', '');
-        },
-      });
-    }
-  }, []);
-
   // Right panel hover handlers
   const handlePanelEnter = useCallback(() => {
     isHoveredRef.current = true;
     cancelAnimationFrame(rafIdRef.current);
-    // Snap to frame 0 and reset logical position so resume is seamless
-    currentFrameRef.current = 0;
-    const ctx = rotationCanvasRef.current?.getContext('2d');
-    if (ctx) drawFrame(ctx, rotationFrames.current, 0);
+    // Only snap to frame 0 when no node is locked — preserve zoomed view on re-enter
+    if (activeNodeRef.current === null) {
+      currentFrameRef.current = 0;
+      const ctx = rotationCanvasRef.current?.getContext('2d');
+      if (ctx) drawFrame(ctx, rotationFrames.current, 0);
+    }
     setNodesVisible(true);
   }, []);
 
@@ -262,58 +214,46 @@ export default function SceneAnatomy() {
     startRotation();
   }, [startRotation]);
 
-  // 4. Node interaction handlers
-  const handleNodeEnter = useCallback(
-    (id: number) => {
-      setActiveNode(id);
-      hoveredNodes.current.add(id);
-      if (hoveredNodes.current.size >= 3) setContinueVisible(true);
-      drawConnector(id);
-    },
-    [drawConnector],
-  );
+  // Node interaction handlers
+  const handleNodeEnter = useCallback((id: number) => {
+    setActiveNode(id);
+    hoveredNodes.current.add(id);
+    if (hoveredNodes.current.size >= 3) setContinueVisible(true);
+    // Zoom into this node's area on hover
+    const node = NODES.find((n) => n.id === id);
+    if (node) {
+      zoomTweenRef.current?.kill();
+      zoomTweenRef.current = gsap.to(canvasWrapperRef.current, {
+        scale: 2,
+        duration: 0.5,
+        ease: 'power2.out',
+        transformOrigin: `${node.left} ${node.top}`,
+      });
+    }
+  }, []);
 
   const handleNodeLeave = useCallback(() => {
     setActiveNode(null);
-    clearConnector();
-  }, [clearConnector]);
+    // Reset zoom on unhover
+    zoomTweenRef.current?.kill();
+    zoomTweenRef.current = gsap.to(canvasWrapperRef.current, {
+      scale: 1,
+      duration: 0.4,
+      ease: 'power2.out',
+    });
+  }, []);
 
-  // Touch / click toggle — reads prev via functional updater to avoid stale closure
-  const handleNodeClick = useCallback(
-    (id: number) => {
-      setActiveNode((prev) => {
-        if (prev === id) {
-          // Deactivate: reset zoom and connector
-          clearConnector();
-          zoomTweenRef.current?.kill();
-          zoomTweenRef.current = gsap.to(canvasWrapperRef.current, {
-            scale: 1,
-            duration: 0.4,
-            ease: 'power2.out',
-          });
-          return null;
-        }
-        // Activate: zoom into this node's area
-        const node = NODES.find((n) => n.id === id);
-        drawConnector(id);
-        hoveredNodes.current.add(id);
-        if (hoveredNodes.current.size >= 3) setContinueVisible(true);
-        zoomTweenRef.current?.kill();
-        if (node) {
-          zoomTweenRef.current = gsap.to(canvasWrapperRef.current, {
-            scale: 1.25,
-            duration: 0.5,
-            ease: 'power2.out',
-            transformOrigin: `${node.left} ${node.top}`,
-          });
-        }
-        return id;
-      });
-    },
-    [drawConnector, clearConnector],
-  );
+  // Touch / click toggle — for touch devices where hover isn't available
+  const handleNodeClick = useCallback((id: number) => {
+    setActiveNode((prev) => {
+      if (prev === id) return null;
+      hoveredNodes.current.add(id);
+      if (hoveredNodes.current.size >= 3) setContinueVisible(true);
+      return id;
+    });
+  }, []);
 
-  // 5. Continue prompt entrance animation
+  // Continue prompt entrance animation
   useEffect(() => {
     if (!continueVisible || !continueRef.current) return;
 
@@ -335,6 +275,14 @@ export default function SceneAnatomy() {
     // CSS sticky avoids GSAP inserting a spacer sibling that React can't reconcile.
     <div ref={wrapperRef} style={{ height: '200vh' }}>
       <section ref={sectionRef} className="sticky top-0 h-screen overflow-hidden bg-void">
+        {/* Animated mesh gradient background */}
+        <MeshGradient
+          className="pointer-events-none absolute inset-0 z-0 h-full w-full"
+          colors={['#0d0d0d', '#111a1b', '#0d0d0d', '#142022']}
+          speed={0.3}
+          backgroundColor="#0d0d0d"
+        />
+
         {/* Node pulse keyframes.
           - translate(-50%,-50%) is baked in so the transform composes with left/top positioning.
           - Starts at opacity 1 (was 0.8) so rings are clearly visible at the peak of each pulse.
@@ -351,7 +299,7 @@ export default function SceneAnatomy() {
       `}</style>
 
         {/* Two-column grid */}
-        <div className="grid h-full grid-cols-2">
+        <div className="relative z-10 grid h-full grid-cols-2">
           {/* ── LEFT PANEL ── */}
           <div className="relative flex items-center justify-center overflow-hidden border-r border-border px-12 lg:px-20">
             <div
@@ -362,10 +310,16 @@ export default function SceneAnatomy() {
               className="w-full max-w-md will-change-transform"
             >
               {displayedNode === null ? (
-                <div className="flex flex-col items-center gap-3">
-                  <div className="h-px w-12 bg-border" />
-                  <span className="text-label text-stone">Explore the Building</span>
-                  <div className="h-px w-12 bg-border" />
+                <div className="flex flex-col gap-6">
+                  <div className="h-0.5 w-10 bg-threshold" />
+                  <p className="text-body-lg text-paper">
+                    A building designed to be inhabited fully.
+                  </p>
+                  <p className="text-body-lg text-stone">
+                    Every surface considered.
+                    <br />
+                    Every detail resolved.
+                  </p>
                 </div>
               ) : (
                 (() => {
@@ -404,6 +358,7 @@ export default function SceneAnatomy() {
               <button
                 key={node.id}
                 aria-label={`Explore ${node.name}`}
+                tabIndex={nodesVisible ? 0 : -1}
                 className="absolute h-12 w-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-threshold"
                 style={{
                   left: node.left,
@@ -420,19 +375,35 @@ export default function SceneAnatomy() {
                 onMouseLeave={handleNodeLeave}
                 onClick={() => handleNodeClick(node.id)}
               >
-                {/* Outer ring — pulse when inactive, solid teal when active */}
+                {/* Dark backdrop — punches contrast against busy image areas */}
+                <div
+                  className="absolute rounded-full"
+                  style={{
+                    width: 28,
+                    height: 28,
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    background: 'rgba(0,0,0,0.45)',
+                  }}
+                />
+                {/* Outer ring — pulses when inactive, glows solid teal when active */}
                 <div
                   ref={(el) => {
                     ringRefs.current[i] = el;
                   }}
-                  className="node-pulse-ring absolute rounded-full border transition-colors duration-300"
+                  className="node-pulse-ring absolute rounded-full border transition-shadow duration-300"
                   style={{
                     width: 24,
                     height: 24,
                     left: '50%',
                     top: '50%',
-                    borderColor:
-                      activeNode === node.id ? 'var(--color-threshold)' : 'rgba(245,240,232,0.65)',
+                    transform: 'translate(-50%, -50%)',
+                    borderColor: 'var(--color-threshold)',
+                    boxShadow:
+                      activeNode === node.id
+                        ? '0 0 0 1px #66979f, 0 0 10px 2px #66979f99'
+                        : '0 0 6px 1px #66979f66',
                     animation:
                       activeNode === node.id
                         ? 'none'
@@ -440,17 +411,17 @@ export default function SceneAnatomy() {
                     animationFillMode: activeNode === node.id ? 'none' : 'backwards',
                   }}
                 />
-                {/* Inner dot — slightly larger so it's visible even against a busy image */}
+                {/* Inner dot */}
                 <div
-                  className="absolute rounded-full transition-colors duration-300"
+                  className="absolute rounded-full"
                   style={{
                     width: 8,
                     height: 8,
                     left: '50%',
                     top: '50%',
                     transform: 'translate(-50%, -50%)',
-                    background:
-                      activeNode === node.id ? 'var(--color-threshold)' : 'rgba(245,240,232,0.75)',
+                    background: 'var(--color-threshold)',
+                    boxShadow: '0 0 8px 2px #66979fcc',
                   }}
                 />
               </button>
@@ -458,26 +429,11 @@ export default function SceneAnatomy() {
           </div>
         </div>
 
-        {/* SVG connector line — spans full section width, drawn from active node to left edge */}
-        <svg
-          ref={svgRef}
-          className="pointer-events-none absolute inset-0 z-10 h-full w-full"
-          aria-hidden="true"
-        >
-          <path
-            ref={pathRef}
-            stroke="var(--color-threshold)"
-            strokeWidth="1"
-            fill="none"
-            opacity="0"
-          />
-        </svg>
-
         {/* ↓ CONTINUE prompt — appears after 8s or after hovering 3+ nodes */}
         {continueVisible && (
           <div
             ref={continueRef}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2 text-label text-stone opacity-0"
+            className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-label text-stone opacity-0"
           >
             ↓ CONTINUE
           </div>
