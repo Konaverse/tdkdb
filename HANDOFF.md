@@ -1,7 +1,7 @@
 # TDK Design & Build — Chat Handoff Document
 
 > **Purpose:** Feed this to a new Claude Code session so it picks up exactly where the previous session left off.
-> **Last updated:** 2026-02-28 (evening — post 360° canvas session)
+> **Last updated:** 2026-03-01 (evening — post 4.10 session)
 
 ---
 
@@ -45,10 +45,10 @@ Navbar, Footer, Button (primary/ghost/text), animation wrappers (FadeUp, TextRev
 | 4.6 | Anatomy Section (Scene 5) | ✅ |
 | 4.6.5 | SceneAnatomy — 360° Rotation Canvas | ✅ (known issues below) |
 | 4.7 | Philosophy Section (Scene 6) | ✅ |
-| 4.8 | Projects Reel (Scene 7) | ⬜ ← **START HERE** |
-| 4.9 | Process Section (Scene 8) | ⬜ |
-| 4.10 | Contact CTA & Footer (Scenes 9 & 10) | ⬜ |
-| 4.11 | Custom Cursor | ⬜ |
+| 4.8 | Projects Reel (Scene 7) | ✅ |
+| 4.9 | Process Section (Scene 8) | ✅ |
+| 4.10 | Contact CTA & Footer (Scenes 9 & 10) | ✅ |
+| 4.11 | Custom Cursor | ⬜ ← **START HERE** |
 
 ### Phase 5 — Interior Pages ✅ (all stubs implemented, customisation deferred)
 
@@ -82,43 +82,8 @@ c) Keyboard/focus click when `nodesVisible` is false: add `tabIndex={nodesVisibl
 
 ---
 
-### → Prompt 4.8 — Projects Reel (Scene 7)
+### → Prompt 4.11 — Custom Cursor
 
-**File:** `src/components/homepage/SceneProjects.tsx` ← stub exists
-
----
-
-## 4. UPCOMING PROMPTS SUMMARY (4.8–4.11)
-
-### 4.8 — Projects Reel (Scene 7)
-**File:** `src/components/homepage/SceneProjects.tsx` (stub exists)
-
-150vh section. Horizontal carousel driven by vertical scroll.
-- Outer 150vh container; inner sticky 100vh track; flex carousel `will-change: transform`
-- ScrollTrigger scrub 1.5: `translateX(0)` → `translateX(-totalWidth + 100vw)`
-- **2 hardcoded cards** (no Sanity yet — Phase 6.3 wires it):
-  - Armonia: `heroImageId: 'clients/tdkdb/armonia/exterior/armonia_front_angle_day'`, completed, `href: '/en/projects/armonia'`
-  - Almond: `heroImageId: 'clients/tdkdb/almond/renders/almond_front_angle_day'`, in-progress, `href: '/en/projects/almond'`
-- Card: full-bleed Cloudinary `<img>`, parallax at 0.7× speed (GSAP), status badge, info panel slides up 40px on entry, ghost CTA button
-- Project counter top-right: "01 / 02" flips via translateY
-- "THE WORK" heading fades out as carousel starts
-
-### 4.9 — Process Section (Scene 8)
-**File:** `src/components/homepage/SceneProcess.tsx` (stub exists)
-
-120vh. Horizontal SVG line draws L→R via stroke-dashoffset + ScrollTrigger.
-5 tick marks; steps appear as line reaches them (opacity + translateY).
-Steps: 01 VISION / 02 DESIGN / 03 ENGINEERING / 04 BUILD / 05 HANDOVER.
-Paper texture bg (#111009 + CSS noise). "HOW WE BUILD" label. Final sentence "Every project. Every time." in text-display-md.
-
-### 4.10 — Contact CTA & Footer (Scenes 9 & 10)
-**File:** `src/components/homepage/SceneContact.tsx` (stub exists)
-
-Scene 9: Full-screen, centered. Headline "LET'S BUILD SOMETHING TOGETHER." — word-by-word stagger clip-path reveal (60ms/word). Magnetic PrimaryButton → `/contact`. Secondary info (email/phone) at 800ms. Faint SVG floor-plan lines (opacity 0.03) drift upward infinitely.
-
-Scene 10: Reuse global `Footer` component inline (homepage layout excludes Footer, so it must be added here). Thin `--color-border` divider between Scene 9 and Footer.
-
-### 4.11 — Custom Cursor
 **File:** `src/components/ui/CustomCursor.tsx` (new — add to root `layout.tsx`)
 
 `cursor: none` on `html`. 12px circle, 1px `--color-paper` border. GSAP `quickTo` spring trailing.
@@ -131,21 +96,21 @@ Hidden on `pointer: coarse` (mobile).
 
 ---
 
-## 5. HOMEPAGE ARCHITECTURE — Current State
+## 4. HOMEPAGE ARCHITECTURE — Current State
 
 ### File Map
 
 | File | Role |
 |---|---|
-| `src/app/[locale]/(site)/page.tsx` | SSG shell — imports all scene components |
+| `src/app/[locale]/(site)/page.tsx` | SSG shell — imports all scene components + Footer |
 | `src/components/homepage/HomepageCanvas.tsx` | Canvas engine + state machine |
 | `src/components/homepage/LoadingScreen.tsx` | Full-screen loading overlay (Scene 1) |
 | `src/components/homepage/SceneHero.tsx` | Manifesto text overlay (Scene 2) |
 | `src/components/homepage/SceneAnatomy.tsx` | Interactive building anatomy (Scene 5) ✅ |
-| `src/components/homepage/ScenePhilosophy.tsx` | Horizontal panel carousel (Scene 6) ✅ |
-| `src/components/homepage/SceneProjects.tsx` | Horizontal projects reel (Scene 7) — **stub** |
-| `src/components/homepage/SceneProcess.tsx` | Process timeline (Scene 8) — **stub** |
-| `src/components/homepage/SceneContact.tsx` | Contact CTA (Scene 9) — **stub** |
+| `src/components/homepage/ScenePhilosophy.tsx` | 3D InfiniteGallery depth tunnel (Scene 6) ✅ |
+| `src/components/homepage/SceneProjects.tsx` | Horizontal projects reel (Scene 7) ✅ |
+| `src/components/homepage/SceneProcess.tsx` | Process timeline — vertical spine (Scene 8) ✅ |
+| `src/components/homepage/SceneContact.tsx` | Contact CTA (Scene 9) ✅ |
 
 ### State Machine (`HomepagePhase`)
 
@@ -173,16 +138,47 @@ After `complete`: canvas `display:none`, frame arrays nulled, normal HTML scroll
 - Canvas DPR-aware sizing (`min(DPR, 2)`); resize listener redraws current frame
 - ⚠️ Known issues: node positions need re-tuning for 360° frames; click edge cases (see §3 above)
 
-### ScenePhilosophy Architecture
+### ScenePhilosophy Architecture (rebuilt — Phase 4.7)
 
-- **500vh** container (400vh scroll travel) → CSS `sticky top-0 h-screen` inner section
-- Strip is `500vw` wide (`PANELS.length * 100vw`); `x` driven by GSAP, not CSS scroll
-- **Real-time tracking**: `onUpdate` → `gsap.killTweensOf(strip)` + `gsap.set(strip, { x })` — 1:1 with scroll progress
-- **Debounced snap**: 100ms after last scroll frame → `Math.round(progress * 4)` → `gsap.to(strip, { duration: 0.3, ease: 'power2.out' })`
-- **`isSnapping` flag**: prevents tracking from killing an in-flight snap; cancelled if progress delta > 0.01 (genuine re-scroll)
-- **`onRefresh`**: fires on `ScrollTrigger.refresh()` — resets to nearest panel at current `window.innerWidth` (handles resize)
-- **`onLeaveBack`**: instant `gsap.set(strip, { x: 0 })` — no tween (a tween bleeds into re-entry from below)
-- **Position fix**: `HomepageCanvas` is `dynamic({ ssr: false })` and adds 260vh *after* this effect runs. A `ResizeObserver` on `document.body` calls `ScrollTrigger.refresh()` once when body height changes; a `requestAnimationFrame` refresh handles the prefetched-bundle case.
+- Full-screen `h-screen` section — NOT scroll-driven
+- Background: `InfiniteGallery` (`src/components/ui/InfiniteGallery.tsx`) — Three.js R3F depth-tunnel, cloth-shader planes, `dynamic({ ssr: false })`
+- 5 Cloudinary philosophy images cycle through the 3D tunnel
+- Statements cycle every 4600ms with 600ms opacity fade (useState/useEffect, no GSAP)
+- Statement 5 "ARMONIA." at `clamp(72px, 12vw, 160px)` weight 300 with location subtitle
+- Progress dots bottom-center; threshold teal for active dot
+- Dark scrim `bg-black/55` for text legibility
+
+### SceneProjects Architecture (Phase 4.8)
+
+- 150vh container, CSS `sticky top-0 h-screen`, 2-card horizontal carousel
+- Strip: `200vw` wide, `will-change: transform`
+- GSAP timeline scrub 1.5, `start: 'top top'`, `end: 'bottom bottom'`, `invalidateOnRefresh: true`
+- Parallax: images are 130% wide (`left: -15%`); card 1 image x: 0→+15vw; card 2 image x: -15vw→0
+- Slot-machine counter top-right flips "01" → "02" at tl position 0.4
+- Card info fades/slides in sequence; ghost CTA button per card
+
+### SceneProcess Architecture (Phase 4.9 — rebuilt)
+
+- **200vh** outer section → 100vh of scroll travel (CSS sticky, not GSAP pin)
+- Sticky inner panel: `h-screen flex flex-col`, `paddingTop: 64px`, `paddingBottom: 48px`
+- Heading + 48px HR rule: `flex-none` in-flow at top; clip-path reveal on section entry
+- Two-column grid: `flex-1 min-h-0`, `40% / 60%`
+  - Left: SVG vertical spine, `height: 100%`, viewBox `0 0 2 100`
+  - Ghost line (`--color-border`) always visible; progress line (`--color-threshold`) animated via **CSS `strokeDashoffset`** (NOT `attr` plugin — camelCase/kebab mismatch bug avoided)
+  - Tick marks at y=0,25,50,75,100 revealed as line reaches each position
+  - Right: 5 step blocks, `flex flex-col justify-between h-full`, slide in from `translateX(20px)`
+- Closing "Every project. Every time.": `mt-auto flex-none` — pinned to panel bottom
+- GSAP timeline `scrub: 1.5`, `start: 'top top'`, `end: 'bottom bottom'`
+- Mobile (<1024px): stacked layout, `border-left` accent, IntersectionObserver reveals
+
+### SceneContact Architecture (Phase 4.10)
+
+- `h-screen bg-void overflow-hidden`
+- SVG floor-plan background: `opacity-[0.03]`, infinite yoyo upward drift (`y: -20, 20s, repeat: -1`)
+- Headline: `["LET'S", "BUILD", "SOMETHING", "TOGETHER."]` — each word in `overflow-hidden` wrapper, clip-path reveal with 0.06s stagger on `top 70%` entry
+- `<Button href="/en/contact" variant="primary" size="lg" magnetic>` — enters at delay 0.5
+- Secondary info line (email + phone): `text-label tracking-[0.2em] text-stone`, delay 0.8
+- `page.tsx` adds `1px var(--color-border)` divider then `<Footer />` below SceneContact
 
 ### GSAP Rules (critical)
 
@@ -190,11 +186,12 @@ After `complete`: canvas `display:none`, frame arrays nulled, normal HTML scroll
 - All GSAP inside `useLayoutEffect` with `gsap.context()` → cleanup `ctx.revert()`
 - **`%` in ScrollTrigger offsets is relative to the trigger element's height, not the viewport.** Use `px` or `window.innerHeight * N` for viewport-relative offsets.
 - CSS sticky preferred over `pin: true` for sections within React trees (avoids spacer node reconciliation error)
+- SVG `strokeDashoffset` animation: use inline `style={{ strokeDasharray: N, strokeDashoffset: N }}` and animate directly as CSS property — never use `attr: { strokeDashoffset }` (GSAP attr plugin camelCase conversion is unreliable for this property)
 - `gsap.ticker.lagSmoothing(0)` required (set in Lenis init)
 
 ---
 
-## 6. KEY DECISIONS & DEVIATIONS
+## 5. KEY DECISIONS & DEVIATIONS
 
 | Topic | Decision |
 |---|---|
@@ -206,10 +203,11 @@ After `complete`: canvas `display:none`, frame arrays nulled, normal HTML scroll
 | **Cloudinary images** | Stored as string public IDs. `cloudinaryUrl()` from `src/lib/cloudinary/transforms.ts`. Always `<img>`, never `next/image`. |
 | **Phase 5 data** | All interior pages use hardcoded placeholder data. Sanity wiring is Phase 6. |
 | **GSAP pin vs CSS sticky** | Use CSS sticky for homepage scenes to avoid React reconciliation errors with GSAP's spacer insertion. |
+| **ScenePhilosophy** | Rebuilt as 3D InfiniteGallery depth tunnel (Three.js R3F) — not the horizontal panel carousel described in the original spec. |
 
 ---
 
-## 7. PROJECT LOCATION
+## 6. PROJECT LOCATION
 
 ```
 C:\Users\konst\Projects\TDK_Design_&_Build\tdkdb\
@@ -217,9 +215,9 @@ C:\Users\konst\Projects\TDK_Design_&_Build\tdkdb\
 
 ---
 
-## 8. HARD RULES (Remind the AI)
+## 7. HARD RULES (Remind the AI)
 
-1. **No Three.js** — canvas uses HTML5 canvas + image sequences only
+1. **No Three.js in canvas scenes (Scenes 1–4)** — HTML5 canvas + image sequences only. Three.js permitted for post-canvas HTML scenes (Scene 5+) when explicitly required.
 2. **No Framer Motion** — GSAP only for all animation
 3. **No Sanity native images** — all images are Cloudinary IDs stored as strings
 4. **`SANITY_API_TOKEN` must NEVER have `NEXT_PUBLIC_` prefix** — server-only
