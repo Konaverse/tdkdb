@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { heroImage } from '@/lib/cloudinary/transforms';
+import { HomepagePhaseContext } from './HomepageCanvas';
 
 const PULSE_DELAYS = [0, 400, 800, 1200, 1600, 2000]; // ms, one per node
 
@@ -59,11 +60,13 @@ const NODES = [
 ] as const;
 
 export default function SceneAnatomy() {
+  const phase = useContext(HomepagePhaseContext);
   const [activeNode, setActiveNode] = useState<number | null>(null);
   const [displayedNode, setDisplayedNode] = useState<number | null>(null);
   const [continueVisible, setContinueVisible] = useState(false);
 
   const sectionRef = useRef<HTMLElement>(null);
+  const coverRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const leftTextRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -118,6 +121,12 @@ export default function SceneAnatomy() {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
   }, []);
+
+  // Fade out the void cover once the canvas phase is complete, revealing the anatomy
+  useEffect(() => {
+    if (phase !== 'complete' || !coverRef.current) return;
+    gsap.to(coverRef.current, { opacity: 0, duration: 0.5, ease: 'power2.in' });
+  }, [phase]);
 
   // 2. Left panel text transition (animate out → swap displayedNode → animate in)
   useEffect(() => {
@@ -262,6 +271,17 @@ export default function SceneAnatomy() {
           .node-pulse-ring { animation: none !important; }
         }
       `}</style>
+
+        {/* Cover — hides the section while the canvas is still active.
+            z-[30] sits above the fixed bloom (z-[20]) so the bright building image
+            doesn't bleed through as the section enters the viewport from below.
+            Fades to opacity 0 once HomepagePhase reaches 'complete'. */}
+        <div
+          ref={coverRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-void"
+          style={{ zIndex: 30 }}
+        />
 
         {/* Two-column grid */}
         <div className="grid h-full grid-cols-2">
