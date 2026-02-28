@@ -70,7 +70,7 @@ Simple manual i18n — no `next-intl` or similar library. Config in `src/lib/i18
 
 ## Hard Rules
 
-1. **No Three.js** — canvas uses HTML5 canvas + image sequences only.
+1. **No Three.js in canvas scenes (Scenes 1–4)** — the image-sequence canvas uses HTML5 canvas only. **Exception:** Three.js (`@react-three/fiber`, `@react-three/drei`) is permitted for post-canvas HTML scenes (Scene 5 onward) when a WebGL effect is explicitly required. Components must be `dynamic(() => import(...), { ssr: false })` and must not interfere with Lenis scroll.
 2. **No Framer Motion** — GSAP only for all animation.
 3. **No Sanity native images** — all images are Cloudinary IDs (strings) in Sanity.
 4. **`SANITY_API_TOKEN` must never have `NEXT_PUBLIC_` prefix** — server-only.
