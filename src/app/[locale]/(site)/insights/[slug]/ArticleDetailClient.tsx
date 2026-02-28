@@ -19,7 +19,7 @@ function extractToc(blocks: PortableTextBlock[]): TocItem[] {
   return blocks
     .filter((b) => b.style === 'h2' || b.style === 'h3')
     .map((b) => ({
-      key: b._key,
+      key: b._key ?? '',
       text: (b.children as { text: string }[]).map((c) => c.text).join(''),
       level: b.style as 'h2' | 'h3',
     }));
