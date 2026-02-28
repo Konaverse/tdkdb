@@ -280,7 +280,6 @@ export default function SceneAnatomy() {
           className="pointer-events-none absolute inset-0 z-0 h-full w-full"
           colors={['#0d0d0d', '#111a1b', '#0d0d0d', '#142022']}
           speed={0.3}
-          backgroundColor="#0d0d0d"
         />
 
         {/* Node pulse keyframes.
