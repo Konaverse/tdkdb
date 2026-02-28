@@ -1,42 +1,27 @@
 'use client';
 
-import { useRef, useLayoutEffect } from 'react';
-import { gsap, ScrollTrigger } from '@/lib/animations/gsap';
+import { useLayoutEffect, useRef } from 'react';
+
+import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
 
-// The 5 philosophy statements (from TDK_HOMEPAGE_EXPERIENCE.md Section 9)
+// The 4 scroll-through statements (spec: TDK_HOMEPAGE_EXPERIENCE.md §9.2)
 const STATEMENTS = [
-  {
-    lines: ["We don't build buildings.", 'We build the conditions for life.'],
-    sizeClass: 'text-display-md',
-    fontWeight: 300,
-  },
-  {
-    lines: ['Architecture is not decoration.', 'It is decision-making made visible.'],
-    sizeClass: 'text-display-md',
-    fontWeight: 300,
-  },
-  {
-    lines: ['Every project begins with a question:', 'How should this family live?'],
-    sizeClass: 'text-display-lg',
-    fontWeight: 400,
-  },
-  {
-    lines: ['TDK was founded on one belief:', 'Good design is non-negotiable.'],
-    sizeClass: 'text-display-md',
-    fontWeight: 300,
-  },
+  { text: 'WE DO NOT BUILD FAST.' },
+  { text: 'WE BUILD RIGHT.' },
+  { text: 'EVERY MATERIAL IS A DECISION.' },
+  { text: 'EVERY DETAIL IS AN ARGUMENT.' },
 ];
 
-// Flash images (Cloudinary IDs) — appear between statement transitions
+// Flash images — appear between statement transitions
 const FLASH_IMAGE_IDS = [
-  'clients/tdkdb/armonia/exterior/armonia_front_angle_day', // between 1→2
-  'clients/tdkdb/armonia/interior/2', // between 2→3
-  'clients/tdkdb/armonia/interior/3', // between 3→4
-  'clients/tdkdb/armonia/exterior/1', // between 4→5
+  'clients/tdkdb/armonia/exterior/armonia_front_angle_day', // 1→2
+  'clients/tdkdb/armonia/interior/2', // 2→3
+  'clients/tdkdb/armonia/interior/3', // 3→4
+  'clients/tdkdb/armonia/exterior/1', // 4→5
 ];
 
-// Scroll offset (in vh units out of 120) where each statement enters
+// Scroll position (out of 120vh effective scroll) where each statement enters
 const STMT_OFFSETS = [0, 24, 48, 72, 96];
 
 export default function ScenePhilosophy() {
@@ -50,30 +35,28 @@ export default function ScenePhilosophy() {
     const container = containerRef.current;
     if (!container) return;
 
+    gsapInit(); // register ScrollTrigger before any ScrollTrigger call
+
     const ctx = gsap.context(() => {
-      // totalScroll = how many pixels the user scrolls through this section
       // Container is 220vh; sticky section is 100vh → 120vh of effective scroll
       const totalScroll = container.offsetHeight - window.innerHeight;
+      const px = (frac: number) => Math.round(frac * totalScroll);
 
-      // Convert a fraction of the 120vh scroll range to pixel offset
-      const px = (vh120frac: number) => Math.round(vh120frac * totalScroll);
-
-      // Pre-create flash timelines (paused) so they can be restarted on scroll
+      // Pre-build flash timelines (paused) so they restart cleanly on scroll
       const flashTimelines = flashRefs.current.map((el) => {
         if (!el) return null;
         return gsap
           .timeline({ paused: true })
-          .to(el, { opacity: 0.65, duration: 0.25, ease: 'power2.out' })
+          .to(el, { opacity: 0.7, duration: 0.25, ease: 'power2.out' })
           .to(el, { opacity: 0, duration: 0.25, ease: 'power2.in' });
       });
 
-      // --- Statements 1–4: clip-path reveal + opacity exit ---
+      // Statements 1–4: clip-path reveal then opacity exit
       statementRefs.current.forEach((el, i) => {
         if (!el) return;
-
         const enterFrac = STMT_OFFSETS[i] / 120;
 
-        // Clip-path reveal: left → right sweep
+        // Enter: L→R clip-path sweep
         gsap.fromTo(
           el,
           { clipPath: 'inset(0 100% 0 0)' },
@@ -89,7 +72,7 @@ export default function ScenePhilosophy() {
           },
         );
 
-        // Opacity exit (fade out as the next statement approaches)
+        // Exit: fade out as next statement enters
         const exitFrac = enterFrac + 0.16;
         gsap.fromTo(
           el,
@@ -107,7 +90,7 @@ export default function ScenePhilosophy() {
         );
       });
 
-      // --- Statement 5 — ARMONIA: clip-path reveal (no exit — lingers) ---
+      // Statement 5 — ARMONIA: clip-path reveal, no exit (lingers to end)
       if (armoniaRef.current) {
         const enterFrac = STMT_OFFSETS[4] / 120;
         gsap.fromTo(
@@ -126,7 +109,7 @@ export default function ScenePhilosophy() {
         );
       }
 
-      // "Lakatameia, Nicosia." — delayed opacity reveal after ARMONIA finishes
+      // "Lakatameia, Nicosia." fades in after ARMONIA finishes revealing
       if (subtitleRef.current) {
         const enterFrac = (STMT_OFFSETS[4] + 12) / 120;
         gsap.fromTo(
@@ -146,15 +129,12 @@ export default function ScenePhilosophy() {
         );
       }
 
-      // --- Flash images: pulse (0 → 0.65 → 0) at transition zones ---
+      // Flash images: pulse at the exit zone of each statement
       flashRefs.current.forEach((el, i) => {
         if (!el) return;
         const tl = flashTimelines[i];
         if (!tl) return;
-
-        // Fire when scroll reaches the exit zone of statement i
         const flashFrac = (STMT_OFFSETS[i] + 18) / 120;
-
         ScrollTrigger.create({
           trigger: container,
           start: `top+=${px(flashFrac)} top`,
@@ -169,7 +149,7 @@ export default function ScenePhilosophy() {
 
   return (
     <>
-      {/* Warmth drift keyframe animation */}
+      {/* Background warmth drift */}
       <style>{`
         @keyframes philosophy-warmth {
           from { background-color: #0D0D0D; }
@@ -195,22 +175,21 @@ export default function ScenePhilosophy() {
         </defs>
       </svg>
 
-      {/* Outer scroll container: 220vh → 120vh of effective sticky scroll */}
+      {/* Outer scroll container: 220vh → 120vh effective sticky scroll */}
       <div ref={containerRef} style={{ height: '220vh' }} className="relative">
-        {/* Sticky viewport section */}
         <section
           className="sticky top-0 h-screen overflow-hidden"
           style={{ animation: 'philosophy-warmth 8s ease-in-out infinite alternate' }}
           aria-label="TDK Philosophy"
         >
-          {/* Grain overlay — sits above flash images and text, barely visible */}
+          {/* Subtle grain overlay */}
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 z-20 opacity-[0.04]"
             style={{ filter: 'url(#philosophy-noise)', mixBlendMode: 'overlay' }}
           />
 
-          {/* Flash images — revealed briefly between statement transitions */}
+          {/* Flash images — full-screen, briefly pulsed between statement transitions */}
           {FLASH_IMAGE_IDS.map((id, i) => (
             <div
               key={id}
@@ -230,35 +209,25 @@ export default function ScenePhilosophy() {
             </div>
           ))}
 
-          {/* Statements 1–4 — each occupies the full screen, revealed by clip-path */}
+          {/* Statements 1–4 */}
           {STATEMENTS.map((stmt, i) => (
             <div
               key={i}
               ref={(el) => {
                 statementRefs.current[i] = el;
               }}
-              className="absolute inset-0 z-10 flex flex-col items-center justify-center px-8 text-center"
+              className="absolute inset-0 z-10 flex items-center justify-center px-8 text-center"
               style={{ clipPath: 'inset(0 100% 0 0)' }}
             >
-              {stmt.lines.map((line, j) => (
-                <p
-                  key={j}
-                  className={`${stmt.sizeClass} font-sans leading-tight text-paper`}
-                  style={{ fontWeight: stmt.fontWeight }}
-                >
-                  {line}
-                </p>
-              ))}
+              <p className="font-sans text-display-lg font-light leading-tight tracking-wide text-paper">
+                {stmt.text}
+              </p>
             </div>
           ))}
 
           {/* Statement 5 — ARMONIA (largest text on the page, no exit) */}
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center px-8 text-center">
-            {/* The clip-path reveal wraps only the main text, not the subtitle */}
             <div ref={armoniaRef} style={{ clipPath: 'inset(0 100% 0 0)' }}>
-              <p className="font-sans text-display-md font-light leading-tight text-paper">
-                This is what we build.
-              </p>
               <p
                 className="font-sans font-light text-paper"
                 style={{
@@ -270,7 +239,6 @@ export default function ScenePhilosophy() {
                 ARMONIA.
               </p>
             </div>
-            {/* Subtitle fades in after ARMONIA finishes revealing */}
             <p ref={subtitleRef} className="mt-4 text-label text-stone" style={{ opacity: 0 }}>
               Lakatameia, Nicosia.
             </p>
