@@ -44,8 +44,8 @@ Navbar, Footer, Button (primary/ghost/text), animation wrappers (FadeUp, TextRev
 | 4.5 | Threshold Crossing Transition & Canvas Cleanup (Scene 4) | ✅ |
 | 4.6 | Anatomy Section (Scene 5) | ✅ |
 | 4.6.5 | SceneAnatomy — 360° Rotation Canvas | ✅ (known issues below) |
-| 4.7 | Philosophy Section (Scene 6) | ⬜ ← **START HERE** (after fixing known issues) |
-| 4.8 | Projects Reel (Scene 7) | ⬜ |
+| 4.7 | Philosophy Section (Scene 6) | ✅ |
+| 4.8 | Projects Reel (Scene 7) | ⬜ ← **START HERE** |
 | 4.9 | Process Section (Scene 8) | ⬜ |
 | 4.10 | Contact CTA & Footer (Scenes 9 & 10) | ⬜ |
 | 4.11 | Custom Cursor | ⬜ |
@@ -67,69 +67,24 @@ Navbar, Footer, Button (primary/ghost/text), animation wrappers (FadeUp, TextRev
 
 ## 3. WHERE TO START
 
-### ⚠️ Fix First: SceneAnatomy Node Polish (before moving to 4.7)
+### ⚠️ Still Pending: SceneAnatomy Node Polish
 
-Two known issues need fixing before 4.7:
+Two known issues remain from 4.6.5 — deferred, fix whenever convenient:
 
 **Issue 1 — Node positions don't match the 360° frames**
-The 6 hotspot node coordinates (`left`/`top` percentages in the `NODES` array) were originally tuned for a static Cloudinary photo. The 360° rotation frames show the building from a different angle / crop. Every node's `left` and `top` needs to be adjusted to match what's visible in the canvas at frame 0 (the hover reference frame).
-
-File: `src/components/homepage/SceneAnatomy.tsx` — `NODES` array at the top of the file.
-Approach: load the page in dev, hover over the right panel (freezes at frame 0), visually identify where each feature sits, and update coordinates.
+The 6 hotspot node coordinates (`left`/`top` in the `NODES` array) were tuned for a static photo, not the 360° frames. Load in dev, hover the right panel (freezes at frame 0), and re-tune each node's position.
+File: `src/components/homepage/SceneAnatomy.tsx` — `NODES` array at top of file.
 
 **Issue 2 — Node-click edge cases when already zoomed**
-Current `handleNodeClick` uses `setActiveNode(prev => ...)` functional updater and calls `gsap.to(canvasWrapperRef.current, ...)` inside it — which works for toggle but has two edge cases:
-
-a) **Clicking a different node while already zoomed on one**: the zoom tween switches correctly (old tween killed, new tween starts), but the new `transformOrigin` may conflict visually since the previous zoom wasn't fully reset first. Fix: before starting the new zoom, snap scale to 1 first (or add a short tween-to-1 before the 1.25 tween).
-
-b) **Leaving the panel with an active node, then re-entering**: `handlePanelLeave` returns early (by design) when `activeNodeRef.current !== null`. But if the user then re-enters, `handlePanelEnter` runs again (snaps to frame 0, shows nodes), and the active node's zoom is still in effect. The zoom origin was set relative to the pre-enter state — this composes fine with GSAP but the UX might feel off. Consider: on `handlePanelEnter`, if `activeNodeRef.current !== null`, skip the frame-0 snap so the zoomed view is preserved.
-
-c) **Clicking a node via keyboard/focus while `nodesVisible` is false**: `pointerEvents: 'none'` blocks mouse but not keyboard tab-focus clicks. Add `tabIndex={nodesVisible ? 0 : -1}` to each node button.
+a) Clicking a different node while zoomed: reset scale to 1 first before starting the new 1.25 tween.
+b) Re-entering the panel with an active node: `handlePanelEnter` snaps to frame 0 even when a node is locked — consider skipping the snap if `activeNodeRef.current !== null`.
+c) Keyboard/focus click when `nodesVisible` is false: add `tabIndex={nodesVisible ? 0 : -1}` to node buttons.
 
 ---
 
-### → Prompt 4.7 — Philosophy Section (Scene 6)
+### → Prompt 4.8 — Projects Reel (Scene 7)
 
-**File to build:** `src/components/homepage/ScenePhilosophy.tsx` ← **stub exists, returns null**
-
-The file is already imported in `src/app/[locale]/(site)/page.tsx` — just implement the component.
-
-**Full spec (from TDK_CURSOR_BUILD_STRATEGY.md line 1449):**
-
-This section is **120vh** tall. Each statement occupies ~24vh of scroll.
-Statements appear via clip-path reveal and disappear via opacity fade.
-
-**The 5 statements:**
-1. "WE DO NOT BUILD FAST."
-2. "WE BUILD RIGHT."
-3. "EVERY MATERIAL IS A DECISION."
-4. "EVERY DETAIL IS AN ARGUMENT."
-5. "ARMONIA." (+ "Lakatameia, Nicosia." in text-label below)
-
-*(Exact copy confirmed in TDK_HOMEPAGE_EXPERIENCE.md Section 9.2 — read that section for the precise wording before implementing)*
-
-**Implementation:**
-1. Each statement is a full-screen centered div, `position: absolute` within the 120vh container. Stack vertically (statement 1 at top, statement 5 at ~96vh).
-2. Per statement:
-   - **Enter:** clip-path `inset(0 100% 0 0)` → `inset(0 0% 0 0)` [text reveals L→R], ScrollTrigger scrub
-   - **Exit:** `opacity: 1` → `0` as next statement enters
-3. Flash images between statements: positioned absolutely, full screen, z below text. `opacity: 0` default. On statement transition: pulse to `0.7` then back to `0` over 500ms. `filter: grayscale(1) contrast(1.1)`. Grain texture overlay (CSS noise filter or low-opacity noise PNG).
-4. Background: `--color-void` throughout. Very slow gradient drift CSS animation: `#0D0D0D` → `#0F0B08` and back over 8s.
-5. Statement 5 "ARMONIA." is the **largest text on the entire page**: `font-size: clamp(72px, 12vw, 160px)`, weight 300, letter-spacing 0.1em. "Lakatameia, Nicosia." appears below in `text-label`, `--color-stone`.
-
-**Flash images** — use Cloudinary IDs (plain `<img>`, never `next/image`):
-- Between statements 1→2: `clients/tdkdb/armonia/exterior/armonia_front_angle_day`
-- Between statements 2→3: `clients/tdkdb/armonia/interior/2`
-- Between statements 3→4: `clients/tdkdb/armonia/interior/3`
-- Between statements 4→5: `clients/tdkdb/armonia/exterior/1`
-
-*(Use `cloudinaryUrl()` from `@/lib/cloudinary/transforms.ts`)*
-
-**Verification:**
-- Statements reveal and fade in sync with scroll
-- Flash images appear between transitions
-- Grain overlay visible but subtle
-- "ARMONIA." is dramatic and large
+**File:** `src/components/homepage/SceneProjects.tsx` ← stub exists
 
 ---
 
@@ -187,7 +142,7 @@ Hidden on `pointer: coarse` (mobile).
 | `src/components/homepage/LoadingScreen.tsx` | Full-screen loading overlay (Scene 1) |
 | `src/components/homepage/SceneHero.tsx` | Manifesto text overlay (Scene 2) |
 | `src/components/homepage/SceneAnatomy.tsx` | Interactive building anatomy (Scene 5) ✅ |
-| `src/components/homepage/ScenePhilosophy.tsx` | Philosophy statements (Scene 6) — **stub** |
+| `src/components/homepage/ScenePhilosophy.tsx` | Horizontal panel carousel (Scene 6) ✅ |
 | `src/components/homepage/SceneProjects.tsx` | Horizontal projects reel (Scene 7) — **stub** |
 | `src/components/homepage/SceneProcess.tsx` | Process timeline (Scene 8) — **stub** |
 | `src/components/homepage/SceneContact.tsx` | Contact CTA (Scene 9) — **stub** |
@@ -217,6 +172,17 @@ After `complete`: canvas `display:none`, frame arrays nulled, normal HTML scroll
 - Node click zooms `canvasWrapperRef` to `scale: 1.25` via GSAP, `transformOrigin` set to node's `left top`; same-node click resets to `scale: 1`
 - Canvas DPR-aware sizing (`min(DPR, 2)`); resize listener redraws current frame
 - ⚠️ Known issues: node positions need re-tuning for 360° frames; click edge cases (see §3 above)
+
+### ScenePhilosophy Architecture
+
+- **500vh** container (400vh scroll travel) → CSS `sticky top-0 h-screen` inner section
+- Strip is `500vw` wide (`PANELS.length * 100vw`); `x` driven by GSAP, not CSS scroll
+- **Real-time tracking**: `onUpdate` → `gsap.killTweensOf(strip)` + `gsap.set(strip, { x })` — 1:1 with scroll progress
+- **Debounced snap**: 100ms after last scroll frame → `Math.round(progress * 4)` → `gsap.to(strip, { duration: 0.3, ease: 'power2.out' })`
+- **`isSnapping` flag**: prevents tracking from killing an in-flight snap; cancelled if progress delta > 0.01 (genuine re-scroll)
+- **`onRefresh`**: fires on `ScrollTrigger.refresh()` — resets to nearest panel at current `window.innerWidth` (handles resize)
+- **`onLeaveBack`**: instant `gsap.set(strip, { x: 0 })` — no tween (a tween bleeds into re-entry from below)
+- **Position fix**: `HomepageCanvas` is `dynamic({ ssr: false })` and adds 260vh *after* this effect runs. A `ResizeObserver` on `document.body` calls `ScrollTrigger.refresh()` once when body height changes; a `requestAnimationFrame` refresh handles the prefetched-bundle case.
 
 ### GSAP Rules (critical)
 

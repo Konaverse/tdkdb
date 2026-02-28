@@ -20,7 +20,11 @@
       "Bash(pnpm build:*)",
       "Bash(pnpm add:*)",
       "Bash(npx next:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(ffmpeg:*)",
+      "Bash(bash:*)",
+      "Bash(git revert:*)",
+      "Bash(pnpm exec:*)"
     ]
   }
 }
