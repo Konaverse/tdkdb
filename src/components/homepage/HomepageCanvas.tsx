@@ -44,7 +44,6 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafCleanupRef = useRef<(() => void) | null>(null);
   const vignetteRef = useRef<HTMLDivElement>(null);
-  const bloomRef = useRef<HTMLDivElement>(null);
 
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -153,19 +152,7 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
       end: `+=${window.innerHeight * 0.2}`, // 20vh past start
       scrub: 1,
       onUpdate: (self) => {
-        if (!bloomRef.current) return;
-        const p = self.progress;
-        if (p <= 0.5) {
-          // Bloom expands: 0% → 50% progress
-          const intensity = p * 2; // 0 → 1
-          bloomRef.current.style.background = `radial-gradient(circle at 50% 55%, rgba(102,151,159,${(intensity * 0.9).toFixed(3)}) 0%, rgba(220,238,240,${(intensity * 0.95).toFixed(3)}) 60%)`;
-          bloomRef.current.style.opacity = String(intensity);
-        } else {
-          // Bloom recedes: 50% → 100% progress
-          const intensity = 1 - (p - 0.5) * 2; // 1 → 0
-          bloomRef.current.style.opacity = String(intensity);
-        }
-        if (p > 0) {
+        if (self.progress > 0) {
           setPhase((prev) => (prev === 'approach' ? 'threshold' : prev));
         }
       },
@@ -182,9 +169,6 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
           assemblyFrames.current = []; // frees ~16 MB RAM
           approachFrames.current = []; // frees ~26 MB RAM
         }, 300);
-
-        // Force bloom to 0 immediately — scrub: 1 lag can leave residual opacity
-        if (bloomRef.current) bloomRef.current.style.opacity = '0';
 
         // Kill all overlay ScrollTriggers so they don't fire into subsequent sections.
         // The glow ST fires at ~234vh (before anatomy at 260vh) and would show a teal
@@ -229,17 +213,11 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
           background: 'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%)',
         }}
       />
-      {/* Threshold bloom — teal flash at the entrance crossing */}
-      <div
-        ref={bloomRef}
-        className="pointer-events-none fixed inset-0 z-[20]"
-        style={{ opacity: 0 }}
-      />
       <SceneHero
         isVisible={phase === 'hero' || phase === 'approach'}
         scrollProgress={scrollProgress}
       />
-      {/* 260vh: approach runs 0→150vh, threshold bloom 150→170vh, 90vh buffer before next section */}
+      {/* 260vh: approach runs 0→150vh, threshold teardown 150→170vh, 90vh buffer before next section */}
       <div id="scroll-container" style={{ position: 'relative', height: '260vh' }} />
       {children}
     </HomepagePhaseContext.Provider>

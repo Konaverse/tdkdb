@@ -1,7 +1,7 @@
 # TDK Design & Build — Chat Handoff Document
 
 > **Purpose:** Feed this to a new Claude Code session so it picks up exactly where the previous session left off.
-> **Last updated:** 2026-02-28
+> **Last updated:** 2026-02-28 (evening — post 360° canvas session)
 
 ---
 
@@ -43,7 +43,8 @@ Navbar, Footer, Button (primary/ghost/text), animation wrappers (FadeUp, TextRev
 | 4.4 | Approach Sequence Scroll Scrubbing (Scene 3) | ✅ |
 | 4.5 | Threshold Crossing Transition & Canvas Cleanup (Scene 4) | ✅ |
 | 4.6 | Anatomy Section (Scene 5) | ✅ |
-| 4.7 | Philosophy Section (Scene 6) | ⬜ ← **START HERE** |
+| 4.6.5 | SceneAnatomy — 360° Rotation Canvas | ✅ (known issues below) |
+| 4.7 | Philosophy Section (Scene 6) | ⬜ ← **START HERE** (after fixing known issues) |
 | 4.8 | Projects Reel (Scene 7) | ⬜ |
 | 4.9 | Process Section (Scene 8) | ⬜ |
 | 4.10 | Contact CTA & Footer (Scenes 9 & 10) | ⬜ |
@@ -64,7 +65,28 @@ Navbar, Footer, Button (primary/ghost/text), animation wrappers (FadeUp, TextRev
 
 ---
 
-## 3. WHERE TO START — Next Prompt: 4.7
+## 3. WHERE TO START
+
+### ⚠️ Fix First: SceneAnatomy Node Polish (before moving to 4.7)
+
+Two known issues need fixing before 4.7:
+
+**Issue 1 — Node positions don't match the 360° frames**
+The 6 hotspot node coordinates (`left`/`top` percentages in the `NODES` array) were originally tuned for a static Cloudinary photo. The 360° rotation frames show the building from a different angle / crop. Every node's `left` and `top` needs to be adjusted to match what's visible in the canvas at frame 0 (the hover reference frame).
+
+File: `src/components/homepage/SceneAnatomy.tsx` — `NODES` array at the top of the file.
+Approach: load the page in dev, hover over the right panel (freezes at frame 0), visually identify where each feature sits, and update coordinates.
+
+**Issue 2 — Node-click edge cases when already zoomed**
+Current `handleNodeClick` uses `setActiveNode(prev => ...)` functional updater and calls `gsap.to(canvasWrapperRef.current, ...)` inside it — which works for toggle but has two edge cases:
+
+a) **Clicking a different node while already zoomed on one**: the zoom tween switches correctly (old tween killed, new tween starts), but the new `transformOrigin` may conflict visually since the previous zoom wasn't fully reset first. Fix: before starting the new zoom, snap scale to 1 first (or add a short tween-to-1 before the 1.25 tween).
+
+b) **Leaving the panel with an active node, then re-entering**: `handlePanelLeave` returns early (by design) when `activeNodeRef.current !== null`. But if the user then re-enters, `handlePanelEnter` runs again (snaps to frame 0, shows nodes), and the active node's zoom is still in effect. The zoom origin was set relative to the pre-enter state — this composes fine with GSAP but the UX might feel off. Consider: on `handlePanelEnter`, if `activeNodeRef.current !== null`, skip the frame-0 snap so the zoomed view is preserved.
+
+c) **Clicking a node via keyboard/focus while `nodesVisible` is false**: `pointerEvents: 'none'` blocks mouse but not keyboard tab-focus clicks. Add `tabIndex={nodesVisible ? 0 : -1}` to each node button.
+
+---
 
 ### → Prompt 4.7 — Philosophy Section (Scene 6)
 
@@ -184,7 +206,17 @@ After `complete`: canvas `display:none`, frame arrays nulled, normal HTML scroll
 - 6 interactive hotspot nodes; hover/click → SVG connector line drawn to left panel
 - Left panel text transitions via GSAP timeline (y ± 30, opacity)
 - "↓ CONTINUE" appears after 8s or after hovering 3+ nodes
-- Image updated to Cloudinary: `clients/tdkdb/armonia/exterior/armonia_front_angle_day`
+- **Right panel replaced with 360° canvas** (was static Cloudinary `<img>`)
+
+#### 360° Canvas details
+- Sequence: `armonia360` — 65 WebP frames at 20 fps, `/sequences/armonia-360/frame-0001.webp` … `frame-0065.webp`
+- Config entry in `src/lib/homepage/sequenceConfig.ts`
+- RAF loop in `startRotation()` (stable `useCallback`, all refs); wraps frame 64 → 0 seamlessly
+- **Panel hover model**: mouse enter → stops RAF, snaps canvas to frame 0, sets `nodesVisible = true`; mouse leave (no active node) → resets zoom, hides nodes, restarts RAF
+- **`activeNodeRef`** (ref mirror of `activeNode` state) used in `handlePanelLeave` to guard against restarting rotation while a node is locked
+- Node click zooms `canvasWrapperRef` to `scale: 1.25` via GSAP, `transformOrigin` set to node's `left top`; same-node click resets to `scale: 1`
+- Canvas DPR-aware sizing (`min(DPR, 2)`); resize listener redraws current frame
+- ⚠️ Known issues: node positions need re-tuning for 360° frames; click edge cases (see §3 above)
 
 ### GSAP Rules (critical)
 

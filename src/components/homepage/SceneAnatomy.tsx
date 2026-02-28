@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
-import { heroImage } from '@/lib/cloudinary/transforms';
+import { drawFrame, preloadSequence } from '@/lib/homepage/imageSequence';
+import { SEQUENCE_CONFIG } from '@/lib/homepage/sequenceConfig';
 
 const PULSE_DELAYS = [0, 400, 800, 1200, 1600, 2000]; // ms, one per node
 
@@ -62,9 +63,9 @@ export default function SceneAnatomy() {
   const [activeNode, setActiveNode] = useState<number | null>(null);
   const [displayedNode, setDisplayedNode] = useState<number | null>(null);
   const [continueVisible, setContinueVisible] = useState(false);
+  const [nodesVisible, setNodesVisible] = useState(false);
 
   const sectionRef = useRef<HTMLElement>(null);
-  const imageRef = useRef<HTMLImageElement>(null);
   const leftTextRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
@@ -76,17 +77,75 @@ export default function SceneAnatomy() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const stRef = useRef<ScrollTrigger | null>(null);
 
-  // 1. ScrollTrigger (entry timer only) + breathing animation
+  // 360 rotation canvas refs
+  const rotationCanvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasWrapperRef = useRef<HTMLDivElement>(null);
+  const rightPanelRef = useRef<HTMLDivElement>(null);
+  const rotationFrames = useRef<HTMLImageElement[]>([]);
+  const rafIdRef = useRef<number>(0);
+  const currentFrameRef = useRef<number>(0);
+  const isHoveredRef = useRef<boolean>(false);
+  const zoomTweenRef = useRef<gsap.core.Tween | null>(null);
+  // Ref mirror of activeNode — avoids stale closure in handlePanelLeave
+  const activeNodeRef = useRef<number | null>(null);
+
+  // Keep activeNodeRef in sync with activeNode state
+  useEffect(() => {
+    activeNodeRef.current = activeNode;
+  }, [activeNode]);
+
+  // RAF rotation loop — stable (all refs, no state deps)
+  const startRotation = useCallback(() => {
+    const canvas = rotationCanvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (!ctx || rotationFrames.current.length === 0) return;
+
+    const interval = 1000 / SEQUENCE_CONFIG.armonia360.fps;
+    let lastTime = 0;
+
+    function tick(timestamp: number) {
+      if (isHoveredRef.current) return; // stop without re-scheduling
+      if (timestamp - lastTime >= interval) {
+        currentFrameRef.current =
+          (currentFrameRef.current + 1) % rotationFrames.current.length;
+        drawFrame(ctx!, rotationFrames.current, currentFrameRef.current);
+        lastTime = timestamp;
+      }
+      rafIdRef.current = requestAnimationFrame(tick);
+    }
+    rafIdRef.current = requestAnimationFrame(tick);
+  }, []);
+
+  // 1. ScrollTrigger (entry timer) + canvas setup
   // NOTE: Pinning is done via CSS sticky on the section, NOT via GSAP pin:true.
   // GSAP's pin inserts a spacer sibling into the DOM that React doesn't track,
   // causing a removeChild mismatch when React reconciles the page.tsx fragment.
   useLayoutEffect(() => {
     gsapInit(); // ensure plugin is registered before any ScrollTrigger call
 
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Size canvas to match the right panel at device pixel ratio
+    function sizeCanvas() {
+      const canvas = rotationCanvasRef.current;
+      const panel = rightPanelRef.current;
+      if (!canvas || !panel) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = panel.clientWidth * dpr;
+      canvas.height = panel.clientHeight * dpr;
+      // Redraw current frame immediately after resize
+      const ctx = canvas.getContext('2d');
+      if (ctx) drawFrame(ctx, rotationFrames.current, currentFrameRef.current);
+    }
+
+    sizeCanvas();
+    window.addEventListener('resize', sizeCanvas);
+
+    // Preload frames, start loop once first 30 are ready
+    preloadSequence(SEQUENCE_CONFIG.armonia360, () => {}).then((frames) => {
+      rotationFrames.current = frames;
+      startRotation();
+    });
 
     // Track when the anatomy section is on screen to start the CONTINUE timer.
-    // Trigger on the wrapper (200vh) — start/end bracket the 100vh scroll window.
     stRef.current = ScrollTrigger.create({
       trigger: wrapperRef.current,
       start: 'top top',
@@ -99,25 +158,14 @@ export default function SceneAnatomy() {
       },
     });
 
-    // Breathing animation scoped to this section via gsap.context
-    const ctx = gsap.context(() => {
-      if (!prefersReducedMotion) {
-        gsap.to(imageRef.current, {
-          scale: 1.003,
-          duration: 4,
-          ease: 'sine.inOut',
-          repeat: -1,
-          yoyo: true,
-        });
-      }
-    }, sectionRef);
-
     return () => {
       stRef.current?.kill();
-      ctx.revert();
+      cancelAnimationFrame(rafIdRef.current);
+      zoomTweenRef.current?.kill();
+      window.removeEventListener('resize', sizeCanvas);
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, []);
+  }, [startRotation]);
 
   // 2. Left panel text transition (animate out → swap displayedNode → animate in)
   useEffect(() => {
@@ -193,6 +241,27 @@ export default function SceneAnatomy() {
     }
   }, []);
 
+  // Right panel hover handlers
+  const handlePanelEnter = useCallback(() => {
+    isHoveredRef.current = true;
+    cancelAnimationFrame(rafIdRef.current);
+    // Snap to frame 0 and reset logical position so resume is seamless
+    currentFrameRef.current = 0;
+    const ctx = rotationCanvasRef.current?.getContext('2d');
+    if (ctx) drawFrame(ctx, rotationFrames.current, 0);
+    setNodesVisible(true);
+  }, []);
+
+  const handlePanelLeave = useCallback(() => {
+    // Stay frozen while a node is locked (active)
+    if (activeNodeRef.current !== null) return;
+    isHoveredRef.current = false;
+    setNodesVisible(false);
+    zoomTweenRef.current?.kill();
+    gsap.to(canvasWrapperRef.current, { scale: 1, duration: 0.4, ease: 'power2.out' });
+    startRotation();
+  }, [startRotation]);
+
   // 4. Node interaction handlers
   const handleNodeEnter = useCallback(
     (id: number) => {
@@ -214,12 +283,30 @@ export default function SceneAnatomy() {
     (id: number) => {
       setActiveNode((prev) => {
         if (prev === id) {
+          // Deactivate: reset zoom and connector
           clearConnector();
+          zoomTweenRef.current?.kill();
+          zoomTweenRef.current = gsap.to(canvasWrapperRef.current, {
+            scale: 1,
+            duration: 0.4,
+            ease: 'power2.out',
+          });
           return null;
         }
+        // Activate: zoom into this node's area
+        const node = NODES.find((n) => n.id === id);
         drawConnector(id);
         hoveredNodes.current.add(id);
         if (hoveredNodes.current.size >= 3) setContinueVisible(true);
+        zoomTweenRef.current?.kill();
+        if (node) {
+          zoomTweenRef.current = gsap.to(canvasWrapperRef.current, {
+            scale: 1.25,
+            duration: 0.5,
+            ease: 'power2.out',
+            transformOrigin: `${node.left} ${node.top}`,
+          });
+        }
         return id;
       });
     },
@@ -296,17 +383,23 @@ export default function SceneAnatomy() {
             </div>
           </div>
 
-          {/* ── RIGHT PANEL ── */}
-          <div className="relative overflow-hidden">
-            <img
-              ref={imageRef}
-              src={heroImage('clients/tdkdb/armonia/exterior/armonia_front_angle_day')}
-              alt="Armonia building — interactive architectural overview"
-              className="h-full w-full object-cover will-change-transform"
-              draggable={false}
-            />
+          {/* ── RIGHT PANEL — 360° rotation canvas ── */}
+          <div
+            ref={rightPanelRef}
+            className="relative overflow-hidden"
+            onMouseEnter={handlePanelEnter}
+            onMouseLeave={handlePanelLeave}
+          >
+            {/* Canvas wrapper is the GSAP zoom target */}
+            <div ref={canvasWrapperRef} className="h-full w-full">
+              <canvas
+                ref={rotationCanvasRef}
+                className="h-full w-full"
+                style={{ display: 'block' }}
+              />
+            </div>
 
-            {/* 6 interactive hotspot nodes */}
+            {/* 6 interactive hotspot nodes — hidden during rotation, shown on hover */}
             {NODES.map((node, i) => (
               <button
                 key={node.id}
@@ -315,8 +408,13 @@ export default function SceneAnatomy() {
                 style={{
                   left: node.left,
                   top: node.top,
-                  opacity: activeNode !== null && activeNode !== node.id ? 0.25 : 1,
-                  transition: 'opacity 150ms',
+                  opacity: !nodesVisible
+                    ? 0
+                    : activeNode !== null && activeNode !== node.id
+                      ? 0.25
+                      : 1,
+                  pointerEvents: nodesVisible ? 'auto' : 'none',
+                  transition: 'opacity 300ms',
                 }}
                 onMouseEnter={() => handleNodeEnter(node.id)}
                 onMouseLeave={handleNodeLeave}
@@ -333,15 +431,12 @@ export default function SceneAnatomy() {
                     height: 24,
                     left: '50%',
                     top: '50%',
-                    // 0.65 opacity so the ring is clearly visible at the start of each pulse cycle
                     borderColor:
                       activeNode === node.id ? 'var(--color-threshold)' : 'rgba(245,240,232,0.65)',
                     animation:
                       activeNode === node.id
                         ? 'none'
                         : `nodePulse 2s ease-out infinite ${PULSE_DELAYS[i]}ms`,
-                    // backwards: apply the 0% keyframe (centered + opacity 1) during the stagger
-                    // delay so rings are visible and correctly placed before their animation fires
                     animationFillMode: activeNode === node.id ? 'none' : 'backwards',
                   }}
                 />

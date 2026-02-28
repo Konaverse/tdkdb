@@ -13,6 +13,13 @@ export const SEQUENCE_CONFIG = {
     path: '/sequences/approach/frame-',
     extension: '.webp',
   },
+  armonia360: {
+    frameCount: 65,
+    fps: 20,
+    pad: 4,
+    path: '/sequences/armonia-360/frame-',
+    extension: '.webp',
+  },
 } as const;
 
 export type SequenceKey = keyof typeof SEQUENCE_CONFIG;
