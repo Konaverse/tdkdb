@@ -106,8 +106,7 @@ export default function SceneAnatomy() {
     function tick(timestamp: number) {
       if (isHoveredRef.current) return; // stop without re-scheduling
       if (timestamp - lastTime >= interval) {
-        currentFrameRef.current =
-          (currentFrameRef.current + 1) % rotationFrames.current.length;
+        currentFrameRef.current = (currentFrameRef.current + 1) % rotationFrames.current.length;
         drawFrame(ctx!, rotationFrames.current, currentFrameRef.current);
         lastTime = timestamp;
       }
@@ -140,7 +139,7 @@ export default function SceneAnatomy() {
     window.addEventListener('resize', sizeCanvas);
 
     // Preload frames, start loop once first 30 are ready
-    preloadSequence(SEQUENCE_CONFIG.armonia360, () => { }).then((frames) => {
+    preloadSequence(SEQUENCE_CONFIG.armonia360, () => {}).then((frames) => {
       rotationFrames.current = frames;
       startRotation();
     });
