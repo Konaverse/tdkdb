@@ -60,6 +60,9 @@ importers:
         specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
+      '@portabletext/types':
+        specifier: ^4.0.1
+        version: 4.0.1
       '@types/node':
         specifier: ^20
         version: 20.19.33

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { articles } from '../page';
+import { articles } from '../data';
 import ArticleDetailClient from './ArticleDetailClient';
 import type { PortableTextBlock } from '@portabletext/types';
 
