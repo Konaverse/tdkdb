@@ -348,7 +348,10 @@ function GalleryScene({
         // Set initial texture so the plane isn't blank on first render
         material.uniforms.map.value = texture;
 
-        const aspect = texture.image ? texture.image.width / texture.image.height : 1;
+        const aspect = texture.image
+          ? (texture.image as { width: number; height: number }).width /
+            (texture.image as { width: number; height: number }).height
+          : 1;
         const scale: [number, number, number] =
           aspect > 1 ? [2 * aspect, 2, 1] : [2, 2 / aspect, 1];
         const worldZ = plane.z - depthRange / 2;
