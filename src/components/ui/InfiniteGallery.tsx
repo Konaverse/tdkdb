@@ -281,7 +281,8 @@ function GalleryScene({
         mesh.position.set(plane.x, plane.y, worldZ);
         const tex = textures[plane.imageIndex];
         if (tex?.image) {
-          const aspect = tex.image.width / tex.image.height;
+          const img = tex.image as { width: number; height: number };
+          const aspect = img.width / img.height;
           mesh.scale.set(aspect > 1 ? 2 * aspect : 2, aspect > 1 ? 2 : 2 / aspect, 1);
         }
       }
