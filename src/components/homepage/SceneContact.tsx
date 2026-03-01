@@ -1,7 +1,7 @@
 'use client';
 
 import { useLayoutEffect, useRef } from 'react';
-import { gsap, gsapInit } from '@/lib/animations/gsap';
+import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import Button from '@/components/ui/Button';
 
 const WORDS = ["LET'S", 'BUILD', 'SOMETHING', 'TOGETHER.'];
@@ -18,10 +18,33 @@ export default function SceneContact() {
     const section = sectionRef.current;
     if (!section) return;
 
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      // buttonWrapRef and infoRef have inline opacity:0; reveal them immediately
+      if (buttonWrapRef.current) buttonWrapRef.current.style.opacity = '1';
+      if (infoRef.current) infoRef.current.style.opacity = '1';
+      return;
+    }
+
     const ctx = gsap.context(() => {
-      // SVG background drift — no ScrollTrigger, always plays
+      // SVG drift — paused; ScrollTrigger plays/pauses when section is in viewport
       if (svgRef.current) {
-        gsap.to(svgRef.current, { y: -20, duration: 20, ease: 'none', repeat: -1, yoyo: true });
+        const driftTween = gsap.to(svgRef.current, {
+          y: -20,
+          duration: 20,
+          ease: 'none',
+          repeat: -1,
+          yoyo: true,
+          paused: true,
+        });
+        ScrollTrigger.create({
+          trigger: section,
+          start: 'top bottom',
+          end: 'bottom top',
+          onEnter: () => driftTween.play(),
+          onLeave: () => driftTween.pause(),
+          onEnterBack: () => driftTween.play(),
+          onLeaveBack: () => driftTween.pause(),
+        });
       }
 
       // Word clip-path reveals

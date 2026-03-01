@@ -67,6 +67,7 @@ export default function ScenePhilosophy() {
 
   const [activeIdx, setActiveIdx] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
 
   // Refs for scroll-driven logic — avoids stale closures inside ST callbacks
   const activeIdxRef = useRef(0);
@@ -78,6 +79,22 @@ export default function ScenePhilosophy() {
 
     const container = containerRef.current;
     if (!container) return;
+
+    // Defer Three.js/R3F canvas: only mount when section approaches viewport (~2 screens early)
+    const galleryObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsMounted(true);
+          galleryObserver.disconnect();
+        }
+      },
+      { rootMargin: '200% 0px' },
+    );
+    galleryObserver.observe(container);
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return () => galleryObserver.disconnect();
+    }
 
     const ctx = gsap.context(() => {
       ScrollTrigger.create({
@@ -149,6 +166,7 @@ export default function ScenePhilosophy() {
     return () => {
       cancelAnimationFrame(rafId);
       heightObserver.disconnect();
+      galleryObserver.disconnect();
       ctx.revert();
     };
   }, []);
@@ -159,22 +177,24 @@ export default function ScenePhilosophy() {
     // Tall container gives the page scroll travel; sticky section holds position
     <div ref={containerRef} style={{ height: CONTAINER_HEIGHT }}>
       <section className="sticky top-0 h-screen overflow-hidden bg-void">
-        {/* ── 3D depth-tunnel gallery — auto-plays independently of scroll ── */}
-        <InfiniteGallery
-          images={GALLERY_IMAGES}
-          className="absolute inset-0 h-full w-full"
-          speed={0.7}
-          visibleCount={10}
-          fadeSettings={{
-            fadeIn: { start: 0.05, end: 0.2 },
-            fadeOut: { start: 0.8, end: 0.95 },
-          }}
-          blurSettings={{
-            blurIn: { start: 0.0, end: 0.12 },
-            blurOut: { start: 0.88, end: 1.0 },
-            maxBlur: 4.0,
-          }}
-        />
+        {/* ── 3D depth-tunnel gallery — deferred until section approaches viewport ── */}
+        {isMounted && (
+          <InfiniteGallery
+            images={GALLERY_IMAGES}
+            className="absolute inset-0 h-full w-full"
+            speed={0.7}
+            visibleCount={10}
+            fadeSettings={{
+              fadeIn: { start: 0.05, end: 0.2 },
+              fadeOut: { start: 0.8, end: 0.95 },
+            }}
+            blurSettings={{
+              blurIn: { start: 0.0, end: 0.12 },
+              blurOut: { start: 0.88, end: 1.0 },
+              maxBlur: 4.0,
+            }}
+          />
+        )}
 
         {/* ── Dark scrim — text legibility ── */}
         <div className="pointer-events-none absolute inset-0 bg-black/55" />
@@ -204,10 +224,10 @@ export default function ScenePhilosophy() {
           ) : (
             // Statements 1–4 — standard manifesto layout
             <>
-              <p className="text-display-md font-[300] text-paper leading-[1.15]">
+              <p className="text-display-md font-[300] leading-[1.15] text-paper">
                 {statement.line1}
               </p>
-              <p className="text-display-md font-[300] text-paper leading-[1.15]">
+              <p className="text-display-md font-[300] leading-[1.15] text-paper">
                 {statement.line2}
               </p>
             </>
@@ -222,8 +242,7 @@ export default function ScenePhilosophy() {
               className="block h-px transition-all duration-500"
               style={{
                 width: i === activeIdx ? '24px' : '12px',
-                background:
-                  i === activeIdx ? 'var(--color-threshold)' : 'rgba(255,255,255,0.25)',
+                background: i === activeIdx ? 'var(--color-threshold)' : 'rgba(255,255,255,0.25)',
               }}
             />
           ))}

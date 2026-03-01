@@ -138,11 +138,20 @@ export default function SceneAnatomy() {
     sizeCanvas();
     window.addEventListener('resize', sizeCanvas);
 
-    // Preload frames, start loop once first 30 are ready
-    preloadSequence(SEQUENCE_CONFIG.armonia360, () => {}).then((frames) => {
-      rotationFrames.current = frames;
-      startRotation();
-    });
+    // Defer preload until section approaches viewport (~1 screen early)
+    const sequenceObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          sequenceObserver.disconnect();
+          preloadSequence(SEQUENCE_CONFIG.armonia360, () => {}).then((frames) => {
+            rotationFrames.current = frames;
+            startRotation();
+          });
+        }
+      },
+      { rootMargin: '100% 0px' },
+    );
+    if (wrapperRef.current) sequenceObserver.observe(wrapperRef.current);
 
     // Track when the anatomy section is on screen to start the CONTINUE timer.
     stRef.current = ScrollTrigger.create({
@@ -163,6 +172,8 @@ export default function SceneAnatomy() {
       zoomTweenRef.current?.kill();
       window.removeEventListener('resize', sizeCanvas);
       if (timerRef.current) clearTimeout(timerRef.current);
+      sequenceObserver.disconnect();
+      rotationFrames.current = []; // release 65 HTMLImageElement refs for GC
     };
   }, [startRotation]);
 

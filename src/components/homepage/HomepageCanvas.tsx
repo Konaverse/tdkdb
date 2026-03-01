@@ -39,11 +39,14 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
   const [phase, setPhase] = useState<HomepagePhase>('loading');
   const [loadProgress, setLoadProgress] = useState<number>(0);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isMobileMode, setIsMobileMode] = useState(false);
   const assemblyFrames = useRef<HTMLImageElement[]>([]);
   const approachFrames = useRef<HTMLImageElement[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafCleanupRef = useRef<(() => void) | null>(null);
   const vignetteRef = useRef<HTMLDivElement>(null);
+  const hardTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isMobileRef = useRef(false);
 
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -56,6 +59,11 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
   const handleLoadingComplete = useCallback(() => {
     const ctx = canvasRef.current?.getContext('2d');
     if (!ctx || assemblyFrames.current.length === 0) return;
+    // Clear hard timeout — normal completion path
+    if (hardTimeoutRef.current) {
+      clearTimeout(hardTimeoutRef.current);
+      hardTimeoutRef.current = null;
+    }
     setPhase('assembly');
     rafCleanupRef.current = playAssembly(
       assemblyFrames.current,
@@ -70,6 +78,25 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
   useEffect(() => {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
+
+    // ── Mobile / save-data guard ────────────────────────────────────────────────
+    const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 1024;
+    const saveData =
+      (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData ===
+      true;
+
+    if (isMobile || saveData) {
+      isMobileRef.current = true;
+      setIsMobileMode(true);
+      setPhase('complete');
+      return () => window.removeEventListener('resize', resizeCanvas);
+    }
+
+    // ── Hard 10-second timeout ──────────────────────────────────────────────────
+    // If preload hasn't finished, skip to assembly with whatever loaded
+    hardTimeoutRef.current = setTimeout(() => {
+      if (assemblyFrames.current.length > 0) handleLoadingComplete();
+    }, 10_000);
 
     const handleScroll = () => {
       const range = window.innerHeight * 1.5;
@@ -104,8 +131,9 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
       window.removeEventListener('resize', resizeCanvas);
       window.removeEventListener('scroll', handleScroll);
       rafCleanupRef.current?.();
+      if (hardTimeoutRef.current) clearTimeout(hardTimeoutRef.current);
     };
-  }, [resizeCanvas]);
+  }, [resizeCanvas, handleLoadingComplete]);
 
   const hasAssembled = phase !== 'loading' && phase !== 'assembly';
 
@@ -191,6 +219,23 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
       thresholdST.kill();
     };
   }, [hasAssembled]);
+
+  if (isMobileMode) {
+    return (
+      <HomepagePhaseContext.Provider value={phase}>
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="fixed inset-0 z-0 h-screen w-screen object-cover"
+          src="/videos/approach-mobile.mp4"
+        />
+        <div className="pointer-events-none fixed inset-0 z-[1] bg-black/45" />
+        {children}
+      </HomepagePhaseContext.Provider>
+    );
+  }
 
   return (
     <HomepagePhaseContext.Provider value={phase}>

@@ -149,7 +149,7 @@ function GalleryScene({
 
   const normalizedImages = useMemo(
     () => images.map((img) => (typeof img === 'string' ? { src: img, alt: '' } : img)),
-    [images]
+    [images],
   );
 
   // useTexture suspends until all textures are loaded
@@ -158,7 +158,7 @@ function GalleryScene({
 
   const materials = useMemo(
     () => Array.from({ length: visibleCount }, () => createClothMaterial()),
-    [visibleCount]
+    [visibleCount],
   );
 
   const spatialPositions = useMemo(() => {
@@ -186,7 +186,7 @@ function GalleryScene({
       imageIndex: totalImages > 0 ? i % totalImages : 0,
       x: spatialPositions[i]?.x ?? 0,
       y: spatialPositions[i]?.y ?? 0,
-    }))
+    })),
   );
 
   // Direct refs — never trigger React re-renders
@@ -205,7 +205,7 @@ function GalleryScene({
       autoPlayRef.current = false;
       lastInteractionRef.current = Date.now();
     },
-    [speed]
+    [speed],
   );
 
   const handleKeyDown = useCallback(
@@ -220,7 +220,7 @@ function GalleryScene({
         lastInteractionRef.current = Date.now();
       }
     },
-    [speed]
+    [speed],
   );
 
   useEffect(() => {
@@ -244,8 +244,7 @@ function GalleryScene({
     scrollVelocityRef.current *= 0.95;
 
     const time = state.clock.getElapsedTime();
-    const imageAdvance =
-      totalImages > 0 ? visibleCount % totalImages || totalImages : 0;
+    const imageAdvance = totalImages > 0 ? visibleCount % totalImages || totalImages : 0;
     const halfRange = depthRange / 2;
 
     planesData.current.forEach((plane, i) => {
@@ -294,8 +293,7 @@ function GalleryScene({
         opacity = 0;
       } else if (np <= fadeSettings.fadeIn.end) {
         opacity =
-          (np - fadeSettings.fadeIn.start) /
-          (fadeSettings.fadeIn.end - fadeSettings.fadeIn.start);
+          (np - fadeSettings.fadeIn.start) / (fadeSettings.fadeIn.end - fadeSettings.fadeIn.start);
       } else if (np >= fadeSettings.fadeOut.end) {
         opacity = 0;
       } else if (np >= fadeSettings.fadeOut.start) {
@@ -312,8 +310,7 @@ function GalleryScene({
         blur = blurSettings.maxBlur;
       } else if (np <= blurSettings.blurIn.end) {
         const p =
-          (np - blurSettings.blurIn.start) /
-          (blurSettings.blurIn.end - blurSettings.blurIn.start);
+          (np - blurSettings.blurIn.start) / (blurSettings.blurIn.end - blurSettings.blurIn.start);
         blur = blurSettings.maxBlur * (1 - p);
       } else if (np >= blurSettings.blurOut.end) {
         blur = blurSettings.maxBlur;
@@ -384,18 +381,13 @@ function GalleryScene({
 function FallbackGallery({ images }: { images: ImageItem[] }) {
   const normalizedImages = useMemo(
     () => images.map((img) => (typeof img === 'string' ? { src: img, alt: '' } : img)),
-    [images]
+    [images],
   );
   return (
     <div className="flex h-full items-center justify-center bg-void p-4">
       <div className="grid max-h-96 grid-cols-2 gap-4 overflow-y-auto md:grid-cols-3">
         {normalizedImages.map((img, i) => (
-          <img
-            key={i}
-            src={img.src}
-            alt={img.alt ?? ''}
-            className="h-32 w-full object-cover"
-          />
+          <img key={i} src={img.src} alt={img.alt ?? ''} className="h-32 w-full object-cover" />
         ))}
       </div>
     </div>
@@ -435,10 +427,7 @@ export default function InfiniteGallery({
 
   return (
     <div className={className} style={style}>
-      <Canvas
-        camera={{ position: [0, 0, 0], fov: 55 }}
-        gl={{ antialias: true, alpha: true }}
-      >
+      <Canvas camera={{ position: [0, 0, 0], fov: 55 }} gl={{ antialias: true, alpha: true }}>
         {/* Suspense boundary so useTexture can suspend without crashing */}
         <Suspense fallback={null}>
           <GalleryScene

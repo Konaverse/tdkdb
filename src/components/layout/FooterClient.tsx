@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { gsap } from '@/lib/animations/gsap';
+import { gsap, gsapInit } from '@/lib/animations/gsap';
 
 const DISPLAY_EMAIL = 'info@tdkdb.com';
 
@@ -30,6 +30,7 @@ export default function FooterClient() {
   const curtainRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
+    gsapInit();
     const ctx = gsap.context(() => {
       gsap.set(curtainRef.current, { yPercent: 0 });
 

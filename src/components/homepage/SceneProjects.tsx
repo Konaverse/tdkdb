@@ -61,6 +61,15 @@ export default function SceneProjects() {
     const strip = stripRef.current;
     if (!container || !strip) return;
 
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      // Card 2 info panel starts opacity:0 via GSAP; reveal it immediately
+      if (infoPanelRefs.current[1]) {
+        (infoPanelRefs.current[1] as HTMLElement).style.opacity = '1';
+        (infoPanelRefs.current[1] as HTMLElement).style.transform = 'none';
+      }
+      return;
+    }
+
     const ctx = gsap.context(() => {
       // ── Set initial off-screen states before creating the timeline ──────────
       // Card 2 info panel starts hidden and offset downward
@@ -94,11 +103,7 @@ export default function SceneProjects() {
       );
 
       // ── "THE WORK" heading fades out quickly as carousel begins ──────────
-      tl.to(
-        headingRef.current,
-        { opacity: 0, y: -14, ease: 'none', duration: 0.2 },
-        0,
-      );
+      tl.to(headingRef.current, { opacity: 0, y: -14, ease: 'none', duration: 0.2 }, 0);
 
       // ── Parallax: images move at 0.7× the strip speed ────────────────────
       // Images are 130 % wide (left: −15 %) so they always cover their card
@@ -125,11 +130,7 @@ export default function SceneProjects() {
       // ── Counter slot: "01" → "02" (translateY flips slot items) ──────────
       // The slot div contains CARDS.length items each 13 px tall.
       // Translating to −50 % (= −13 px) reveals the second item.
-      tl.to(
-        counterSlotRef.current,
-        { yPercent: -50, ease: 'none', duration: 0.2 },
-        0.4,
-      );
+      tl.to(counterSlotRef.current, { yPercent: -50, ease: 'none', duration: 0.2 }, 0.4);
 
       // ── Info panels: card 1 fades out, card 2 slides in ──────────────────
       const info1 = infoPanelRefs.current[0];
@@ -165,10 +166,7 @@ export default function SceneProjects() {
         {/* ── Project counter — slot machine ── */}
         {/* Clipping wrapper shows one number at a time (text-mono = 13px) */}
         <div className="absolute right-12 top-10 z-20 flex items-baseline gap-2">
-          <div
-            className="overflow-hidden"
-            style={{ height: '13px', lineHeight: '13px' }}
-          >
+          <div className="overflow-hidden" style={{ height: '13px', lineHeight: '13px' }}>
             <div ref={counterSlotRef}>
               {CARDS.map((_, i) => (
                 <div
@@ -196,10 +194,7 @@ export default function SceneProjects() {
           }}
         >
           {CARDS.map((card, i) => (
-            <div
-              key={card.id}
-              className="relative h-full w-screen flex-shrink-0 overflow-hidden"
-            >
+            <div key={card.id} className="relative h-full w-screen flex-shrink-0 overflow-hidden">
               {/* Full-bleed image — 130 % wide so parallax shift never exposes edges */}
               <img
                 ref={(el) => {
@@ -208,6 +203,9 @@ export default function SceneProjects() {
                 src={cloudinaryUrl(card.heroImageId, { width: 1920 })}
                 alt=""
                 aria-hidden="true"
+                loading={i === 0 ? 'eager' : 'lazy'}
+                width={1920}
+                height={1280}
                 className="absolute top-0 h-full object-cover"
                 style={{
                   width: '130%',
@@ -237,9 +235,7 @@ export default function SceneProjects() {
                   className="mb-4 text-label tracking-[0.3em]"
                   style={{
                     color:
-                      card.status === 'completed'
-                        ? 'var(--color-threshold)'
-                        : 'var(--color-stone)',
+                      card.status === 'completed' ? 'var(--color-threshold)' : 'var(--color-stone)',
                   }}
                 >
                   {STATUS_LABEL[card.status]}

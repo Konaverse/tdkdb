@@ -197,11 +197,7 @@ export default function SceneProcess() {
 
         tl.to(tickRefs.current[i], { opacity: 1, duration: 0.05, ease: 'none' }, pos);
 
-        tl.to(
-          stepRefs.current[i],
-          { opacity: 1, x: 0, duration: 0.12, ease: 'power4.out' },
-          pos,
-        );
+        tl.to(stepRefs.current[i], { opacity: 1, x: 0, duration: 0.12, ease: 'power4.out' }, pos);
       });
 
       // Closing line - independent reveal
@@ -217,7 +213,7 @@ export default function SceneProcess() {
             start: 'top 85%',
             toggleActions: 'play none none reverse',
           },
-        }
+        },
       );
     }, section);
 
@@ -289,7 +285,7 @@ export default function SceneProcess() {
 
           <p
             ref={closingRef}
-            className="text-display-md text-center font-[300]"
+            className="text-center text-display-md font-[300]"
             style={{
               color: 'var(--color-paper)',
               marginTop: '80px',
@@ -354,10 +350,7 @@ export default function SceneProcess() {
             <div className="flex h-full items-center justify-center">
               <div className="relative h-full" style={{ width: '2px' }}>
                 {/* Ghost line — always visible */}
-                <div
-                  className="absolute inset-0"
-                  style={{ backgroundColor: '#000000' }}
-                />
+                <div className="absolute inset-0" style={{ backgroundColor: '#000000' }} />
                 {/* Progress line — animated by GSAP scaleY */}
                 <div
                   ref={progressLineRef}
@@ -419,7 +412,6 @@ export default function SceneProcess() {
               ))}
             </div>
           </div>
-
         </div>
       </section>
 
@@ -431,7 +423,7 @@ export default function SceneProcess() {
         {grain}
         <p
           ref={closingRef}
-          className="text-center text-display-md font-[300] relative z-10 px-8"
+          className="relative z-10 px-8 text-center text-display-md font-[300]"
           style={{
             color: 'var(--color-paper)',
             clipPath: 'inset(0 100% 0 0)',
