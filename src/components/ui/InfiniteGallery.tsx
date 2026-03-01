@@ -31,6 +31,7 @@ export interface InfiniteGalleryProps {
   blurSettings?: BlurSettings;
   className?: string;
   style?: React.CSSProperties;
+  isPaused?: boolean;
 }
 
 interface PlaneData {
@@ -408,6 +409,7 @@ export default function InfiniteGallery({
   visibleCount,
   fadeSettings,
   blurSettings,
+  isPaused = false,
 }: InfiniteGalleryProps) {
   const [webglSupported, setWebglSupported] = useState(true);
 
@@ -431,7 +433,11 @@ export default function InfiniteGallery({
 
   return (
     <div className={className} style={style}>
-      <Canvas camera={{ position: [0, 0, 0], fov: 55 }} gl={{ antialias: true, alpha: true }}>
+      <Canvas
+        camera={{ position: [0, 0, 0], fov: 55 }}
+        gl={{ antialias: true, alpha: true }}
+        frameloop={isPaused ? 'never' : 'always'}
+      >
         {/* Suspense boundary so useTexture can suspend without crashing */}
         <Suspense fallback={null}>
           <GalleryScene

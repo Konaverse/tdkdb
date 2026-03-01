@@ -2,7 +2,6 @@ import dynamic from 'next/dynamic';
 import SceneAnatomy from '@/components/homepage/SceneAnatomy';
 import ScenePhilosophy from '@/components/homepage/ScenePhilosophy';
 import SceneProjects from '@/components/homepage/SceneProjects';
-import SceneProcess from '@/components/homepage/SceneProcess';
 import SceneContact from '@/components/homepage/SceneContact';
 import Footer from '@/components/layout/Footer';
 
@@ -17,7 +16,6 @@ export default function HomePage() {
       <SceneAnatomy />
       <ScenePhilosophy />
       <SceneProjects />
-      <SceneProcess />
       <SceneContact />
       <div style={{ height: '1px', background: 'var(--color-border)' }} />
       <Footer />

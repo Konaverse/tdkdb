@@ -51,7 +51,11 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
   const resizeCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    // Extreme optimization: Cap the backing dimensions at 1x Device Pixel Ratio.
+    // For fast-moving video/image sequences, the naked eye cannot see retina sharpness,
+    // but the GPU has to process 4x fewer pixels per paint frame, eliminating jank.
+    const dpr = 1;
     canvas.width = window.innerWidth * dpr;
     canvas.height = window.innerHeight * dpr;
   }, []);
@@ -228,6 +232,7 @@ export default function HomepageCanvas({ children }: { children?: ReactNode }) {
           muted
           loop
           playsInline
+          preload="metadata"
           className="fixed inset-0 z-0 h-screen w-screen object-cover"
           src="/videos/approach-mobile.mp4"
         />

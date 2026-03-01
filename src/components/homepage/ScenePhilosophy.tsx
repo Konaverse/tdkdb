@@ -15,11 +15,23 @@ const InfiniteGallery = dynamic(() => import('@/components/ui/InfiniteGallery'),
 // ─── Content ──────────────────────────────────────────────────────────────────
 
 const GALLERY_IMAGES = [
-  { src: cloudinaryUrl('clients/tdkdb/philosophy/concrete-textiure', { width: 1920 }), alt: '' },
-  { src: cloudinaryUrl('clients/tdkdb/philosophy/floor-plan-hands', { width: 1920 }), alt: '' },
-  { src: cloudinaryUrl('clients/tdkdb/philosophy/window-frame', { width: 1920 }), alt: '' },
-  { src: cloudinaryUrl('clients/tdkdb/philosophy/light-shafts', { width: 1920 }), alt: '' },
-  { src: cloudinaryUrl('clients/tdkdb/armonia/exterior/1', { width: 1920 }), alt: '' },
+  {
+    src: cloudinaryUrl('clients/tdkdb/philosophy/concrete-textiure', { width: 1000, quality: 80 }),
+    alt: '',
+  },
+  {
+    src: cloudinaryUrl('clients/tdkdb/philosophy/floor-plan-hands', { width: 1000, quality: 80 }),
+    alt: '',
+  },
+  {
+    src: cloudinaryUrl('clients/tdkdb/philosophy/window-frame', { width: 1000, quality: 80 }),
+    alt: '',
+  },
+  {
+    src: cloudinaryUrl('clients/tdkdb/philosophy/light-shafts', { width: 1000, quality: 80 }),
+    alt: '',
+  },
+  { src: cloudinaryUrl('clients/tdkdb/armonia/exterior/1', { width: 1000, quality: 80 }), alt: '' },
 ];
 
 interface Statement {
@@ -68,6 +80,7 @@ export default function ScenePhilosophy() {
   const [activeIdx, setActiveIdx] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const [isPaused, setIsPaused] = useState(true);
 
   // Refs for scroll-driven logic — avoids stale closures inside ST callbacks
   const activeIdxRef = useRef(0);
@@ -80,20 +93,33 @@ export default function ScenePhilosophy() {
     const container = containerRef.current;
     if (!container) return;
 
-    // Defer Three.js/R3F canvas: only mount when section approaches viewport (~2 screens early)
-    const galleryObserver = new IntersectionObserver(
+    // Defer origin mount until section is 2.5 screens away to pre-load textures and shaders safely
+    const galleryMountObserver = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsMounted(true);
-          galleryObserver.disconnect();
+          galleryMountObserver.disconnect();
         }
       },
-      { rootMargin: '200% 0px' },
+      { rootMargin: '250% 0px' },
     );
-    galleryObserver.observe(container);
+    galleryMountObserver.observe(container);
+
+    // Toggle WebGL render loop (frameloop): pause when completely out of view to save GPU cycles
+    // but keep textures loaded in VRAM for instant return.
+    const pauseObserver = new IntersectionObserver(
+      ([entry]) => {
+        setIsPaused(!entry.isIntersecting);
+      },
+      { rootMargin: '50% 0px' },
+    );
+    pauseObserver.observe(container);
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return () => galleryObserver.disconnect();
+      return () => {
+        galleryMountObserver.disconnect();
+        pauseObserver.disconnect();
+      };
     }
 
     const ctx = gsap.context(() => {
@@ -166,7 +192,8 @@ export default function ScenePhilosophy() {
     return () => {
       cancelAnimationFrame(rafId);
       heightObserver.disconnect();
-      galleryObserver.disconnect();
+      galleryMountObserver.disconnect();
+      pauseObserver.disconnect();
       ctx.revert();
     };
   }, []);
@@ -184,6 +211,7 @@ export default function ScenePhilosophy() {
             className="absolute inset-0 h-full w-full"
             speed={0.7}
             visibleCount={10}
+            isPaused={isPaused}
             fadeSettings={{
               fadeIn: { start: 0.05, end: 0.2 },
               fadeOut: { start: 0.8, end: 0.95 },

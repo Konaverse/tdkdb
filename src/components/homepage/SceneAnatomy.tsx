@@ -66,6 +66,7 @@ export default function SceneAnatomy() {
   const [displayedNode, setDisplayedNode] = useState<number | null>(null);
   const [continueVisible, setContinueVisible] = useState(false);
   const [nodesVisible, setNodesVisible] = useState(false);
+  const [isMeshVisible, setIsMeshVisible] = useState(false);
 
   const sectionRef = useRef<HTMLElement>(null);
   const leftTextRef = useRef<HTMLDivElement>(null);
@@ -151,7 +152,18 @@ export default function SceneAnatomy() {
       },
       { rootMargin: '100% 0px' },
     );
-    if (wrapperRef.current) sequenceObserver.observe(wrapperRef.current);
+
+    const meshObserver = new IntersectionObserver(
+      ([entry]) => {
+        setIsMeshVisible(entry.isIntersecting);
+      },
+      { rootMargin: '50% 0px' }, // keep alive a bit out of view, kill when far away
+    );
+
+    if (wrapperRef.current) {
+      sequenceObserver.observe(wrapperRef.current);
+      meshObserver.observe(wrapperRef.current);
+    }
 
     // Track when the anatomy section is on screen to start the CONTINUE timer.
     stRef.current = ScrollTrigger.create({
@@ -173,6 +185,7 @@ export default function SceneAnatomy() {
       window.removeEventListener('resize', sizeCanvas);
       if (timerRef.current) clearTimeout(timerRef.current);
       sequenceObserver.disconnect();
+      meshObserver.disconnect();
       rotationFrames.current = []; // release 65 HTMLImageElement refs for GC
     };
   }, [startRotation]);
@@ -286,11 +299,13 @@ export default function SceneAnatomy() {
     <div ref={wrapperRef} style={{ height: '200vh' }}>
       <section ref={sectionRef} className="sticky top-0 h-screen overflow-hidden bg-void">
         {/* Animated mesh gradient background */}
-        <MeshGradient
-          className="pointer-events-none absolute inset-0 z-0 h-full w-full"
-          colors={['#0d0d0d', '#111a1b', '#0d0d0d', '#142022']}
-          speed={0.3}
-        />
+        {isMeshVisible && (
+          <MeshGradient
+            className="pointer-events-none absolute inset-0 z-0 h-full w-full"
+            colors={['#0d0d0d', '#111a1b', '#0d0d0d', '#142022']}
+            speed={0.3}
+          />
+        )}
 
         {/* Node pulse keyframes.
           - translate(-50%,-50%) is baked in so the transform composes with left/top positioning.

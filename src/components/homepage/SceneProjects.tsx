@@ -203,7 +203,8 @@ export default function SceneProjects() {
                 src={cloudinaryUrl(card.heroImageId, { width: 1920 })}
                 alt=""
                 aria-hidden="true"
-                loading={i === 0 ? 'eager' : 'lazy'}
+                loading="lazy"
+                fetchPriority="low"
                 width={1920}
                 height={1280}
                 className="absolute top-0 h-full object-cover"

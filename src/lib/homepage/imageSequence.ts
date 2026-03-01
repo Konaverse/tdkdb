@@ -8,34 +8,55 @@ export function preloadSequence(
   const frames: HTMLImageElement[] = new Array(total);
   let loaded = 0;
 
-  const first30Promises: Promise<void>[] = [];
+  // Wait for the first N frames before allowing the canvas to 'assemble'
+  const initialBatch = Math.min(30, total);
+  const firstBatchPromises: Promise<void>[] = [];
 
-  for (let i = 0; i < total; i++) {
-    const img = new Image();
-    frames[i] = img;
-    const url = config.path + String(i + 1).padStart(config.pad, '0') + config.extension;
+  // Function to load a single image and asynchronously decode it off the main thread.
+  // Using decode() prevents massive CPU spikes during GSAP requestAnimationFrame draws.
+  const loadImage = (i: number): Promise<void> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      frames[i] = img;
+      const url = config.path + String(i + 1).padStart(config.pad, '0') + config.extension;
 
-    const loadPromise = new Promise<void>((resolve) => {
-      img.onload = () => {
-        loaded++;
-        onProgress(loaded / total);
-        resolve();
-      };
-      img.onerror = () => {
-        loaded++;
-        onProgress(loaded / total);
-        resolve();
-      };
+      img.src = url;
+
+      // Async off-thread decoding
+      img
+        .decode()
+        .then(() => {
+          loaded++;
+          onProgress(loaded / total);
+          resolve();
+        })
+        .catch(() => {
+          // Fallback if browser cancels or doesn't support decode
+          loaded++;
+          onProgress(loaded / total);
+          resolve();
+        });
     });
+  };
 
-    img.src = url;
-
-    if (i < 30) {
-      first30Promises.push(loadPromise);
-    }
+  // Load the first batch simultaneously to unblock the promise
+  for (let i = 0; i < initialBatch; i++) {
+    firstBatchPromises.push(loadImage(i));
   }
 
-  return Promise.all(first30Promises).then(() => frames);
+  return Promise.all(firstBatchPromises).then(async () => {
+    // Fire off the rest sequentially so we don't saturate the browser's
+    // concurrent connection limit (killing LCP for the rest of the page).
+    // We don't await this; it continues populating frames in the background.
+    const loadRemaining = async () => {
+      for (let i = initialBatch; i < total; i++) {
+        await loadImage(i);
+      }
+    };
+
+    loadRemaining();
+    return frames;
+  });
 }
 
 export function drawFrame(

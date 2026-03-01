@@ -42,7 +42,7 @@ const STEPS = [
 const TICK_Y = [0, 25, 50, 75, 100] as const;
 
 const GRAIN_URL =
-  "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E\")";
+  "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='1' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E\")";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -55,7 +55,9 @@ export default function SceneProcess() {
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
   const closingRef = useRef<HTMLParagraphElement>(null);
 
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches,
+  );
 
   // ── Mobile detection ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -197,7 +199,7 @@ export default function SceneProcess() {
 
         tl.to(tickRefs.current[i], { opacity: 1, duration: 0.05, ease: 'none' }, pos);
 
-        tl.to(stepRefs.current[i], { opacity: 1, x: 0, duration: 0.12, ease: 'power4.out' }, pos);
+        tl.to(stepRefs.current[i], { opacity: 1, x: 0, duration: 0.12, ease: 'none' }, pos);
       });
 
       // Closing line - independent reveal
@@ -231,6 +233,7 @@ export default function SceneProcess() {
         backgroundSize: '200px 200px',
         opacity: 0.035,
         zIndex: 0,
+        willChange: 'transform',
       }}
     />
   );
@@ -310,8 +313,6 @@ export default function SceneProcess() {
         className="relative overflow-hidden"
         style={{ height: '200vh', backgroundColor: '#111009' }}
       >
-        {grain}
-
         {/* Sticky panel — flex column, heading in-flow at top, grid fills middle, closing at bottom */}
         <div
           className="sticky top-0 flex h-screen flex-col"
@@ -323,6 +324,8 @@ export default function SceneProcess() {
             zIndex: 1,
           }}
         >
+          {grain}
+
           {/* Heading — in-flow at top */}
           <div className="flex-none">
             <p
@@ -391,7 +394,11 @@ export default function SceneProcess() {
                   ref={(el) => {
                     stepRefs.current[i] = el;
                   }}
-                  style={{ opacity: 0, transform: 'translateX(20px)' }}
+                  style={{
+                    opacity: 0,
+                    transform: 'translateX(20px)',
+                    willChange: 'transform, opacity',
+                  }}
                 >
                   <span className="text-mono" style={{ color: 'var(--color-threshold)' }}>
                     {step.number}

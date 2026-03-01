@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { heroImage } from '@/lib/cloudinary/transforms';
+import Image from 'next/image';
 import Section from '@/components/layout/Section';
 import GridWrapper from '@/components/layout/GridWrapper';
 import TextReveal from '@/components/animations/TextReveal';
@@ -37,11 +38,12 @@ export default function AboutPage() {
     <main className="bg-void text-paper">
       {/* ── Hero ── */}
       <section className="relative flex min-h-[70vh] items-end pb-24">
-        <img
+        <Image
           src={heroImage('clients/tdkdb/general/about/armonia_front_angle_day')}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover"
+          fill
+          className="object-cover"
           style={{ opacity: 0.2 }}
         />
         <div className="via-void/60 absolute inset-0 bg-gradient-to-t from-void to-transparent" />
@@ -52,7 +54,6 @@ export default function AboutPage() {
           </TextReveal>
         </GridWrapper>
       </section>
-
       {/* ── Our Story ── */}
       <Section>
         <GridWrapper>
