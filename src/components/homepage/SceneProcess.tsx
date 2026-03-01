@@ -50,8 +50,8 @@ export default function SceneProcess() {
   const sectionRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLParagraphElement>(null);
   const hrRef = useRef<HTMLDivElement>(null);
-  const progressLineRef = useRef<SVGLineElement>(null);
-  const tickRefs = useRef<(SVGLineElement | null)[]>([]);
+  const progressLineRef = useRef<HTMLDivElement>(null);
+  const tickRefs = useRef<(HTMLDivElement | null)[]>([]);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
   const closingRef = useRef<HTMLParagraphElement>(null);
 
@@ -138,9 +138,9 @@ export default function SceneProcess() {
         el.style.transform = 'none';
       });
       tickRefs.current.forEach((el) => {
-        if (el) el.setAttribute('opacity', '1');
+        if (el) el.style.opacity = '1';
       });
-      if (progressLineRef.current) progressLineRef.current.style.strokeDashoffset = '0';
+      if (progressLineRef.current) progressLineRef.current.style.transform = 'scaleY(1)';
       if (closingRef.current) closingRef.current.style.clipPath = 'inset(0 0% 0 0)';
       return;
     }
@@ -188,8 +188,8 @@ export default function SceneProcess() {
         },
       });
 
-      // Spine draws top-to-bottom via CSS strokeDashoffset (NOT attr plugin)
-      tl.to(progressLineRef.current, { strokeDashoffset: 0, ease: 'none', duration: 1 }, 0);
+      // Spine draws top-to-bottom via scaleY
+      tl.to(progressLineRef.current, { scaleY: 1, ease: 'none', duration: 1 }, 0);
 
       // Tick + step at each quarter of the timeline
       STEPS.forEach((_, i) => {
@@ -204,11 +204,20 @@ export default function SceneProcess() {
         );
       });
 
-      // Closing line
-      tl.to(
+      // Closing line - independent reveal
+      gsap.fromTo(
         closingRef.current,
-        { clipPath: 'inset(0 0% 0 0)', duration: 0.15, ease: 'power4.out' },
-        0.92,
+        { clipPath: 'inset(0 100% 0 0)' },
+        {
+          clipPath: 'inset(0 0% 0 0)',
+          duration: 0.8,
+          ease: 'power4.out',
+          scrollTrigger: {
+            trigger: closingRef.current,
+            start: 'top 85%',
+            toggleActions: 'play none none reverse',
+          },
+        }
       );
     }, section);
 
@@ -258,7 +267,7 @@ export default function SceneProcess() {
                 style={{
                   opacity: 0,
                   transform: 'translateX(-16px)',
-                  borderLeft: '1px solid var(--color-border)',
+                  borderLeft: '2px solid #000000',
                   paddingLeft: '24px',
                 }}
               >
@@ -299,130 +308,130 @@ export default function SceneProcess() {
   // The sticky inner panel stays at full viewport height; all content is
   // in-flow so nothing can overflow or overlap.
   return (
-    <section
-      ref={sectionRef}
-      className="relative overflow-hidden"
-      style={{ height: '200vh', backgroundColor: '#111009' }}
-    >
-      {grain}
-
-      {/* Sticky panel — flex column, heading in-flow at top, grid fills middle, closing at bottom */}
-      <div
-        className="sticky top-0 flex h-screen flex-col"
-        style={{
-          paddingLeft: 'clamp(40px, 8vw, 120px)',
-          paddingRight: 'clamp(40px, 8vw, 120px)',
-          paddingTop: '64px',
-          paddingBottom: '48px',
-          zIndex: 1,
-        }}
+    <>
+      <section
+        ref={sectionRef}
+        className="relative overflow-hidden"
+        style={{ height: '200vh', backgroundColor: '#111009' }}
       >
-        {/* Heading — in-flow at top */}
-        <div className="flex-none">
-          <p
-            ref={headingRef}
-            className="text-label tracking-[0.2em]"
-            style={{ color: 'var(--color-stone)', clipPath: 'inset(0 100% 0 0)' }}
-          >
-            HOW WE BUILD
-          </p>
-          <div
-            ref={hrRef}
-            style={{
-              width: '48px',
-              height: '1px',
-              backgroundColor: 'var(--color-border)',
-              marginTop: '12px',
-              opacity: 0,
-            }}
-          />
-        </div>
+        {grain}
 
-        {/* Two-column grid — fills all remaining space between heading and closing */}
-        <div className="mt-8 grid min-h-0 flex-1" style={{ gridTemplateColumns: '40% 60%' }}>
-          {/* Left: SVG vertical spine — fills full column height */}
-          <div className="flex h-full items-center justify-center">
-            <svg
-              viewBox="0 0 2 100"
-              preserveAspectRatio="none"
-              style={{ width: '2px', height: '100%', display: 'block', margin: '0 auto' }}
+        {/* Sticky panel — flex column, heading in-flow at top, grid fills middle, closing at bottom */}
+        <div
+          className="sticky top-0 flex h-screen flex-col"
+          style={{
+            paddingLeft: 'clamp(40px, 8vw, 120px)',
+            paddingRight: 'clamp(40px, 8vw, 120px)',
+            paddingTop: '64px',
+            paddingBottom: '48px',
+            zIndex: 1,
+          }}
+        >
+          {/* Heading — in-flow at top */}
+          <div className="flex-none">
+            <p
+              ref={headingRef}
+              className="text-label tracking-[0.2em]"
+              style={{ color: 'var(--color-stone)', clipPath: 'inset(0 100% 0 0)' }}
             >
-              {/* Ghost line — always visible */}
-              <line
-                x1="1"
-                y1="0"
-                x2="1"
-                y2="100"
-                stroke="var(--color-border)"
-                strokeWidth="2"
-                vectorEffect="non-scaling-stroke"
-              />
-              {/* Progress line — CSS strokeDashoffset animated by GSAP */}
-              <line
-                ref={progressLineRef}
-                x1="1"
-                y1="0"
-                x2="1"
-                y2="100"
-                stroke="var(--color-threshold)"
-                strokeWidth="2"
-                vectorEffect="non-scaling-stroke"
-                style={{ strokeDasharray: 100, strokeDashoffset: 100 }}
-              />
-              {/* Tick marks — revealed as line reaches each position */}
-              {TICK_Y.map((y, i) => (
-                <line
-                  key={y}
-                  ref={(el) => {
-                    tickRefs.current[i] = el;
-                  }}
-                  x1="-6"
-                  y1={y}
-                  x2="8"
-                  y2={y}
-                  stroke="var(--color-threshold)"
-                  strokeWidth="1.5"
-                  vectorEffect="non-scaling-stroke"
-                  opacity="0"
+              HOW WE BUILD
+            </p>
+            <div
+              ref={hrRef}
+              style={{
+                width: '48px',
+                height: '1px',
+                backgroundColor: 'var(--color-border)',
+                marginTop: '12px',
+                opacity: 0,
+              }}
+            />
+          </div>
+
+          {/* Two-column grid — fills all remaining space between heading and closing */}
+          <div className="mt-8 grid min-h-0 flex-1" style={{ gridTemplateColumns: '40% 60%' }}>
+            {/* Left: Vertical spine — fills full column height */}
+            <div className="flex h-full items-center justify-center">
+              <div className="relative h-full" style={{ width: '2px' }}>
+                {/* Ghost line — always visible */}
+                <div
+                  className="absolute inset-0"
+                  style={{ backgroundColor: '#000000' }}
                 />
-              ))}
-            </svg>
-          </div>
-
-          {/* Right: Step content — evenly distributed top-to-bottom to align with ticks */}
-          <div className="flex h-full flex-col justify-between">
-            {STEPS.map((step, i) => (
-              <div
-                key={step.number}
-                ref={(el) => {
-                  stepRefs.current[i] = el;
-                }}
-                style={{ opacity: 0, transform: 'translateX(20px)' }}
-              >
-                <span className="text-mono" style={{ color: 'var(--color-threshold)' }}>
-                  {step.number}
-                </span>
-                <h3
-                  className="text-heading"
-                  style={{ color: 'var(--color-paper)', marginTop: '8px' }}
-                >
-                  {step.title}
-                </h3>
-                <p
-                  className="text-body"
-                  style={{ color: 'var(--color-stone)', maxWidth: '260px', marginTop: '12px' }}
-                >
-                  {step.description}
-                </p>
+                {/* Progress line — animated by GSAP scaleY */}
+                <div
+                  ref={progressLineRef}
+                  className="absolute left-0 top-0 h-full w-full"
+                  style={{
+                    backgroundColor: 'var(--color-threshold)',
+                    transformOrigin: 'top',
+                    transform: 'scaleY(0)',
+                  }}
+                />
+                {/* Tick marks — revealed as line reaches each position */}
+                {TICK_Y.map((y, i) => (
+                  <div
+                    key={y}
+                    ref={(el) => {
+                      tickRefs.current[i] = el;
+                    }}
+                    className="absolute"
+                    style={{
+                      top: `${y}%`,
+                      left: '50%',
+                      width: '14px',
+                      height: '2px',
+                      backgroundColor: 'var(--color-threshold)',
+                      transform: 'translate(-50%, -50%)',
+                      opacity: 0,
+                    }}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
 
-        {/* Closing line — pinned to the bottom of the sticky panel */}
+            {/* Right: Step content — evenly distributed top-to-bottom to align with ticks */}
+            <div className="flex h-full flex-col justify-between">
+              {STEPS.map((step, i) => (
+                <div
+                  key={step.number}
+                  ref={(el) => {
+                    stepRefs.current[i] = el;
+                  }}
+                  style={{ opacity: 0, transform: 'translateX(20px)' }}
+                >
+                  <span className="text-mono" style={{ color: 'var(--color-threshold)' }}>
+                    {step.number}
+                  </span>
+                  <h3
+                    className="text-heading"
+                    style={{ color: 'var(--color-paper)', marginTop: '8px' }}
+                  >
+                    {step.title}
+                  </h3>
+                  <p
+                    className="text-body"
+                    style={{ color: 'var(--color-stone)', maxWidth: '260px', marginTop: '12px' }}
+                  >
+                    {step.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* Separate section for the closing text so it never overlaps the timeline grid */}
+      <section
+        className="relative flex items-center justify-center py-32"
+        style={{ backgroundColor: '#111009' }}
+      >
+        {grain}
         <p
           ref={closingRef}
-          className="mt-auto text-center text-display-md font-[300]"
+          className="text-center text-display-md font-[300] relative z-10 px-8"
           style={{
             color: 'var(--color-paper)',
             clipPath: 'inset(0 100% 0 0)',
@@ -430,7 +439,7 @@ export default function SceneProcess() {
         >
           Every project. Every time.
         </p>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }
