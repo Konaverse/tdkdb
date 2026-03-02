@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Josefin_Sans, JetBrains_Mono } from 'next/font/google';
 import SmoothScrollProvider from '@/components/animations/SmoothScrollProvider';
+import CustomCursor from '@/components/ui/CustomCursor';
 import '@/styles/globals.css';
 
 const josefin = Josefin_Sans({
@@ -30,6 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${josefin.variable} ${jetbrains.variable}`}>
       <body>
+        <CustomCursor />
         <SmoothScrollProvider>{children}</SmoothScrollProvider>
       </body>
     </html>

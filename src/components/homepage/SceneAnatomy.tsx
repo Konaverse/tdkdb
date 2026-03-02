@@ -383,7 +383,8 @@ export default function SceneAnatomy() {
                 key={node.id}
                 aria-label={`Explore ${node.name}`}
                 tabIndex={nodesVisible ? 0 : -1}
-                className="absolute h-12 w-12 -translate-x-1/2 -translate-y-1/2 cursor-pointer outline-none focus-visible:ring-1 focus-visible:ring-threshold"
+                data-cursor="node"
+                className="absolute h-12 w-12 -translate-x-1/2 -translate-y-1/2 outline-none focus-visible:ring-1 focus-visible:ring-threshold"
                 style={{
                   left: node.left,
                   top: node.top,

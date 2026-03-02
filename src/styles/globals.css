@@ -147,6 +147,14 @@
   /* ─── Scrollbar (desktop only) ─── */
 
   @media (pointer: fine) {
+    *,
+    *::before,
+    *::after,
+    html,
+    body {
+      cursor: none !important;
+    }
+
     ::-webkit-scrollbar {
       width: 6px;
     }

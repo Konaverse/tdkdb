@@ -263,6 +263,7 @@ export default function SceneProjects() {
                 <div className="mt-8">
                   <Link
                     href={card.href}
+                    data-cursor="view"
                     className="inline-flex items-center gap-4 border px-8 py-4 text-label tracking-[0.25em] text-paper transition-colors duration-300"
                     style={{
                       borderColor: 'rgba(255,255,255,0.18)',
