@@ -1,7 +1,7 @@
 # TDK Design & Build — Chat Handoff Document
 
 > **Purpose:** Feed this to a new Claude Code session so it picks up exactly where the previous session left off.
-> **Last updated:** 2026-03-01 (evening — post 4.10 session)
+> **Last updated:** 2026-03-02 (after completing Phase 4 and Phase 5)
 
 ---
 
@@ -48,7 +48,7 @@ Navbar, Footer, Button (primary/ghost/text), animation wrappers (FadeUp, TextRev
 | 4.8 | Projects Reel (Scene 7) | ✅ |
 | 4.9 | Process Section (Scene 8) | ✅ |
 | 4.10 | Contact CTA & Footer (Scenes 9 & 10) | ✅ |
-| 4.11 | Custom Cursor | ⬜ ← **START HERE** |
+| 4.11 | Custom Cursor | ✅ |
 
 ### Phase 5 — Interior Pages ✅ (all stubs implemented, customisation deferred)
 
@@ -82,17 +82,11 @@ c) Keyboard/focus click when `nodesVisible` is false: add `tabIndex={nodesVisibl
 
 ---
 
-### → Prompt 4.11 — Custom Cursor
+### → Phase 6 — Sanity CMS & Backend Integration
 
-**File:** `src/components/ui/CustomCursor.tsx` (new — add to root `layout.tsx`)
-
-`cursor: none` on `html`. 12px circle, 1px `--color-paper` border. GSAP `quickTo` spring trailing.
-States via `data-cursor` attribute:
-- `hover` → 40px, fill threshold
-- `node` → 60px, crosshair lines, transparent fill
-- `view` → 80px, fill threshold 90%, "VIEW" text inside
-- `scroll` → 6px, fill paper, no border
-Hidden on `pointer: coarse` (mobile).
+**Next Steps:**
+We have finished the Homepage (Phase 4) and all Interior Pages (Phase 5). The next major phase is **Phase 6: Sanity CMS Setup & Wiring**.
+This entails creating the Sanity schemas, configuring the studio desk structure, and wiring up the existing static pages (`/projects`, `/services`, `/about`, etc.) to live GROQ queries.
 
 ---
 
