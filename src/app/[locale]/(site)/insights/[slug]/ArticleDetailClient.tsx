@@ -8,6 +8,7 @@ import GridWrapper from '@/components/layout/GridWrapper';
 import Section from '@/components/layout/Section';
 import FadeUp from '@/components/animations/FadeUp';
 import type { PortableTextBlock } from '@portabletext/types';
+import type { Insight } from '@/lib/sanity/types';
 
 interface TocItem {
   key: string;
@@ -16,6 +17,7 @@ interface TocItem {
 }
 
 function extractToc(blocks: PortableTextBlock[]): TocItem[] {
+  if (!blocks) return [];
   return blocks
     .filter((b) => b.style === 'h2' || b.style === 'h3')
     .map((b) => ({
@@ -26,6 +28,7 @@ function extractToc(blocks: PortableTextBlock[]): TocItem[] {
 }
 
 function formatDate(dateStr: string): string {
+  if (!dateStr) return '';
   return new Date(dateStr).toLocaleDateString('en-GB', {
     day: 'numeric',
     month: 'long',
@@ -34,12 +37,12 @@ function formatDate(dateStr: string): string {
 }
 
 interface ArticleDetailClientProps {
-  article: ArticleCardData;
-  body: PortableTextBlock[];
-  related: ArticleCardData[];
+  article: Insight;
+  related: Insight[];
 }
 
-export default function ArticleDetailClient({ article, body, related }: ArticleDetailClientProps) {
+export default function ArticleDetailClient({ article, related }: ArticleDetailClientProps) {
+  const body = (article.body as PortableTextBlock[]) || [];
   const toc = extractToc(body);
   const [activeHeading, setActiveHeading] = useState<string>(toc[0]?.key ?? '');
   const articleRef = useRef<HTMLDivElement>(null);
@@ -83,9 +86,9 @@ export default function ArticleDetailClient({ article, body, related }: ArticleD
         <GridWrapper>
           <FadeUp>
             <div className="mb-6 flex flex-wrap items-center gap-4">
-              <span className="text-label text-threshold">{article.category.toUpperCase()}</span>
+              <span className="text-label text-threshold">{article.category?.title?.toUpperCase() || 'UNCATEGORIZED'}</span>
               <span className="text-label text-stone">·</span>
-              <span className="text-label text-stone">{article.readTime}</span>
+              <span className="text-label text-stone">5 min read</span>
             </div>
           </FadeUp>
           <FadeUp delay={100}>
@@ -94,8 +97,10 @@ export default function ArticleDetailClient({ article, body, related }: ArticleD
           <FadeUp delay={200}>
             <div className="flex items-center gap-6 border-t border-border pt-6">
               <div>
-                <p className="text-label text-stone">TDK DESIGN & BUILD</p>
-                <p className="text-body text-stone">{formatDate(article.date)}</p>
+                <p className="text-label text-stone">
+                  {article.author?.name?.toUpperCase() || 'TDK DESIGN & BUILD'}
+                </p>
+                <p className="text-body text-stone">{formatDate(article.publishDate || '')}</p>
               </div>
               <button
                 type="button"
@@ -128,11 +133,9 @@ export default function ArticleDetailClient({ article, body, related }: ArticleD
                       <a
                         key={key}
                         href={`#heading-${key}`}
-                        className={`block text-body transition-colors duration-fast ease-smooth ${
-                          level === 'h3' ? 'pl-4' : ''
-                        } ${
-                          activeHeading === key ? 'text-threshold' : 'text-stone hover:text-paper'
-                        }`}
+                        className={`block text-body transition-colors duration-fast ease-smooth ${level === 'h3' ? 'pl-4' : ''
+                          } ${activeHeading === key ? 'text-threshold' : 'text-stone hover:text-paper'
+                          }`}
                       >
                         {text}
                       </a>
@@ -152,10 +155,9 @@ export default function ArticleDetailClient({ article, body, related }: ArticleD
             <div className="flex items-start gap-6">
               <div className="h-16 w-16 flex-shrink-0 bg-void" />
               <div>
-                <p className="text-label text-paper">TDK DESIGN & BUILD</p>
+                <p className="text-label text-paper">{article.author?.name?.toUpperCase() || 'TDK DESIGN & BUILD'}</p>
                 <p className="mt-2 text-body text-stone">
-                  TDK Design &amp; Build is a fully integrated architecture, construction, and
-                  interior design studio based in Nicosia, Cyprus.
+                  {article.author?.bio || 'TDK Design & Build is a fully integrated architecture, construction, and interior design studio based in Nicosia, Cyprus.'}
                 </p>
               </div>
             </div>
@@ -172,8 +174,18 @@ export default function ArticleDetailClient({ article, body, related }: ArticleD
             </FadeUp>
             <div className="grid gap-12 sm:grid-cols-2">
               {related.map((a, i) => (
-                <FadeUp key={a.slug} delay={i * 80}>
-                  <ArticleCard article={a} />
+                <FadeUp key={a.slug.current} delay={i * 80}>
+                  <ArticleCard
+                    article={{
+                      slug: a.slug.current,
+                      title: a.title,
+                      category: a.category?.title || 'Uncategorized',
+                      excerpt: a.excerpt || '',
+                      date: a.publishDate || '',
+                      readTime: '5 min read',
+                      heroImageId: a.heroImageId || '',
+                    }}
+                  />
                 </FadeUp>
               ))}
             </div>

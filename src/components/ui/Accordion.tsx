@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils/cn';
 
 export interface AccordionItem {
   question: string;
-  answer: string;
+  answer: string | React.ReactNode;
 }
 
 interface AccordionProps {
@@ -85,7 +85,7 @@ function AccordionRow({
         </span>
       </button>
       <div ref={panelRef} style={{ overflow: 'hidden' }}>
-        <p className={cn('pb-6 text-body-lg text-stone')}>{item.answer}</p>
+        <div className={cn('pb-6 text-body-lg text-stone')}>{item.answer}</div>
       </div>
     </div>
   );

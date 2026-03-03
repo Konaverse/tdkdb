@@ -8,29 +8,8 @@ import FadeUp from '@/components/animations/FadeUp';
 import ProjectCard, { type ProjectCardData } from '@/components/ui/ProjectCard';
 import FilterTabs from '@/components/ui/FilterTabs';
 import { cn } from '@/lib/utils/cn';
+import type { Project } from '@/lib/sanity/types';
 
-const projects: ProjectCardData[] = [
-  {
-    slug: 'armonia',
-    title: 'ARMONIA',
-    location: 'Lakatameia, Nicosia',
-    category: 'Residential',
-    status: 'completed',
-    ctaType: 'showcase',
-    year: 2024,
-    heroImageId: 'clients/tdkdb/armonia/exterior/armonia_front_angle_day',
-  },
-  {
-    slug: 'almond',
-    title: 'ALMOND',
-    location: 'Nicosia',
-    category: 'Residential',
-    status: 'in-progress',
-    ctaType: 'register-interest',
-    year: 2025,
-    heroImageId: 'clients/tdkdb/almond/renders/almond_front_angle_day',
-  },
-];
 
 const categoryOptions = ['All', 'Residential', 'Commercial', 'Mixed-Use'];
 const statusOptions = ['All', 'Completed', 'In Progress', 'Upcoming'];
@@ -41,11 +20,26 @@ const statusMap: Record<string, string> = {
   Upcoming: 'upcoming',
 };
 
-export default function ProjectsClient() {
+interface ProjectsClientProps {
+  projects: Project[];
+}
+
+export default function ProjectsClient({ projects: sanityProjects }: ProjectsClientProps) {
   const [activeCategory, setActiveCategory] = useState('All');
   const [activeStatus, setActiveStatus] = useState('All');
 
-  const filtered = projects.filter((p) => {
+  const mappedProjects: ProjectCardData[] = sanityProjects.map((p) => ({
+    slug: p.slug.current,
+    title: p.title,
+    location: p.location,
+    category: p.type.charAt(0).toUpperCase() + p.type.slice(1),
+    status: p.status,
+    ctaType: p.ctaType,
+    year: p.year,
+    heroImageId: p.heroImageId,
+  }));
+
+  const filtered = mappedProjects.filter((p) => {
     const catMatch = activeCategory === 'All' || p.category === activeCategory;
     const statusMatch = activeStatus === 'All' || p.status === statusMap[activeStatus];
     return catMatch && statusMatch;
@@ -87,7 +81,7 @@ export default function ProjectsClient() {
 
           {/* Masonry grid */}
           <div className="columns-1 gap-8 sm:columns-2 lg:columns-3">
-            {projects.map((project, i) => {
+            {mappedProjects.map((project, i) => {
               const visible = filtered.includes(project);
               return (
                 <FadeUp key={project.slug} delay={i * 100} className="mb-8 break-inside-avoid">

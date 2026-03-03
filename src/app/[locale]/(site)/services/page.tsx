@@ -12,36 +12,9 @@ export const metadata: Metadata = {
     'From architecture and construction management to interior design — TDK delivers every phase of your project under one roof.',
 };
 
-const services = [
-  {
-    number: '01',
-    name: 'Architecture & Design',
-    slug: 'architecture-design',
-    description:
-      'Concept to construction drawings. We shape space through rigorous design thinking, crafting buildings that balance beauty with structural integrity.',
-  },
-  {
-    number: '02',
-    name: 'Construction Management',
-    slug: 'construction-management',
-    description:
-      'End-to-end build oversight. Our site teams manage contractors, schedules, and quality control so your project arrives on time and on budget.',
-  },
-  {
-    number: '03',
-    name: 'Interior Design',
-    slug: 'interior-design',
-    description:
-      'Interiors that feel considered at every scale. From material palettes to bespoke furniture, we design spaces that age with grace.',
-  },
-  {
-    number: '04',
-    name: 'Project Management',
-    slug: 'project-management',
-    description:
-      'Unified coordination from brief to handover. We act as your single point of accountability, translating vision into delivered reality.',
-  },
-];
+import { getAllServices } from '@/lib/sanity/queries';
+
+export const revalidate = 60;
 
 const processSteps = [
   { step: '01', label: 'Brief', description: 'Understanding your goals, site, and constraints.' },
@@ -67,7 +40,9 @@ const processSteps = [
   },
 ];
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const services = await getAllServices();
+
   return (
     <main className="bg-void text-paper">
       {/* ── Hero ── */}
@@ -85,17 +60,17 @@ export default function ServicesPage() {
         <GridWrapper>
           <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2">
             {services.map((service, i) => (
-              <FadeUp key={service.slug} delay={i * 80}>
+              <FadeUp key={service.slug.current} delay={i * 80}>
                 <Link
-                  href={`/en/services/${service.slug}`}
+                  href={`/en/services/${service.slug.current}`}
                   className="group flex h-full flex-col gap-6 border border-transparent bg-void p-10 transition-colors duration-fast ease-smooth hover:border-paper hover:bg-surface"
                 >
                   <span className="text-display-lg font-light text-threshold opacity-20">
-                    {service.number}
+                    {String(i + 1).padStart(2, '0')}
                   </span>
                   <div className="flex flex-1 flex-col gap-4">
-                    <h2 className="text-heading text-paper">{service.name}</h2>
-                    <p className="flex-1 text-body-lg text-stone">{service.description}</p>
+                    <h2 className="text-heading text-paper">{service.title}</h2>
+                    <p className="flex-1 text-body-lg text-stone">{service.shortDescription}</p>
                   </div>
                   <span className="text-label text-stone transition-colors duration-fast ease-smooth group-hover:text-paper">
                     EXPLORE →

@@ -8,16 +8,30 @@ import FadeUp from '@/components/animations/FadeUp';
 import ArticleCard, { type ArticleCardData } from '@/components/ui/ArticleCard';
 import CategoryFilter from '@/components/ui/CategoryFilter';
 
-const categories = ['All', 'Architecture', 'Construction', 'Lifestyle'];
+import type { Insight } from '@/lib/sanity/types';
 
 interface InsightsClientProps {
-  articles: ArticleCardData[];
+  insights: Insight[];
 }
 
-export default function InsightsClient({ articles }: InsightsClientProps) {
+export default function InsightsClient({ insights }: InsightsClientProps) {
   const [activeCategory, setActiveCategory] = useState('All');
 
-  const filtered = articles.filter(
+  // Map Sanity insight to ArticleCardData
+  const mappedArticles: ArticleCardData[] = insights.map((insight) => ({
+    slug: insight.slug.current,
+    title: insight.title,
+    category: insight.category?.title || 'Uncategorized',
+    excerpt: insight.excerpt || '',
+    date: insight.publishDate || new Date().toISOString(),
+    readTime: '5 min read', // Hardcoded calculation for now
+    heroImageId: insight.heroImageId || '',
+  }));
+
+  // Extract unique categories directly from data
+  const dynamicCategories = ['All', ...Array.from(new Set(mappedArticles.map((a) => a.category)))];
+
+  const filtered = mappedArticles.filter(
     (a) => activeCategory === 'All' || a.category === activeCategory,
   );
 
@@ -40,7 +54,7 @@ export default function InsightsClient({ articles }: InsightsClientProps) {
       <Section>
         <GridWrapper>
           <CategoryFilter
-            categories={categories}
+            categories={dynamicCategories}
             active={activeCategory}
             onChange={setActiveCategory}
             className="mb-16"

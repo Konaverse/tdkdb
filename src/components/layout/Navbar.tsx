@@ -1,5 +1,7 @@
 import NavbarClient from './NavbarClient';
+import { getSiteSettings } from '@/lib/sanity/queries';
 
-export default function Navbar() {
-  return <NavbarClient />;
+export default async function Navbar() {
+  const settings = await getSiteSettings();
+  return <NavbarClient settings={settings} />;
 }

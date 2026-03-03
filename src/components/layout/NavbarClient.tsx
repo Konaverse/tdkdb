@@ -6,6 +6,7 @@ import { usePathname, useParams } from 'next/navigation';
 import { gsap } from '@/lib/animations/gsap';
 import { getLenis } from '@/lib/animations/lenis';
 import { cn } from '@/lib/utils/cn';
+import type { SiteSettings } from '@/lib/sanity/types';
 
 const NAV_LINKS = [
   { label: 'About', path: 'about' },
@@ -14,9 +15,14 @@ const NAV_LINKS = [
   { label: 'Insights', path: 'insights' },
 ];
 
-export default function NavbarClient() {
+interface Props {
+  settings: SiteSettings | null;
+}
+
+export default function NavbarClient({ settings }: Props) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const companyName = settings?.companyName || 'TDK';
 
   const pathname = usePathname();
   const params = useParams();
@@ -115,7 +121,7 @@ export default function NavbarClient() {
         <nav className="mx-auto flex h-20 max-w-content items-center justify-between px-8">
           {/* Logo */}
           <Link href={`/${locale}`} className="text-label text-paper">
-            TDK
+            {companyName}
           </Link>
 
           {/* Desktop nav links */}

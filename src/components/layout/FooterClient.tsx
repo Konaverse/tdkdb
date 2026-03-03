@@ -4,8 +4,7 @@ import { useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { gsap, gsapInit } from '@/lib/animations/gsap';
-
-const DISPLAY_EMAIL = 'info@tdkdb.com';
+import type { SiteSettings } from '@/lib/sanity/types';
 
 const EXPLORE_LINKS = [
   { label: 'Home', path: '' },
@@ -16,13 +15,11 @@ const EXPLORE_LINKS = [
   { label: 'Contact', path: 'contact' },
 ];
 
-const SOCIAL_LINKS = [
-  { label: 'Instagram', href: '#' },
-  { label: 'LinkedIn', href: '#' },
-  { label: 'Facebook', href: '#' },
-];
+interface Props {
+  settings: SiteSettings | null;
+}
 
-export default function FooterClient() {
+export default function FooterClient({ settings }: Props) {
   const params = useParams();
   const locale = (params?.locale as string) ?? 'en';
 
@@ -62,22 +59,20 @@ export default function FooterClient() {
               href={`/${locale}`}
               className="text-display-md font-light tracking-[0.05em] text-paper"
             >
-              TDK
+              {settings?.companyName || 'TDK'}
             </Link>
-            <p className="text-label text-stone">Design. Build. Last.</p>
+            <p className="text-label text-stone">{settings?.tagline || 'Design. Build. Last.'}</p>
             <address className="flex flex-col gap-2 not-italic">
-              <p className="text-body text-stone">
-                28th October 12
-                <br />
-                Limassol 3107, Cyprus
+              <p className="text-body text-stone whitespace-pre-line">
+                {settings?.address || 'Limassol, Cyprus'}
               </p>
               <a
-                href={`mailto:${DISPLAY_EMAIL}`}
+                href={`mailto:${settings?.email || 'info@tdkdb.com'}`}
                 className="text-body text-stone transition-colors duration-fast ease-smooth hover:text-paper"
               >
-                {DISPLAY_EMAIL}
+                {settings?.email || 'info@tdkdb.com'}
               </a>
-              <p className="text-body text-stone">+357 — — — —</p>
+              <p className="text-body text-stone">{settings?.phone || ''}</p>
             </address>
           </div>
 
@@ -101,15 +96,15 @@ export default function FooterClient() {
           <div className="flex flex-col gap-6">
             <p className="text-label text-stone">Connect</p>
             <nav className="flex flex-col gap-3">
-              {SOCIAL_LINKS.map(({ label, href }) => (
+              {(settings?.socialLinks || []).map(({ platform, url }) => (
                 <a
-                  key={label}
-                  href={href}
+                  key={platform}
+                  href={url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group flex items-center gap-2 text-body text-stone transition-colors duration-fast ease-smooth hover:text-paper"
                 >
-                  {label}
+                  {platform}
                   <span className="inline-block transition-transform duration-fast ease-smooth group-hover:translate-x-1">
                     →
                   </span>
@@ -122,7 +117,7 @@ export default function FooterClient() {
         {/* ── Bottom bar ─────────────────────────────────────────────────────── */}
         <div className="flex flex-col gap-3 border-t border-border py-6 lg:flex-row lg:items-center lg:justify-between">
           <p className="text-label text-stone">
-            © 2025 TDK Design &amp; Build. All rights reserved.
+            © {new Date().getFullYear()} {settings?.companyName || 'TDK'}. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-label text-stone">
             <Link

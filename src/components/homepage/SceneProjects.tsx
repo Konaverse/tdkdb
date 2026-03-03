@@ -8,45 +8,15 @@ import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
 
 // ─── Types & Data ─────────────────────────────────────────────────────────────
 
-interface ProjectCard {
-  id: string;
-  title: string;
-  type: string;
-  status: 'completed' | 'in-progress';
-  heroImageId: string;
-  href: string;
-  location: string;
-}
-
-const CARDS: ProjectCard[] = [
-  {
-    id: 'armonia',
-    title: 'Armonia',
-    type: 'Residential Development',
-    status: 'completed',
-    heroImageId: 'clients/tdkdb/armonia/exterior/armonia_front_angle_day',
-    href: '/en/projects/armonia',
-    location: 'Lakatameia, Nicosia',
-  },
-  {
-    id: 'almond',
-    title: 'Almond',
-    type: 'Residential Development',
-    status: 'in-progress',
-    heroImageId: 'clients/tdkdb/almond/renders/almond_front_angle_day',
-    href: '/en/projects/almond',
-    location: 'Nicosia',
-  },
-];
-
-const STATUS_LABEL: Record<ProjectCard['status'], string> = {
-  completed: 'Completed',
-  'in-progress': 'In Progress',
-};
+import type { Project } from '@/lib/sanity/types';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function SceneProjects() {
+interface SceneProjectsProps {
+  projects: Project[];
+}
+
+export default function SceneProjects({ projects }: SceneProjectsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const stripRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLDivElement>(null);
@@ -95,7 +65,7 @@ export default function SceneProjects() {
       tl.to(
         strip,
         {
-          x: () => -(CARDS.length - 1) * window.innerWidth,
+          x: () => -(projects.length - 1) * window.innerWidth,
           ease: 'none',
           duration: 1,
         },
@@ -128,7 +98,7 @@ export default function SceneProjects() {
       }
 
       // ── Counter slot: "01" → "02" (translateY flips slot items) ──────────
-      // The slot div contains CARDS.length items each 13 px tall.
+      // The slot div contains projects.length items each 13 px tall.
       // Translating to −50 % (= −13 px) reveals the second item.
       tl.to(counterSlotRef.current, { yPercent: -50, ease: 'none', duration: 0.2 }, 0.4);
 
@@ -150,7 +120,9 @@ export default function SceneProjects() {
     }, container);
 
     return () => ctx.revert();
-  }, []);
+  }, [projects.length]);
+
+  if (!projects || projects.length === 0) return null;
 
   return (
     <div ref={containerRef} style={{ height: '150vh' }}>
@@ -168,7 +140,7 @@ export default function SceneProjects() {
         <div className="absolute right-12 top-10 z-20 flex items-baseline gap-2">
           <div className="overflow-hidden" style={{ height: '13px', lineHeight: '13px' }}>
             <div ref={counterSlotRef}>
-              {CARDS.map((_, i) => (
+              {projects.map((_, i) => (
                 <div
                   key={i}
                   className="font-mono text-mono leading-none text-paper"
@@ -180,7 +152,7 @@ export default function SceneProjects() {
             </div>
           </div>
           <span className="font-mono text-mono text-stone">
-            &thinsp;/&thinsp;{String(CARDS.length).padStart(2, '0')}
+            &thinsp;/&thinsp;{String(projects.length).padStart(2, '0')}
           </span>
         </div>
 
@@ -189,18 +161,18 @@ export default function SceneProjects() {
           ref={stripRef}
           className="flex h-full"
           style={{
-            width: `${CARDS.length * 100}vw`,
+            width: `${projects.length * 100}vw`,
             willChange: 'transform',
           }}
         >
-          {CARDS.map((card, i) => (
-            <div key={card.id} className="relative h-full w-screen flex-shrink-0 overflow-hidden">
+          {projects.map((project, i) => (
+            <div key={project._id} className="relative h-full w-screen flex-shrink-0 overflow-hidden">
               {/* Full-bleed image — 130 % wide so parallax shift never exposes edges */}
               <img
                 ref={(el) => {
                   imageRefs.current[i] = el;
                 }}
-                src={cloudinaryUrl(card.heroImageId, { width: 1920 })}
+                src={cloudinaryUrl(project.heroImageId, { width: 1920 })}
                 alt=""
                 aria-hidden="true"
                 loading="lazy"
@@ -236,10 +208,12 @@ export default function SceneProjects() {
                   className="mb-4 text-label tracking-[0.3em]"
                   style={{
                     color:
-                      card.status === 'completed' ? 'var(--color-threshold)' : 'var(--color-stone)',
+                      project.status === 'completed'
+                        ? 'var(--color-threshold)'
+                        : 'var(--color-stone)',
                   }}
                 >
-                  {STATUS_LABEL[card.status]}
+                  {project.status === 'completed' ? 'COMPLETED' : 'IN PROGRESS'}
                 </p>
 
                 {/* Title */}
@@ -251,18 +225,18 @@ export default function SceneProjects() {
                     lineHeight: 1,
                   }}
                 >
-                  {card.title}
+                  {project.title}
                 </h2>
 
                 {/* Type & location */}
                 <p className="mt-3 text-label tracking-[0.25em] text-stone">
-                  {card.type}&ensp;—&ensp;{card.location}
+                  {project.type}&ensp;—&ensp;{project.location}
                 </p>
 
                 {/* Ghost CTA */}
                 <div className="mt-8">
                   <Link
-                    href={card.href}
+                    href={`/en/projects/${project.slug.current}`}
                     data-cursor="view"
                     className="inline-flex items-center gap-4 border px-8 py-4 text-label tracking-[0.25em] text-paper transition-colors duration-300"
                     style={{
