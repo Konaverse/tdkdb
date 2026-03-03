@@ -37,16 +37,17 @@ export default async function InsightDetailPage({ params }: Props) {
   if (related.length === 0 && article.category?.slug?.current) {
     const allInsights = await getAllInsights();
     related = allInsights
-      .filter((a) => a.slug.current !== slug && a.category?.slug?.current === article.category?.slug?.current)
+      .filter(
+        (a) =>
+          a.slug.current !== slug && a.category?.slug?.current === article.category?.slug?.current,
+      )
       .slice(0, 2);
   }
 
   // If still empty, grab any two recent insights
   if (related.length === 0) {
     const allInsights = await getAllInsights();
-    related = allInsights
-      .filter((a) => a.slug.current !== slug)
-      .slice(0, 2);
+    related = allInsights.filter((a) => a.slug.current !== slug).slice(0, 2);
   }
 
   return <ArticleDetailClient article={article} related={related} />;

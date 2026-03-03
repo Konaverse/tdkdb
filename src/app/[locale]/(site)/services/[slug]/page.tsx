@@ -11,6 +11,7 @@ import Link from 'next/link';
 
 import { getServiceBySlug, getAllServices } from '@/lib/sanity/queries';
 import PortableText from '@/components/sanity/PortableText';
+import type { PortableTextBlock } from '@/lib/sanity/types';
 
 export const revalidate = 60;
 
@@ -75,7 +76,7 @@ export default async function ServiceDetailPage({ params }: Props) {
           <div className="grid gap-16 lg:gap-24">
             <div className="flex flex-col gap-6">
               {service.fullDescription ? (
-                <PortableText value={service.fullDescription as any} />
+                <PortableText value={service.fullDescription as PortableTextBlock[]} />
               ) : null}
             </div>
           </div>
@@ -150,9 +151,9 @@ export default async function ServiceDetailPage({ params }: Props) {
               <p className="mb-12 text-label text-stone">FREQUENTLY ASKED</p>
             </FadeUp>
             <Accordion
-              items={(service.faq || []).map(f => ({
+              items={(service.faq || []).map((f) => ({
                 question: f.question,
-                answer: <PortableText value={f.answer as any} />
+                answer: <PortableText value={f.answer as PortableTextBlock[]} />,
               }))}
             />
           </GridWrapper>

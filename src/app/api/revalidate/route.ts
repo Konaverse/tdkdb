@@ -1,4 +1,4 @@
-import { revalidateTag, revalidatePath } from 'next/cache';
+import { revalidatePath } from 'next/cache';
 import { type NextRequest, NextResponse } from 'next/server';
 import { parseBody } from 'next-sanity/webhook';
 
@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     const { isValidSignature, body } = await parseBody<{ _type: string; slug?: string }>(
       req,
-      secret
+      secret,
     );
 
     if (!isValidSignature) {
@@ -19,12 +19,12 @@ export async function POST(req: NextRequest) {
 
     if (!body?._type) {
       const message = 'Bad Request';
-      return new Response({ message, body } as any, { status: 400 });
+      return new Response(JSON.stringify({ message, body }), { status: 400 });
     }
 
     const { _type, slug } = body;
 
-    // We can use a tag-based revalidation if tags are setup, but since the requirement 
+    // We can use a tag-based revalidation if tags are setup, but since the requirement
     // says "revalidate all relevant routes via Next.js cache", let's revalidate all paths
     // or type-specific paths. Given localization, checking paths might be robust.
     // However, the simplest way to invalidate everything for site-wide data:
@@ -48,13 +48,14 @@ export async function POST(req: NextRequest) {
       if (slug) revalidatePath(`/en/services/${slug}`);
     }
 
-    // Since we also support Greek in the future, if you want it to apply site-wide, 
-    // we could also just revalidate layouts or everything. Let's do a catch-all layout 
+    // Since we also support Greek in the future, if you want it to apply site-wide,
+    // we could also just revalidate layouts or everything. Let's do a catch-all layout
     // revalidate for simplicity if it gets complicated, but for now the paths above are okay.
 
     return NextResponse.json({ status: 200, revalidated: true, now: Date.now() });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error(err);
-    return new Response(err.message, { status: 500 });
+    const error = err as Error;
+    return new Response(error.message || 'Internal Server Error', { status: 500 });
   }
 }

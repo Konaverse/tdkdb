@@ -166,7 +166,10 @@ export default function SceneProjects({ projects }: SceneProjectsProps) {
           }}
         >
           {projects.map((project, i) => (
-            <div key={project._id} className="relative h-full w-screen flex-shrink-0 overflow-hidden">
+            <div
+              key={project._id}
+              className="relative h-full w-screen flex-shrink-0 overflow-hidden"
+            >
               {/* Full-bleed image — 130 % wide so parallax shift never exposes edges */}
               <img
                 ref={(el) => {

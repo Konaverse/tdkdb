@@ -1,5 +1,5 @@
-﻿src/app/[locale]/(site)/services/[slug]/page.tsx(65,12): error TS2745: This JSX tag's 'children' prop expects type 'string' which requires multiple children, but only a single child was provided.
-src/app/[locale]/(site)/services/[slug]/page.tsx(152,24): error TS2322: Type 'ServiceFAQItem[]' is not assignable to type 'AccordionItem[]'.
-  Type 'ServiceFAQItem' is not assignable to type 'AccordionItem'.
-    Types of property 'answer' are incompatible.
-      Type 'PortableTextBlock[]' is not assignable to type 'string'.
+﻿src/app/[locale]/(site)/services/[slug]/page.tsx(79,31): error TS2322: Type 'PortableTextBlock[]' is not assignable to type 'PortableTextBlock<PortableTextMarkDefinition, ArbitraryTypedObject | PortableTextSpan, PortableTextBlockStyle, PortableTextListItemType>[]'.
+  Type 'PortableTextBlock' is not assignable to type 'PortableTextBlock<PortableTextMarkDefinition, ArbitraryTypedObject | PortableTextSpan, PortableTextBlockStyle, PortableTextListItemType>'.
+    Types of property 'children' are incompatible.
+      Type 'unknown[] | undefined' is not assignable to type '(ArbitraryTypedObject | PortableTextSpan)[]'.
+        Type 'undefined' is not assignable to type '(ArbitraryTypedObject | PortableTextSpan)[]'.

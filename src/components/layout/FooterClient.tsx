@@ -63,7 +63,7 @@ export default function FooterClient({ settings }: Props) {
             </Link>
             <p className="text-label text-stone">{settings?.tagline || 'Design. Build. Last.'}</p>
             <address className="flex flex-col gap-2 not-italic">
-              <p className="text-body text-stone whitespace-pre-line">
+              <p className="whitespace-pre-line text-body text-stone">
                 {settings?.address || 'Limassol, Cyprus'}
               </p>
               <a

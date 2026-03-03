@@ -12,8 +12,8 @@ import ProjectInterestForm from '@/components/sections/project/ProjectInterestFo
 import ProjectLocation from '@/components/sections/project/ProjectLocation';
 import ProjectRelated from '@/components/sections/project/ProjectRelated';
 import ProjectCTA from '@/components/sections/project/ProjectCTA';
-import type { ProjectUnit } from '@/components/sections/project/ProjectUnitsTable';
 import { getProjectBySlug, getAllProjects } from '@/lib/sanity/queries';
+import type { PortableTextBlock } from '@/lib/sanity/types';
 
 export const revalidate = 60;
 
@@ -54,32 +54,38 @@ export default async function ProjectDetailPage({ params }: Props) {
   const overviewItems = [
     { label: 'TYPE', value: project.type.charAt(0).toUpperCase() + project.type.slice(1) },
     { label: 'LOCATION', value: project.location },
-    { label: project.status === 'completed' ? 'COMPLETED' : 'DELIVERY', value: String(project.year) },
+    {
+      label: project.status === 'completed' ? 'COMPLETED' : 'DELIVERY',
+      value: String(project.year),
+    },
     { label: 'STATUS', value: project.status },
   ];
 
   // Helper to extract text from PortableText blocks purely for the fallback description body
-  const extractText = (blocks: any[]) => {
+  const extractText = (blocks: PortableTextBlock[]) => {
     return blocks
       .filter((block) => block._type === 'block' && block.children)
-      .map((block) => block.children.map((child: any) => child.text).join(''));
+      .map((block) =>
+        ((block.children as { text: string }[]) || []).map((child) => child.text).join(''),
+      );
   };
 
   const descriptionBody = project.description ? extractText(project.description) : [];
 
   // Map units to the exact component props manually to ensure types always align
-  const mappedUnits = project.units?.map((u) => ({
-    floor: u.floor,
-    type: u.unitType,
-    area: `${u.sizeM2} m²`,
-    price: '—', // Hardcoded for now based on previous UI mock
-    status: u.status,
-  })) || [];
+  const mappedUnits =
+    project.units?.map((u) => ({
+      floor: u.floor,
+      type: u.unitType,
+      area: `${u.sizeM2} m²`,
+      price: '—', // Hardcoded for now based on previous UI mock
+      status: u.status,
+    })) || [];
 
   // Map related projects
   const relatedProjects = (project.relatedProjectSlugs || []).map((relatedSlug) => ({
     // Note: To display full rich related cards, we'd need GROQ projection for this nested data.
-    // For now, based on prompt 6.3 specs, we map to strings. 
+    // For now, based on prompt 6.3 specs, we map to strings.
     // Ideally this query would be expanded in queries.ts, but let's just pass minimal shape.
     slug: relatedSlug,
     title: relatedSlug.toUpperCase(),
@@ -120,9 +126,7 @@ export default async function ProjectDetailPage({ params }: Props) {
       )}
 
       {(project.specs?.length ?? 0) > 0 && (
-        <ProjectSpecs
-          specs={project.specs?.map(s => ({ label: s.key, value: s.value })) || []}
-        />
+        <ProjectSpecs specs={project.specs?.map((s) => ({ label: s.key, value: s.value })) || []} />
       )}
 
       {mappedUnits.length > 0 && <ProjectUnitsTable units={mappedUnits} />}

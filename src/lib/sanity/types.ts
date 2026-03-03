@@ -8,12 +8,9 @@ export interface SeoMeta {
   ogImageId?: string;
 }
 
-export interface PortableTextBlock {
-  _type: string;
-  style?: string;
-  children?: unknown[];
-  [key: string]: unknown;
-}
+import type { PortableTextBlock } from '@portabletext/types';
+
+export type { PortableTextBlock };
 
 // --- Project ---
 

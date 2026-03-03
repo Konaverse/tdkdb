@@ -10,7 +10,6 @@ import FilterTabs from '@/components/ui/FilterTabs';
 import { cn } from '@/lib/utils/cn';
 import type { Project } from '@/lib/sanity/types';
 
-
 const categoryOptions = ['All', 'Residential', 'Commercial', 'Mixed-Use'];
 const statusOptions = ['All', 'Completed', 'In Progress', 'Upcoming'];
 

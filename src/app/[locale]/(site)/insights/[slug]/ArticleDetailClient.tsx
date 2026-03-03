@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import PortableText from '@/components/sanity/PortableText';
-import ArticleCard, { type ArticleCardData } from '@/components/ui/ArticleCard';
+import ArticleCard from '@/components/ui/ArticleCard';
 import GridWrapper from '@/components/layout/GridWrapper';
 import Section from '@/components/layout/Section';
 import FadeUp from '@/components/animations/FadeUp';
@@ -86,7 +86,9 @@ export default function ArticleDetailClient({ article, related }: ArticleDetailC
         <GridWrapper>
           <FadeUp>
             <div className="mb-6 flex flex-wrap items-center gap-4">
-              <span className="text-label text-threshold">{article.category?.title?.toUpperCase() || 'UNCATEGORIZED'}</span>
+              <span className="text-label text-threshold">
+                {article.category?.title?.toUpperCase() || 'UNCATEGORIZED'}
+              </span>
               <span className="text-label text-stone">·</span>
               <span className="text-label text-stone">5 min read</span>
             </div>
@@ -133,9 +135,11 @@ export default function ArticleDetailClient({ article, related }: ArticleDetailC
                       <a
                         key={key}
                         href={`#heading-${key}`}
-                        className={`block text-body transition-colors duration-fast ease-smooth ${level === 'h3' ? 'pl-4' : ''
-                          } ${activeHeading === key ? 'text-threshold' : 'text-stone hover:text-paper'
-                          }`}
+                        className={`block text-body transition-colors duration-fast ease-smooth ${
+                          level === 'h3' ? 'pl-4' : ''
+                        } ${
+                          activeHeading === key ? 'text-threshold' : 'text-stone hover:text-paper'
+                        }`}
                       >
                         {text}
                       </a>
@@ -155,9 +159,12 @@ export default function ArticleDetailClient({ article, related }: ArticleDetailC
             <div className="flex items-start gap-6">
               <div className="h-16 w-16 flex-shrink-0 bg-void" />
               <div>
-                <p className="text-label text-paper">{article.author?.name?.toUpperCase() || 'TDK DESIGN & BUILD'}</p>
+                <p className="text-label text-paper">
+                  {article.author?.name?.toUpperCase() || 'TDK DESIGN & BUILD'}
+                </p>
                 <p className="mt-2 text-body text-stone">
-                  {article.author?.bio || 'TDK Design & Build is a fully integrated architecture, construction, and interior design studio based in Nicosia, Cyprus.'}
+                  {article.author?.bio ||
+                    'TDK Design & Build is a fully integrated architecture, construction, and interior design studio based in Nicosia, Cyprus.'}
                 </p>
               </div>
             </div>
