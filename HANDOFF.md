@@ -82,11 +82,20 @@ c) Keyboard/focus click when `nodesVisible` is false: add `tabIndex={nodesVisibl
 
 ---
 
-### → Phase 6 — Sanity CMS & Backend Integration
+### Phase 6 — Sanity CMS & Backend Integration ✅
+
+| Prompt | Phase | Status |
+|---|---|---|
+| 6.1 | Sanity Schemas | ✅ |
+| 6.2 | TypeScript Types & GROQ Queries | ✅ |
+| 6.3 | Wire Sanity to All Pages | ✅ |
+| 6.4 | Sanity Content Entry | ✅ (Almond & Insights pinned for later) |
+
+### Phase 7 — SEO & Analytics — IN PROGRESS
 
 **Next Steps:**
-We have finished the Homepage (Phase 4) and all Interior Pages (Phase 5). The next major phase is **Phase 6: Sanity CMS Setup & Wiring**.
-This entails creating the Sanity schemas, configuring the studio desk structure, and wiring up the existing static pages (`/projects`, `/services`, `/about`, etc.) to live GROQ queries.
+We are now moving on to **Phase 7.1 (SEO Infrastructure)**.
+This involves setting up the `generatePageMetadata()` utility and applying it to all static and dynamic pages.
 
 ---
 

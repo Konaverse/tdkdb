@@ -93,6 +93,8 @@ CSP directive in both `vercel.json` and `next.config.mjs`.
   - Trigger: on create, update, delete
 - [ ] Edit a document in Sanity → verify the page updates within the revalidation window
 - [ ] Verify `SANITY_API_TOKEN` is **not** exposed in client-side JS (DevTools → Sources → search for the token value)
+- [ ] **CONTENT ENTRY PENDING:** Add real content for 'Almond' project into Sanity Studio
+- [ ] **CONTENT ENTRY PENDING:** Add real content for 'Insights' articles into Sanity Studio
 
 ---
 
