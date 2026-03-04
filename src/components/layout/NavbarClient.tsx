@@ -193,7 +193,7 @@ export default function NavbarClient({ settings }: Props) {
       <div
         ref={overlayRef}
         className={cn(
-          'fixed inset-0 z-[200] flex flex-col items-center justify-center bg-void translate-x-full',
+          'fixed inset-0 z-[200] flex translate-x-full flex-col items-center justify-center bg-void',
           !isMenuOpen && 'pointer-events-none',
         )}
         aria-hidden={!isMenuOpen}
