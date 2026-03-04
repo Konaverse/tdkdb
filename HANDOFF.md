@@ -90,11 +90,13 @@ c) Keyboard/focus click when `nodesVisible` is false: add `tabIndex={nodesVisibl
 | 6.2 | TypeScript Types & GROQ Queries | ✅ |
 | 6.3 | Wire Sanity to All Pages | ✅ |
 | 6.4 | Sanity Content Entry | ✅ (Almond & Insights pinned for later) |
+| Bugfixes | Global Server Layout Nav/Footer | ✅ |
 
 ### Phase 7 — SEO & Analytics — IN PROGRESS
 
 **Next Steps:**
-We are now moving on to **Phase 7.1 (SEO Infrastructure)**.
+We have successfully resolved the production link routing issues caused by client/server layout conflicts!
+We are now fully clear to initiate **Phase 7.1 (SEO Infrastructure)**.
 This involves setting up the `generatePageMetadata()` utility and applying it to all static and dynamic pages.
 
 ---
