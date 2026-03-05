@@ -145,7 +145,7 @@ function GalleryScene({
   fadeSettings = DEFAULT_FADE,
   blurSettings = DEFAULT_BLUR,
 }: Omit<InfiniteGalleryProps, 'className' | 'style'>) {
-  // Access THIS canvas via useThree — avoids grabbing HomepageCanvas by mistake
+  // Access THIS canvas via useThree
   const { gl } = useThree();
 
   const normalizedImages = useMemo(

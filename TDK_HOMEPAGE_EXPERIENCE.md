@@ -4,10 +4,16 @@
 > **North Star:** Every person who lands on this page should feel three things in sequence:
 > *"This is smooth. This is creative. This is amazing."*
 >
-> **Core Technique:** Higgsfield AI generates cinematic videos from the Armonia renders.
-> FFmpeg extracts those videos into image sequences. GSAP ScrollTrigger draws each frame
-> onto a canvas as the user scrolls — exactly how Apple does their iPhone product pages.
-> The result is photorealistic quality because it IS the actual renders, not a 3D simulation.
+> **Core Technique:** An interactive 2D Canvas particle system creates a living,
+> breathing hero background. Paper-white particles drift on a void-black canvas,
+> reacting to the user's cursor with anti-gravity physics. Manifesto typography
+> floats above the particles with parallax depth. The rest of the homepage is
+> standard HTML/CSS/GSAP scrollytelling — no WebGL, no Three.js, no image sequences.
+>
+> **Future Enhancement:** When Higgsfield AI video assets are finalized, the particle
+> hero can be upgraded to a cinematic image-sequence-on-canvas experience (Apple-style
+> scroll scrubbing). The particle system is preserved as a fallback for mobile and
+> slow connections. See Appendix A for the upgrade path.
 >
 > **Status:** 🔲 = Not started | 🟡 = In discussion | ✅ = Finalized
 
@@ -18,25 +24,24 @@
 1. [Experience Overview](#1-experience-overview)
 2. [Why This Approach](#2-why-this-approach)
 3. [Technical Architecture](#3-technical-architecture)
-4. [PART A — Asset Production (Higgsfield)](#4-part-a--asset-production-higgsfield)
-5. [PART B — Asset Processing (FFmpeg)](#5-part-b--asset-processing-ffmpeg)
-6. [Scene 1 — The Assembly (Load Sequence)](#6-scene-1--the-assembly-load-sequence)
-7. [Scene 2 — The Hero (First Resting State)](#7-scene-2--the-hero-first-resting-state)
-8. [Scene 3 — The Approach (Scroll Into the Building)](#8-scene-3--the-approach-scroll-into-the-building)
-9. [Scene 4 — The Threshold (Crossing the Door)](#9-scene-4--the-threshold-crossing-the-door)
-10. [Scene 5 — The Anatomy (Interactive Building Dissection)](#10-scene-5--the-anatomy-interactive-building-dissection)
-11. [Scene 6 — The Philosophy (Manifesto Scroll)](#11-scene-6--the-philosophy-manifesto-scroll)
-12. [Scene 7 — The Work (Projects Reel)](#12-scene-7--the-work-projects-reel)
-13. [Scene 8 — The Process (How TDK Builds)](#13-scene-8--the-process-how-tdk-builds)
-14. [Scene 9 — The Conversation (Contact CTA)](#14-scene-9--the-conversation-contact-cta)
-15. [Scene 10 — The Footer](#15-scene-10--the-footer)
-16. [Global Design Language](#16-global-design-language)
-17. [Typography System](#17-typography-system)
-18. [Motion & Easing Tokens](#18-motion--easing-tokens)
-19. [Copy Direction](#19-copy-direction)
-20. [Performance Strategy](#20-performance-strategy)
-21. [Custom Cursor System](#21-custom-cursor-system)
-22. [Mobile Strategy](#22-mobile-strategy)
+4. [The Particle Hero System](#4-the-particle-hero-system)
+5. [Scene 1 — The Loading Screen](#5-scene-1--the-loading-screen)
+6. [Scene 2 — The Hero (Particle Canvas + Manifesto Text)](#6-scene-2--the-hero-particle-canvas--manifesto-text)
+7. [Scene 3 — The Transition (Hero Exit)](#7-scene-3--the-transition-hero-exit)
+8. [Scene 4 — The Anatomy (Interactive Building Dissection)](#8-scene-4--the-anatomy-interactive-building-dissection)
+9. [Scene 5 — The Philosophy (Manifesto Scroll)](#9-scene-5--the-philosophy-manifesto-scroll)
+10. [Scene 6 — The Work (Projects Reel)](#10-scene-6--the-work-projects-reel)
+11. [Scene 7 — The Process (How TDK Builds)](#11-scene-7--the-process-how-tdk-builds)
+12. [Scene 8 — The Conversation (Contact CTA)](#12-scene-8--the-conversation-contact-cta)
+13. [Scene 9 — The Footer](#13-scene-9--the-footer)
+14. [Global Design Language](#14-global-design-language)
+15. [Typography System](#15-typography-system)
+16. [Motion & Easing Tokens](#16-motion--easing-tokens)
+17. [Copy Direction](#17-copy-direction)
+18. [Performance Strategy](#18-performance-strategy)
+19. [Custom Cursor System](#19-custom-cursor-system)
+20. [Mobile Strategy](#20-mobile-strategy)
+21. [Appendix A — Image Sequence Upgrade Path (Future)](#21-appendix-a--image-sequence-upgrade-path-future)
 
 ---
 
@@ -50,74 +55,83 @@ with a beginning, middle, and end, connected by seamless transitions.
 ### The Narrative Arc
 
 ```
-LOAD              HERO              APPROACH          THRESHOLD
-[Building    →    [Manifesto   →    [Camera      →    [Cross the
- assembles]        appears]          pushes in]         door — white flash]
+LOAD              HERO                    TRANSITION         ANATOMY
+[Loading     →    [Particle canvas   →    [Hero fades   →    [Building
+ screen]           + manifesto text]       out on scroll]      exploration]
 
-      ↓                                                       ↓
+      ↓                                                            ↓
 
-ANATOMY           PHILOSOPHY        PROJECTS          PROCESS
-[Explore     →    [Manifesto   →    [Horizontal  →    [Timeline
- building]         statements]       reel]             draws]
-
-      ↓
-CONTACT → FOOTER
+PHILOSOPHY        PROJECTS               PROCESS            CONTACT → FOOTER
+[Manifesto   →    [Horizontal  →         [Timeline     →    [CTA +
+ statements]       reel]                   draws]             footer]
 ```
 
-### The Two Cinematic Sequences (Image Sequences on Canvas)
+### The Two Layers of the Hero
 
-Everything up to and including the Threshold crossing is driven by **two pre-rendered
-video sequences**, generated in Higgsfield AI and processed into image sequences.
-These sequences are drawn frame-by-frame onto an HTML5 canvas, with GSAP ScrollTrigger
-controlling exactly which frame is shown based on scroll position.
+The hero section is built from two independent layers, composited on screen:
 
-**Sequence A — The Assembly**
-The Armonia building assembles itself from scattered pieces into a complete structure.
-Plays automatically on page load (time-based, not scroll-based).
-Duration: ~120 frames at 24fps = ~5 seconds.
+**Layer 1 — The Particle Canvas (z-index: 0)**
+An HTML5 2D Canvas element covering the full viewport. Hundreds of particles
+drift in organic patterns. The user's cursor creates an anti-gravity field that
+repels nearby particles — they spring back to their origin positions when the
+cursor moves away. This creates a tactile, living background that responds to
+human presence. No heavy asset preloading. Instant interactivity.
 
-**Sequence B — The Approach**
-The camera pushes from a wide establishing shot all the way through the entrance door,
-ending in a white bloom. Fully scroll-controlled — the user's scroll speed controls
-the camera speed. Every frame is a keyframe. Scrubbing is perfectly smooth.
-Duration: ~180 frames at 24fps = ~7.5 seconds of footage.
+**Layer 2 — The Manifesto Text (z-index: 10)**
+Absolutely positioned HTML text fragments floating above the particle canvas.
+The same editorial manifesto typography from the original spec — "DESIGNED TO LAST.",
+"NOT JUST BUILT. CRAFTED.", etc. — with staggered clip-path reveals, mouse parallax,
+and scroll-driven exit animations.
 
-Scenes 5–10 are all standard HTML/CSS/GSAP — no canvas, no video, no special rendering.
+Scenes 4–9 are all standard HTML/CSS/GSAP — no canvas, no special rendering.
 
 ---
 
 ## 2. WHY THIS APPROACH
 
-### The Problem With Pure Three.js
+### The Problem With Static Hero Backgrounds
 
-The Armonia renders were produced in professional architectural rendering software
-(likely V-Ray or similar) that computed every light bounce, material reflection,
-and shadow with photorealistic precision over many hours per frame.
+Most architecture websites use a static full-bleed image or a slow autoplay video
+as their hero background. These are passive — the user looks at them but doesn't
+interact. They establish quality but not engagement.
 
-Replicating that quality in real-time inside a browser is not achievable. Three.js
-renders in real-time, which means it cannot match the lighting quality of the original
-renders. There will always be a quality gap — and for TDK's positioning, that gap matters.
+TDK's positioning demands more. The first impression must communicate:
+"This company builds with precision, and everything here responds to you."
 
-### The Solution: Render Once, Scrub Forever
+### The Solution: Interactive Particles
 
-By pre-rendering the animation in Higgsfield (which generates from the actual architectural
-renders), every frame is photorealistic because it was produced from photorealistic source
-material. We then control which frame the user sees based on their scroll position.
+The particle system achieves several things simultaneously:
 
-This is the exact technique Apple uses on their iPhone product pages. It is the industry
-standard for cinematic scrollytelling that demands photorealistic quality.
+1. **Immediate interactivity** — no waiting for video buffers or asset downloads.
+   The canvas is responsive within milliseconds of page load.
+
+2. **Tactile quality** — the cursor repelling particles creates an almost physical
+   sensation of pushing through material. This maps directly to TDK's identity:
+   they shape raw materials into architecture.
+
+3. **Brand expression through physics** — the particle colors (paper-white, sparse teal)
+   are the brand palette. The spring-return behavior feels considered and precise,
+   not chaotic. The subtle teal accent particles mirror The Threshold Rule.
+
+4. **Zero asset dependency** — no images, no videos, no CDN. The entire hero
+   is generated in real-time by code. This means zero loading time for the
+   most critical above-the-fold experience.
+
+5. **Future-proof** — the particle canvas can be replaced with the cinematic
+   image sequence experience (Appendix A) when Higgsfield assets are ready.
+   The manifesto text overlay is identical in both versions.
 
 ```
-Quality comparison:
+Comparison:
 
-Three.js real-time 3D          │  Image sequence on canvas
+Static hero image              │  Interactive particle canvas
 ─────────────────────────────  │  ─────────────────────────────
-Real-time computation          │  Pre-rendered frames
-Approximated lighting          │  Photorealistic lighting (from renders)
-~50k polygon limit             │  No polygon limit
-Complex optimization required  │  Simple canvas draw call
-Quality depends on GPU         │  Same quality on every device
-Risk of visual inconsistency   │  Matches renders exactly
+Passive viewing                │  Active interaction
+Requires hero image asset      │  Zero assets — code-generated
+Single visual state            │  Infinite states (cursor-driven)
+Same on every visit            │  Unique every time
+No loading screen needed       │  No loading screen needed
+Quality depends on image       │  Quality depends on physics tuning
 ```
 
 ---
@@ -128,28 +142,27 @@ Risk of visual inconsistency   │  Matches renders exactly
 
 ```
 Next.js 14 App Router (framework)
-  └── /src/app/(site)/page.tsx  ← homepage, NO global navbar/footer
+  └── /src/app/[locale]/(site)/page.tsx  ← homepage, NO global navbar/footer
 
-Canvas Layer (position: fixed, full screen, z-index 0)
+Particle Canvas Layer (position: relative within hero section, z-index: 0)
   └── HTML5 <canvas> element
-  └── GSAP draws image sequence frames on every scroll tick
-  └── Covers ONLY the first 4 scenes (Assembly → Threshold)
-  └── Hidden after Scene 4 completes, replaced by normal page flow
+  └── 2D Context — requestAnimationFrame loop
+  └── Covers ONLY the hero section (100vh)
+  └── Fades out as user scrolls past hero
 
-HTML Overlay Layer (position: fixed, z-index 10, pointer-events: none)
+HTML Text Overlay (position: absolute within hero section, z-index: 10)
   └── Manifesto text fragments (Scene 2)
-  └── Scroll progress indicator
-  └── Loading screen
+  └── Mouse parallax via GSAP quickTo
+  └── Scroll-driven fade-out via GSAP ScrollTrigger
 
-Scroll Container (position: relative, height: ~760vh)
-  └── The tall div the user actually scrolls through
-  └── GSAP ScrollTrigger reads this div's scroll progress
-  └── Drives both canvas frame index AND HTML overlay animations
+Loading Screen (position: fixed, z-index: 100)
+  └── "TDK" text + progress bar
+  └── Fades out after brief brand impression (~1.5 seconds)
 
-Normal Page Flow (Scenes 5–10)
+Normal Page Flow (Scenes 4–9)
   └── Standard HTML elements
   └── GSAP ScrollTrigger entrance animations
-  └── No canvas, no image sequences
+  └── No canvas, no special rendering
   └── Anatomy, Philosophy, Projects, Process, Contact, Footer
 ```
 
@@ -157,556 +170,124 @@ Normal Page Flow (Scenes 5–10)
 
 ```
 src/
-  app/(site)/
-    page.tsx                    ← Homepage root, no layout wrapper
+  app/[locale]/(site)/
+    page.tsx                        ← Homepage root, no layout wrapper
   components/homepage/
-    HomepageCanvas.tsx          ← Canvas + image sequence engine
-    LoadingScreen.tsx           ← Loading screen component
-    SceneHero.tsx               ← Manifesto text overlay (Scene 2)
-    SceneAnatomy.tsx            ← Interactive building nodes (Scene 5)
-    ScenePhilosophy.tsx         ← Manifesto statements (Scene 6)
-    SceneProjects.tsx           ← Horizontal projects reel (Scene 7)
-    SceneProcess.tsx            ← Process timeline (Scene 8)
-    SceneContact.tsx            ← CTA section (Scene 9)
-  lib/homepage/
-    imageSequence.ts            ← Frame preloading & canvas draw utilities
-    sequenceConfig.ts           ← Frame counts, scroll ranges, timing config
-public/
-  sequences/
-    assembly/
-      frame-0001.webp           ← Assembly sequence frames
-      frame-0002.webp
-      ... (up to ~120 frames)
-    approach/
-      frame-0001.webp           ← Approach sequence frames
-      frame-0002.webp
-      ... (up to ~180 frames)
-    hero-still.webp             ← Static hero frame (approach frame 001)
+    ParticleHeroBg.tsx              ← Interactive particle canvas (pre-built)
+    LoadingScreen.tsx               ← Loading screen with progress bar
+    SceneHero.tsx                   ← Manifesto text overlay
+    HeroSection.tsx                 ← Orchestrator: loading → particles → text
+    SceneAnatomy.tsx                ← Interactive building nodes (Scene 4)
+    ScenePhilosophy.tsx             ← Manifesto statements (Scene 5)
+    SceneProjects.tsx               ← Horizontal projects reel (Scene 6)
+    SceneProcess.tsx                ← Process timeline (Scene 7)
+    SceneContact.tsx                ← CTA section (Scene 8)
 ```
 
-### How Frame Scrubbing Works
-
-```javascript
-// Conceptual logic (simplified)
-
-const assemblyFrames = []    // Array of preloaded Image objects
-const approachFrames = []    // Array of preloaded Image objects
-
-// GSAP animates a plain number object
-const state = { frame: 0 }
-
-gsap.to(state, {
-  frame: approachFrames.length - 1,
-  ease: 'none',              // Linear — scroll position = frame index directly
-  scrollTrigger: {
-    trigger: scrollContainer,
-    start: 'top top',
-    end: '+=150%',           // 150vh of scroll drives the entire approach
-    scrub: 1,                // 1 second lag for cinematic smoothness
-    onUpdate: () => {
-      const i = Math.round(state.frame)
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-      ctx.drawImage(approachFrames[i], 0, 0, canvas.width, canvas.height)
-    }
-  }
-})
-```
-
-Every `drawImage()` call is a GPU-accelerated canvas operation.
-On a modern device, this runs at 60fps with no perceptible lag.
-
----
-
-## 4. PART A — ASSET PRODUCTION (HIGGSFIELD)
-
-> This section is a complete, step-by-step guide for someone using Higgsfield for the
-> first time. Follow every step in order.
-
-### Step 0 — Account Setup
-
-**What you need before starting:**
-- The Armonia building renders (PNG or JPG files)
-- Ideally: a front-facing render and a 3/4 angle render of the building
-- A computer or phone with a browser
-
-**Creating your account:**
-
-1. Go to **higgsfield.ai** in your browser
-2. Click **Sign Up** in the top right corner
-3. Sign up with Google (fastest) or email
-4. You will land on the main dashboard
-
-**Understanding the credit system:**
-Higgsfield runs on credits. Each video generation costs credits depending on
-the model and duration. For this project, you need the **Pro plan** ($29/month)
-or higher — the Basic plan ($9/month, 150 credits) will only give you 2–3
-quality generations, which is not enough for the iteration you'll need.
-
-> 💡 **Tip:** Before paying, check Higgsfield's X (Twitter) page
-> (@HiggsfieldAI) — they frequently post promo codes and free credit giveaways.
-> You can also get 5 free daily generations to test the interface first.
-
-**Recommended plan for this project:** Pro ($29/month, 600 credits).
-Each cinematic video generation costs roughly 40–80 credits depending on
-the model. Budget for 10–15 generations across both sequences to get the
-best result through iteration.
-
----
-
-### Step 1 — Prepare Your Source Images
-
-Before generating anything, prepare two source images from your Armonia renders:
-
-**Image A — For the Assembly sequence:**
-Use your best 3/4 angle render of the complete Armonia building.
-- Full building visible in frame
-- Dark/dramatic background (or transparent — Higgsfield handles both)
-- The building should be roughly centered
-- Minimum resolution: 1920×1080px
-- Save as: `armonia-assembly-source.jpg`
-
-**Image B — For the Approach sequence:**
-Use your front-facing render of the Armonia building entrance.
-- Building centered, entrance door clearly visible
-- More sky/environment visible than in the assembly image
-  (because the camera needs room to travel toward the building)
-- The door should be in the center of the frame
-- Minimum resolution: 1920×1080px
-- Save as: `armonia-approach-source.jpg`
-
-> 💡 **If you only have one render:** Use it for both. The AI will interpret
-> the movement instructions differently for each generation regardless of
-> whether the source image is the same.
-
----
-
-### Step 2 — Generate the Assembly Sequence
-
-The assembly sequence shows the Armonia building assembling itself from scattered
-architectural fragments into a complete structure. It plays on load (not on scroll).
-
-**Navigation:**
-1. On the Higgsfield dashboard, click **Create** in the top navigation
-2. Select **Video** from the dropdown
-3. You will see a three-panel interface: configuration on the left,
-   preview in the center, generation queue on the right
-
-**Configuration — Left Panel:**
-
-**Motion Control (first setting):**
-1. Click **Change** next to the Motion Control field
-2. A grid of all available camera movements appears
-3. Search for or scroll to find **"3D Rotation"**
-4. Select it — a small preview shows a slow orbit around an object
-5. This will make the camera slowly arc around the building while
-   the assembly animation happens in the AI's interpretation
-
-> 💡 **Why 3D Rotation?** For the assembly sequence, we actually want minimal
-> camera movement so the building construction is the focus. The 3D Rotation
-> gives a very subtle perspective shift that makes the scene feel alive without
-> distracting from the assembly effect. Alternatively try **"Static"** for
-> zero camera movement — test both.
-
-**Reference Image:**
-1. Click the image upload area
-2. Upload `armonia-assembly-source.jpg`
-3. Wait for the thumbnail to appear in the panel
-
-**Prompt (the text description):**
-This is the most important part. Type exactly:
-
-```
-Modern white residential apartment building with clean architectural lines,
-fragments and components floating in dark void space, building elements
-assembling and constructing together piece by piece, architectural
-visualization, dramatic studio lighting, cinematic, dark background,
-photorealistic render quality, no people, no movement in the building itself
-```
-
-**Model Selection:**
-Below the prompt field, you will see a model selector.
-Select **WAN 2.5** — this is the best model for architectural subjects
-and camera control accuracy.
-
-> If WAN 2.5 is not available on your plan, use **Kling 2.1** as backup.
-> Avoid Sora 2 for this use case — it tends to add unwanted atmospheric effects.
-
-**Duration:**
-Set to **8 seconds** (maximum available on most plans)
-
-**Resolution:**
-Set to **1080p** (1920×1080) — do not use lower
-
-**Output format:** MP4
-
-**Click Generate.**
-
-Generation takes approximately 3–8 minutes. You will see a progress indicator.
-
-**Evaluating your result:**
-When the video appears, watch it and ask:
-- Does the building feel like it's assembling? (Even loosely — the AI interprets this)
-- Is the lighting dramatic and cinematic?
-- Is the building clearly recognizable as the Armonia building?
-- Is the motion relatively slow and smooth?
-
-**If the result is poor, regenerate with these adjustments:**
-- Change the prompt's first word to "Architectural visualization of a..."
-- Try **Static** camera motion instead of 3D Rotation
-- Try adding "slow motion" and "timelapse construction" to the prompt
-- Try **Kling 2.1** model instead of WAN 2.5
-
-**Target: get 2–3 good candidate assembly videos. Keep them all.**
-
----
-
-### Step 3 — Generate the Approach Sequence
-
-The approach sequence is the most important video in the entire project.
-It shows the camera pushing forward from a wide shot of the Armonia building,
-through space, and arriving right at the entrance door — almost passing through it.
-The user controls this with their scroll.
-
-**Navigation:**
-Same path — Create → Video
-
-**Motion Control:**
-1. Click **Change**
-2. Find and select **"Super Dolly In"**
-   Description: "Smoothly moves the camera straight toward the subject for a
-   focused, cinematic effect."
-   This is exactly the camera push-toward-door motion we need.
-
-> 💡 **Alternative to try:** "Through Object In" — this moves the camera
-> INTO and through an object (like a door). Try both. "Super Dolly In" will
-> give you a smooth approach that stops just at the door. "Through Object In"
-> will try to push the camera through the door itself, which could give a
-> stunning result OR a confusing one. Generate both and compare.
-
-**Reference Image:**
-Upload `armonia-approach-source.jpg`
-
-**End Frame (optional but powerful):**
-Some plans allow you to upload an "end frame" — the image the video should
-end on. If available:
-- Take a very tight crop of your render zoomed into the entrance door
-- Upload this as the end frame
-- This gives Higgsfield a target to move toward, dramatically improving
-  the accuracy of the dolly movement
-
-**Prompt:**
-```
-Cinematic camera slowly pushing forward toward the entrance of a modern white
-residential apartment building, approaching the front door, architectural
-visualization, soft teal light glowing from the entrance doorway, dramatic
-exterior lighting, dusk atmosphere, photorealistic, no people, smooth camera
-movement, the building fills more and more of the frame as camera approaches
-```
-
-**Model:** WAN 2.5
-
-**Duration:** 8 seconds
-
-**Resolution:** 1080p
-
-**Click Generate.**
-
-**Evaluating your result:**
-- Does the camera visibly move toward the building?
-- Does the building grow larger as the video progresses?
-- Is there a sense of movement toward the entrance specifically?
-- Does it end closer to the building than it started?
-- Is the motion smooth (no jitter, no sudden jumps)?
-
-**If results are poor, try these adjustments:**
-- Add "smooth tracking shot" and "steadicam movement" to prompt
-- Try **"Dolly In"** instead of "Super Dolly In" (slower, more gradual)
-- Try **"FPV Drone"** for a more dynamic push (test this — might look amazing)
-- Increase the specificity: "camera starts 50 meters from building,
-  ends 2 meters from entrance door"
-
-**Target: get 3–5 good approach candidates. You want the smoothest,
-most dramatic dolly toward the entrance. Keep the best two.**
-
----
-
-### Step 4 — Generate the Threshold Flash (Optional Enhancement)
-
-The threshold is the white-bloom flash moment when the user "crosses" the door.
-Higgsfield can generate this as a brief clip you overlay on the approach sequence.
-
-**Motion Control:** Through Object In
-
-**Reference Image:** A very tight crop of the Armonia entrance door only
-
-**Prompt:**
-```
-Camera moving forward through an open doorway, warm golden light blooming and
-filling the frame from inside, light overexposure transition, architectural
-interior threshold, cinematic lens flare, white bloom effect
-```
-
-**Duration:** 3–4 seconds
-
-This will give you a short clip you can use as the final frames of the
-approach sequence — or as a CSS overlay effect. Generate once and evaluate.
-
----
-
-### Step 5 — Download All Videos
-
-For every video you want to keep:
-1. Click the video in your generation history
-2. Click the **Download** button (arrow icon)
-3. Save with descriptive names:
-   - `assembly-v1.mp4`, `assembly-v2.mp4`
-   - `approach-v1.mp4`, `approach-v2.mp4`
-   - `threshold-v1.mp4` (if generated)
-
-Create a folder called `/raw-higgsfield-exports/` and put all videos there.
-
----
-
-### Step 6 — Using Higgsfield's Other Tools (for other homepage assets)
-
-While you have the platform open, you can generate other assets for the site:
-
-**For the Philosophy section flash images (Scene 6):**
-These are brief architectural detail images (timber grain, window frame, etc.)
-that flash between the manifesto statements.
-
-Go to **Create → Image** and generate:
-- Close-up of timber wood grain texture, architectural, warm lighting
-- Close-up of a window frame corner, white rendered concrete, sharp lines
-- Hands sketching an architectural floor plan, overhead, black ink on white paper
-- Interior space with dramatic light shafts through tall windows
-
-Use model **Higgsfield Soul** or **Nano Banana Pro** for images.
-These become the flash images between philosophy statements.
-
-**For multi-angle renders (Higgsfield Angles 2.0):**
-If you need additional angles of the Armonia building that weren't in the
-original renders:
-1. Go to **Apps → Angles 2.0**
-2. Upload the best Armonia render
-3. Use the 3D rotation controls to generate: bird's-eye view, side profile,
-   rear view, rooftop view
-4. Download any angles useful for the Projects section or interior pages
-
----
-
-## 5. PART B — ASSET PROCESSING (FFMPEG)
-
-> FFmpeg is a free, open-source command-line tool that processes video files.
-> This section walks you through installation and every command you need to run,
-> step by step. No prior command-line experience assumed.
-
-### Step 1 — Install FFmpeg
-
-**On Mac:**
-1. Open Terminal (press Cmd + Space, type "Terminal", press Enter)
-2. If you don't have Homebrew, install it first:
-   ```
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-   ```
-3. Then install FFmpeg:
-   ```
-   brew install ffmpeg
-   ```
-4. Verify installation:
-   ```
-   ffmpeg -version
-   ```
-   You should see version information. If you do, FFmpeg is installed.
-
-**On Windows:**
-1. Go to https://ffmpeg.org/download.html
-2. Under "Windows", click "Windows builds from gyan.dev"
-3. Download the "ffmpeg-release-essentials.zip" file
-4. Extract the zip to `C:\ffmpeg\`
-5. Add FFmpeg to your system PATH:
-   - Press Win + X → System → Advanced system settings
-   - Click "Environment Variables"
-   - Under "System variables", find "Path", click Edit
-   - Click New, type `C:\ffmpeg\bin`, click OK on all dialogs
-6. Open a new Command Prompt and verify:
-   ```
-   ffmpeg -version
-   ```
-
----
-
-### Step 2 — Set Up Your Working Directory
-
-In Terminal (Mac) or Command Prompt (Windows), navigate to your project folder.
-Create the output directories:
-
-**Mac:**
-```bash
-cd /path/to/your/project
-mkdir -p public/sequences/assembly
-mkdir -p public/sequences/approach
-```
-
-**Windows:**
-```bash
-cd C:\path\to\your\project
-mkdir public\sequences\assembly
-mkdir public\sequences\approach
-```
-
-Copy all your Higgsfield videos into a folder called `raw-higgsfield-exports`
-inside your project root.
-
----
-
-### Step 3 — Choose Your Best Videos
-
-Before processing, watch each video one more time and pick:
-- **1 assembly video** — the one with the most convincing building assembly effect
-- **1 approach video** — the smoothest, most cinematic push toward the entrance
-
-Rename your chosen files to:
-- `assembly-final.mp4`
-- `approach-final.mp4`
-
----
-
-### Step 4 — Extract Assembly Frames
-
-This command extracts every frame of the assembly video as a WebP image.
-WebP gives you smaller file sizes than JPG with better quality — ideal for this use.
-
-```bash
-ffmpeg -i raw-higgsfield-exports/assembly-final.mp4 \
-  -vf "fps=24,scale=1920:-1" \
-  -q:v 80 \
-  public/sequences/assembly/frame-%04d.webp
-```
-
-**What each part means:**
-- `-i raw-higgsfield-exports/assembly-final.mp4` — input file
-- `-vf "fps=24,scale=1920:-1"` — video filter: set output to 24 frames per second,
-  scale width to 1920px (height calculated automatically to keep ratio)
-- `-q:v 80` — WebP quality 0–100, 80 is a good balance of quality vs file size
-- `public/sequences/assembly/frame-%04d.webp` — output pattern:
-  frame-0001.webp, frame-0002.webp, etc.
-
-After this runs, check the `public/sequences/assembly/` folder.
-You should see a series of numbered WebP images.
-
-**Count your frames:**
-```bash
-ls public/sequences/assembly/ | wc -l
-```
-A typical 8-second video at 24fps produces ~192 frames.
-Note this number — you'll need it when writing the code.
-
----
-
-### Step 5 — Extract Approach Frames
-
-Same process for the approach video:
-
-```bash
-ffmpeg -i raw-higgsfield-exports/approach-final.mp4 \
-  -vf "fps=24,scale=1920:-1" \
-  -q:v 80 \
-  public/sequences/approach/frame-%04d.webp
-```
-
-After running, count the frames:
-```bash
-ls public/sequences/approach/ | wc -l
-```
-
----
-
-### Step 6 — Extract the Hero Still
-
-The hero still is a single frame — the first frame of the approach sequence —
-used as a static fallback image and as the "resting" state after the assembly completes.
-
-```bash
-ffmpeg -i raw-higgsfield-exports/approach-final.mp4 \
-  -vf "scale=1920:-1" \
-  -frames:v 1 \
-  public/sequences/hero-still.webp
-```
-
-This extracts the very first frame of the approach video as a single WebP.
-
----
-
-### Step 7 — Verify Your File Sizes
-
-Check your total sequence file sizes:
-
-**Mac:**
-```bash
-du -sh public/sequences/assembly/
-du -sh public/sequences/approach/
-```
-
-**Windows:**
-```bash
-dir public\sequences\assembly\ /s
-dir public\sequences\approach\ /s
-```
-
-**Target sizes:**
-- Assembly sequence: under 15MB total
-- Approach sequence: under 20MB total
-
-If your sizes are too large, reduce the WebP quality:
-Change `-q:v 80` to `-q:v 65` and re-run. Test quality vs file size until
-you find a balance that looks good and loads fast.
-
----
-
-### Step 8 — Record Your Frame Counts
-
-Open `/src/lib/homepage/sequenceConfig.ts` and fill in the exact numbers:
+### How the Particle System Works
 
 ```typescript
-export const SEQUENCE_CONFIG = {
-  assembly: {
-    frameCount: 192,          // ← replace with your actual count
-    fps: 24,
-    path: '/sequences/assembly/frame-',
-    extension: '.webp',
-  },
-  approach: {
-    frameCount: 180,          // ← replace with your actual count
-    fps: 24,
-    path: '/sequences/approach/frame-',
-    extension: '.webp',
-  },
-} as const
+// Conceptual logic (simplified)
+
+// On mount: generate particles distributed across canvas
+const particles = generateParticles(width, height, DENSITY)
+
+// Each frame (requestAnimationFrame at 60fps):
+function animate(time) {
+  clearCanvas()
+
+  // 1. Background effects: subtle teal radial glow, drifting dust
+  drawBackgroundEffects(time)
+
+  // 2. For each particle:
+  for (const p of particles) {
+    // a) Mouse repulsion force (if cursor is nearby)
+    if (distToMouse < RADIUS) {
+      p.velocity -= repulsionForce
+    }
+    // b) Spring force (pull back to origin)
+    p.velocity += (p.origin - p.position) * SPRING_CONSTANT
+    // c) Damping (friction)
+    p.velocity *= DAMPING
+    // d) Update position
+    p.position += p.velocity
+    // e) Draw
+    drawCircle(p.position, p.size, p.color)
+  }
+
+  requestAnimationFrame(animate)
+}
 ```
+
+All animation state uses refs (not React state) — the animation loop never triggers
+React re-renders. This is critical for maintaining 60fps.
 
 ---
 
-## 6. SCENE 1 — THE ASSEMBLY (LOAD SEQUENCE)
+## 4. THE PARTICLE HERO SYSTEM
 
-**Type:** Time-based animation (not scroll-driven)
-**Duration:** ~5 seconds
-**Source:** Assembly image sequence, played frame-by-frame via requestAnimationFrame
+### Particle Configuration
+
+| Parameter | Value | Purpose |
+|-----------|-------|---------|
+| `PARTICLE_DENSITY` | 0.00012 per px² | Architectural minimalism — enough to feel alive, not crowded |
+| `BG_PARTICLE_DENSITY` | 0.00004 per px² | Background dust — very sparse |
+| `MOUSE_RADIUS` | 200px | Generous influence area for premium feel |
+| `RETURN_SPEED` | 0.06 | Slow spring = cinematic, not snappy |
+| `DAMPING` | 0.92 | High = particles glide longer before settling |
+| `REPULSION_STRENGTH` | 1.0 | Firm but not violent push |
+
+### Color Distribution
+
+- **90% of particles:** Paper-white `#F5F0E8` (var(--color-paper))
+- **10% of particles:** Threshold teal `#66979f` (var(--color-threshold))
+- **Background dust:** Paper-white only, very low alpha (0.05–0.25)
+- **Background glow:** Threshold teal radial gradient, pulsating opacity (0.03–0.08)
+
+The 10% teal distribution follows **The Threshold Rule**: teal appears sparingly,
+like a signal. It should feel like rare fragments of color in a field of white —
+not an even mix. The teal particles have slightly higher opacity than white particles
+to ensure they register visually despite being outnumbered.
+
+### Particle Sizes
+
+- Main particles: 0.8px–2.2px radius (randomized)
+- Background dust: 0.3px–1.2px radius
+- These are deliberately small. The effect is atmospheric, not illustrative.
+  Particles should feel like floating architectural dust, not bubbles or orbs.
+
+### Collision Physics
+
+Particles collide with elastic physics for tactile realism.
+Collision detection is capped at 300 particles to maintain 60fps on mid-range hardware.
+On a 1920×1080 screen, there are approximately 250 main particles — all will collide.
+On 4K screens (~500 particles), only the first 300 have collision; the rest still
+respond to mouse repulsion and spring return.
+
+### Canvas Rendering
+
+- Canvas dimensions are set to `width * devicePixelRatio` for Retina sharpness
+- CSS `width` and `height` match the container (not the canvas pixel dimensions)
+- The 2D context is scaled by `devicePixelRatio` so all coordinates use CSS pixels
+- On resize: canvas dimensions recalculate, particles regenerate for new viewport
+
+---
+
+## 5. SCENE 1 — THE LOADING SCREEN
+
+**Type:** Timed overlay (not asset-dependent)
+**Duration:** ~1.5 seconds
+**Purpose:** Brand impression + smooth entry into the particle experience
 
 ### What the User Sees
 
-The page loads. A minimal loading screen appears briefly (1–2 seconds maximum)
-with a thin progress line filling left to right. As soon as enough frames are
-preloaded, the loading screen fades and the assembly animation begins.
+The page loads. A minimal loading screen covers the entire viewport.
+"TDK" appears centered in large tracked type. A thin horizontal line fills
+beneath it. The particle canvas is already initializing behind this screen.
 
-The Armonia building assembles on a pure dark (`--color-void: #0D0D0D`) background.
-Architectural fragments drift in from the edges and coalesce into the complete
-building. The final frame settles into the hero still — the full building,
-centered, slightly to the right, at a 3/4 angle.
-
-The assembly plays at its natural pace (24fps, time-based). The user cannot
-scroll during assembly — a CSS `overflow: hidden` on the body prevents it
-until the animation completes.
+After ~1.5 seconds, the "TDK" text fades out. Then the loading screen itself
+fades out, revealing the particle canvas already in motion beneath it.
+The manifesto text fragments then enter with staggered animations.
 
 ### Loading Screen Specification
 
@@ -726,274 +307,186 @@ until the animation completes.
 
 - "TDK" in `text-display-md`, `letter-spacing: 0.3em`, `--color-paper`
 - The line: 1px tall, `--color-paper`, fills via `scaleX` transform (not `width`)
-- Fills in proportion to frames loaded (0% = empty, 100% = full)
-- When preloading completes: "TDK" fades out (opacity 0, 400ms)
-- Then loading screen fades out (opacity 0, 500ms)
-- Assembly animation begins immediately after
+- The fill is driven by a GSAP tween (0 → 1 over 1.5 seconds, ease: "power2.out")
+- When fill completes:
+  1. Wait 200ms
+  2. "TDK" fades out (opacity 0, 400ms, --ease-smooth)
+  3. Entire screen fades out (opacity 0, 500ms, --ease-smooth)
+  4. Manifesto text begins entering (Scene 2)
+- No percentage text. No spinner. Just the line.
+- Use a GSAP timeline for the exit sequence — do NOT chain `setTimeout` calls.
 
-### Technical Implementation Notes
+### Scroll Lock
 
-```typescript
-// Preloading strategy
-// Load first 30 frames immediately (enough to start playing)
-// Load remaining frames in background while assembly plays
+During loading screen: `document.body.style.overflow = 'hidden'`
+On loading complete: `document.body.style.overflow = ''`
 
-async function preloadSequence(config, onProgress) {
-  const images = new Array(config.frameCount)
-  let loaded = 0
+### Why This Loading Screen Exists
 
-  // Helper to load a single frame
-  const loadFrame = (i) => new Promise((resolve) => {
-    const img = new Image()
-    const num = String(i + 1).padStart(4, '0')
-    img.src = `${config.path}${num}${config.extension}`
-    img.onload = () => {
-      images[i] = img
-      loaded++
-      onProgress(loaded / config.frameCount)
-      resolve()
-    }
-  })
-
-  // Load first 30 frames immediately, rest lazily
-  await Promise.all(Array.from({ length: 30 }, (_, i) => loadFrame(i)))
-  // Background load remaining frames (no await)
-  Array.from({ length: config.frameCount - 30 }, (_, i) => loadFrame(i + 30))
-
-  return images
-}
-```
-
-### Assembly Playback (Time-Based RAF Loop)
-
-```typescript
-// After loading screen fades:
-let startTime = null
-const ASSEMBLY_DURATION = 5000 // 5 seconds in ms
-
-function playAssembly(frames, canvas, ctx) {
-  function tick(timestamp) {
-    if (!startTime) startTime = timestamp
-    const elapsed = timestamp - startTime
-    const progress = Math.min(elapsed / ASSEMBLY_DURATION, 1)
-    const frameIndex = Math.floor(progress * (frames.length - 1))
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    if (frames[frameIndex]) {
-      ctx.drawImage(frames[frameIndex], 0, 0, canvas.width, canvas.height)
-    }
-
-    if (progress < 1) {
-      requestAnimationFrame(tick)
-    } else {
-      // Assembly complete — unlock scroll, show hero text
-      onAssemblyComplete()
-    }
-  }
-  requestAnimationFrame(tick)
-}
-```
-
-### On Assembly Complete
-
-When the assembly finishes:
-1. `document.body.style.overflow = 'auto'` — unlock scrolling
-2. The hero manifesto text fragments fade in (Scene 2 begins)
-3. The canvas remains on screen showing the final assembled building frame
-4. The GSAP ScrollTrigger for Scene 3 (approach) is now active
+The particle canvas initializes instantly (no assets to load). The loading screen
+is not about waiting — it's about pacing. A 1.5-second breath before the experience
+begins creates anticipation and prevents the manifesto text from fighting with the
+browser's initial layout paint. It also establishes "TDK" as the very first thing
+the visitor reads — brand before content.
 
 ---
 
-## 7. SCENE 2 — THE HERO (FIRST RESTING STATE)
+## 6. SCENE 2 — THE HERO (PARTICLE CANVAS + MANIFESTO TEXT)
 
-**Type:** Static resting state with mouse parallax
-**Scroll:** None yet — user has not scrolled
-**Duration:** Until user begins scrolling
-**Source:** Canvas shows final frame of assembly (= first frame of approach sequence)
+**Type:** Static hero section with interactive background and mouse parallax
+**Height:** 100vh (no scroll-jacking, no pinning)
+**Background:** Particle canvas (ParticleHeroBg.tsx)
+**Foreground:** Manifesto text fragments (SceneHero.tsx)
 
 ### What the User Sees
 
-The complete Armonia building is on screen. Manifesto text fragments appear
-around the building in an editorial layout — not centered, not aligned, but
-deliberately placed as if floating in architectural space.
+The loading screen dissolves. The particle canvas is already alive beneath it —
+hundreds of small particles drifting gently. The user moves their cursor and
+discovers the particles react, repelled by an invisible force field around the
+mouse. They spring back when the cursor moves away.
+
+Manifesto text fragments appear around the viewport in an editorial layout —
+not centered, not aligned, but deliberately placed as if floating in
+architectural space above the particles.
 
 ```
                                             "DESIGNED TO LAST."
-                                            [top right, 48px, light]
+                                            [top right, display-md, light]
 
 "NOT JUST BUILT.
  CRAFTED."
-[top left, 32px]
+[top left, heading, semibold]
 
-                  [building sits center-right]
+                  [particles drift and react to cursor]
 
 "Every line has a reason."
-[mid left, italic, 24px]
+[mid left, italic, body-lg]
                                             TDK DESIGN & BUILD
-                                            [bottom right, text-label]
+                                            [bottom right, text-label, stone]
 
                     ↓ SCROLL
-                    [bottom center, subtle bounce]
+                    [bottom center, subtle animation]
 ```
 
-### Text Appearance Animation
+### Text Fragments — Specification
 
-Each fragment appears via clip-path reveal after assembly completes,
-with staggered delays:
+| # | Copy | Position | Style | Animation |
+|---|------|----------|-------|-----------|
+| 1 | "DESIGNED TO LAST." | top: 15%, right: 8% | text-display-md (clamp(36px,4vw,64px)), weight 300, letter-spacing 0.05em, --color-paper | Clip-path left→right, 700ms, delay 200ms |
+| 2 | "NOT JUST BUILT. CRAFTED." | top: 25%, left: 6% | text-heading (clamp(24px,3vw,40px)), weight 600, --color-paper. Two lines via `<br/>` | Clip-path left→right, 700ms, delay 400ms |
+| 3 | "Every line has a reason." | top: 55%, left: 8% | text-body-lg (18px), weight 300, **italic**, --color-paper. This is the ONLY italic text on the entire site. | Fade + translateY(20px→0), 600ms, delay 600ms |
+| 4 | "TDK DESIGN & BUILD" | bottom: 18%, right: 8% | text-label (11px), weight 600, uppercase, letter-spacing 0.2em, --color-stone | Fade in, 500ms, delay 700ms |
+| 5 | Scroll indicator | bottom: 6%, center | "SCROLL" in text-label, --color-stone. Below: 1px vertical line (32px tall) with animated mask sweep looping downward every 2s | Fade in, 400ms, delay 900ms |
 
-| Fragment | Delay | Duration | Effect |
-|----------|-------|----------|--------|
-| "DESIGNED TO LAST." | 200ms | 700ms | clip-path left→right reveal |
-| "NOT JUST BUILT. CRAFTED." | 400ms | 700ms | clip-path left→right reveal |
-| "Every line has a reason." | 600ms | 600ms | fade + translateY 20px→0 |
-| "TDK DESIGN & BUILD" | 700ms | 500ms | fade in |
-| Scroll indicator | 900ms | 400ms | fade in |
+### Text Entrance Animation
+
+All animations use `--ease-smooth` (`power4.out`).
+Clip-path reveals: `inset(0 100% 0 0)` → `inset(0 0% 0 0)` (text sweeps in from left).
+Fade + translate: standard opacity 0→1 with translateY shift.
+
+Use a single GSAP timeline triggered when the loading screen's `onComplete` fires.
+Each fragment is a child of the timeline with the specified delay.
 
 ### Mouse Parallax
 
-Each fragment drifts subtly with cursor movement.
-Every fragment has a `data-depth` value between `0.01` and `0.03`.
-On `mousemove`: `translateX = cursorDeltaX * depth`, `translateY = cursorDeltaY * depth`
-Use GSAP `quickSetter` for performance — no layout thrashing.
-Effect is subtle. Should feel like the text is floating in the same space as the building,
-slightly closer to the camera.
+Each fragment drifts subtly with cursor movement:
+- Depth values: Fragment 1 = 0.02, Fragment 2 = 0.025, Fragment 3 = 0.015, Fragment 4 = 0.01, Fragment 5 = 0.03
+- On `mousemove`: `translateX = (cursorX - centerX) × depth`, same for Y
+- Use `gsap.quickTo()` for each fragment — no layout thrashing
+- Duration: 0.6s with `power3.out` easing for smooth lag
+- Only active on `pointer: fine` devices (not touch)
+- Attach listener when hero becomes visible, remove on unmount
+
+The effect should feel like the text is floating in the same space as the particles,
+slightly closer to the camera than the canvas. Subtle. If you notice it consciously,
+it's too strong.
 
 ### Scroll-Out Behavior
 
-As soon as scroll begins (Scene 3 starts), the hero text fades and moves outward:
-Each fragment translates away from center + fades to opacity 0.
-Driven by GSAP ScrollTrigger scrub over the first 30% of the approach scroll distance.
+As the user scrolls down from the hero section (natural scroll, no jacking):
+- Each fragment fades to opacity 0 and translates outward (away from viewport center)
+- Top fragments translate upward, bottom fragments translate downward
+- Driven by GSAP ScrollTrigger:
+  trigger: hero section element
+  start: 'top top'
+  end: '+=40%' (40vh of scroll drives the full fade-out)
+  scrub: 1
+- The scroll indicator disappears instantly (opacity 0, no transition) as soon as
+  ScrollTrigger progress exceeds 0.05
 
-### Scroll Indicator
+### Semantic Structure
 
-```
-  SCROLL
-    │
-    │  (line pulses downward in a looping mask animation)
-    ↓
-```
+- Fragment 1 ("DESIGNED TO LAST."): `<h1>` — primary heading for SEO
+- Fragment 2: `<p>`
+- Fragment 3: `<p>`
+- Fragment 4: `<p>` — brand identifier
+- Fragment 5: `<div role="presentation">` — decorative
 
-Disappears (opacity 0, instant) when user first scrolls more than 50px.
+### Responsive Behavior (Mobile < 768px)
 
----
+- Reposition fragments for centered, stacked layout:
+  Fragment 1: top 20%, centered, text-align center
+  Fragment 2: top 35%, centered
+  Fragment 3: top 55%, centered
+  Fragment 4: bottom 20%, centered
+  Fragment 5: bottom 6%, centered (unchanged)
+- Reduce display sizes by one step (text-display-md → text-heading, etc.)
+- Mouse parallax disabled (pointer: coarse)
+- Touch interaction still triggers particle repulsion (onTouchMove maps to mouse handler)
 
-## 8. SCENE 3 — THE APPROACH (SCROLL INTO THE BUILDING)
+### Accessibility
 
-**Type:** Scroll-driven image sequence scrubbing
-**Scroll distance:** 150vh of the scroll container
-**Source:** Approach image sequence, drawn to canvas frame-by-frame
-
-### What the User Sees
-
-As the user scrolls down, the camera appears to move toward the Armonia building.
-The building grows larger in the frame. The entrance door becomes the singular focus.
-The frame edges darken (vignette). The scroll controls the camera speed exactly —
-scroll faster, camera moves faster. Pause scrolling, camera pauses.
-
-At the end of the 150vh scroll: the camera is right at the entrance. The door fills
-much of the frame. A soft teal light pulses from the entrance. The screen is about
-to bloom.
-
-### GSAP ScrollTrigger Configuration
-
-```typescript
-gsap.to(approachState, {
-  frame: approachFrames.length - 1,
-  ease: 'none',
-  scrollTrigger: {
-    trigger: '#scroll-container',
-    start: 'top top',      // starts when scroll container hits top of viewport
-    end: '+=150%',         // 150vh of scroll distance
-    scrub: 1.5,            // 1.5 second lag = smooth, cinematic feel
-    onUpdate: (self) => {
-      const i = Math.round(approachState.frame)
-      drawFrame(approachFrames[i])
-    }
-  }
-})
-```
-
-### CSS Vignette Overlay
-
-A full-screen div (`position: fixed`, `pointer-events: none`, `z-index: 5`):
-`background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%)`
-Opacity starts at 0.2, increases to 0.8 as scroll progresses through this scene.
-Driven by the same ScrollTrigger via a separate GSAP scrub on opacity.
-
-### Entrance Light Effect
-
-At 60% scroll progress through Scene 3:
-A small warm radial glow begins to appear at the center of frame where the entrance is.
-This is a CSS `position: fixed` div with:
-`background: radial-gradient(circle at center, rgba(102,151,159,0.15) 0%, transparent 60%)`
-Starts invisible, fades in over the remaining 40% of scroll progress.
-Signals to the user: "there is light inside. you are almost there."
+- Respect `prefers-reduced-motion`: skip clip-path and translateY animations,
+  show all fragments immediately at full opacity
+- Particle canvas continues animating (it's decorative and low-motion)
+- All text meets WCAG AA contrast on void-black background
 
 ---
 
-## 9. SCENE 4 — THE THRESHOLD (CROSSING THE DOOR)
+## 7. SCENE 3 — THE TRANSITION (HERO EXIT)
 
-**Type:** Scroll-triggered transition, 20vh of scroll
-**Source:** CSS effect on top of canvas (no new frames)
-**Purpose:** The cinematic moment of crossing from exterior to interior
+**Type:** Scroll-driven fade transition
+**Scroll distance:** Natural scroll — no additional scroll distance consumed
+**Purpose:** Visual bridge from the full-screen hero into the content sections below
 
-### What the User Sees
+### What Happens
 
-At the end of the approach scroll, the user pushes slightly further.
-A radial bloom of teal light erupts from the center of the screen.
-The light expands until it fills ~90% of the screen in near-white.
-The last approach frame is held on canvas during this bloom.
+As the user scrolls past the hero section:
 
-Then the bloom recedes. The canvas fades out. The first static
-element of Scene 5 (the Anatomy section) is now visible beneath.
+1. **Text fragments fade out** (already described in Scene 2 scroll-out behavior)
 
-### The Bloom Effect
+2. **Particle canvas fades** — GSAP ScrollTrigger on the hero section:
+   trigger: hero section
+   start: 'top top'
+   end: 'bottom top' (when bottom of hero reaches top of viewport)
+   scrub: 1.5
+   Animate particle container opacity: 1 → 0
 
-A full-screen fixed div with `z-index: 20`:
+3. **Gradient bleed** — A div overlapping the boundary between hero and Scene 4:
+   Height: 30vh
+   Position: absolute, bottom: -30vh of the hero section
+   Background: linear-gradient(to bottom, var(--color-void) 0%, transparent 100%)
+   z-index: 5, pointer-events: none
+   Prevents a hard visual cut between the particle background and the content below.
 
-```css
-.threshold-bloom {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(
-    circle at 50% 55%,    /* slightly below center = door position */
-    rgba(102, 151, 159, 0) 0%,
-    rgba(200, 225, 230, 0) 0%
-  );
-  opacity: 0;
-}
-```
+4. **Vignette overlay** (optional, subtle):
+   Position: absolute, inset: 0 within hero section, z-index: 2
+   Background: radial-gradient(ellipse at center, transparent 50%, rgba(13,13,13,0.5) 100%)
+   pointer-events: none
+   Darkens the edges of the particle canvas, drawing focus to center where the text sits.
 
-GSAP ScrollTrigger (20vh scroll range):
-- 0% → 50%: bloom expands, center color → rgba(102,151,159,0.9), outer → rgba(220,238,240,0.95)
-- 50%: peak — near white screen
-- 50% → 100%: bloom recedes, opacity returns to 0
-- At 50% mark: canvas display set to none, Scene 5 becomes visible
+### No Scroll-Jacking
 
-### Canvas Hide
+The hero section is exactly 100vh with `position: relative`. It scrolls out of
+view naturally. There is no `overflow: hidden`, no pinning, no scroll container
+with artificial height. The user's scroll wheel behaves exactly as expected.
 
-```typescript
-ScrollTrigger.create({
-  trigger: '#threshold-scroll',
-  start: 'top top',
-  end: '+=20%',
-  onLeave: () => {
-    // Hide canvas
-    canvas.style.opacity = '0'
-    canvas.style.transition = 'opacity 0.3s'
-    // Unlock Scene 5
-    document.getElementById('scene-anatomy').style.visibility = 'visible'
-  }
-})
-```
-
-After this point, the canvas is no longer needed.
-The rest of the page is standard HTML scroll.
+The transition from hero to content should feel effortless — like turning a page,
+not like being released from a mechanism.
 
 ---
 
-## 10. SCENE 5 — THE ANATOMY (INTERACTIVE BUILDING DISSECTION)
+## 8. SCENE 4 — THE ANATOMY (INTERACTIVE BUILDING DISSECTION)
 
 **Type:** Pinned HTML section, hover-interactive
 **Scroll distance:** 100vh (pins for the duration)
@@ -1001,7 +494,7 @@ The rest of the page is standard HTML scroll.
 
 ### What the User Sees
 
-The page transitions from the cinematic canvas to a static split-screen layout.
+The page transitions from the hero into a static split-screen layout.
 Left half: a text panel. Right half: the front-facing Armonia render with
 6 interactive hotspot nodes overlaid on it.
 
@@ -1083,7 +576,7 @@ On next scroll action: section unpins, normal scroll resumes.
 
 ---
 
-## 11. SCENE 6 — THE PHILOSOPHY (MANIFESTO SCROLL)
+## 9. SCENE 5 — THE PHILOSOPHY (MANIFESTO SCROLL)
 
 **Type:** Scroll-driven typography, pinned statements
 **Scroll distance:** 120vh (each statement occupies ~24vh)
@@ -1144,11 +637,11 @@ Statement 5 must be the most impactful moment on the page:
 - This single word takes up most of the screen width
 - "Lakatameia, Nicosia." appears beneath in `text-label` style, `--color-stone`
   Fades in 600ms after "ARMONIA." finishes its reveal
-- This statement does NOT exit — it lingers as the user scrolls into Scene 7
+- This statement does NOT exit — it lingers as the user scrolls into Scene 6
 
 ---
 
-## 12. SCENE 7 — THE WORK (PROJECTS REEL)
+## 10. SCENE 6 — THE WORK (PROJECTS REEL)
 
 **Type:** Horizontal scroll driven by vertical scroll
 **Scroll distance:** 150vh
@@ -1156,7 +649,7 @@ Statement 5 must be the most impactful moment on the page:
 
 ### What the User Sees
 
-A section heading "THE WORK" fades in as Scene 6 ends.
+A section heading "THE WORK" fades in as Scene 5 ends.
 Below it, a horizontal carousel. As the user scrolls vertically,
 the carousel slides leftward, revealing project cards.
 Each card is full-screen (100vw × 100vh). The parallax on the images
@@ -1263,7 +756,7 @@ Future projects appear automatically as new cards when published in Sanity.
 
 ---
 
-## 13. SCENE 8 — THE PROCESS (HOW TDK BUILDS)
+## 11. SCENE 7 — THE PROCESS (HOW TDK BUILDS)
 
 **Type:** Scroll-driven timeline reveal
 **Scroll distance:** 120vh
@@ -1310,7 +803,7 @@ After step 5 appears, a single sentence fades in below the timeline:
 
 ---
 
-## 14. SCENE 9 — THE CONVERSATION (CONTACT CTA)
+## 12. SCENE 8 — THE CONVERSATION (CONTACT CTA)
 
 **Type:** Entrance animation on scroll, then static
 **Background:** Back to pure `--color-void`
@@ -1375,7 +868,7 @@ line segments suggesting a building footprint):
 
 ---
 
-## 15. SCENE 10 — THE FOOTER
+## 13. SCENE 9 — THE FOOTER
 
 **Type:** Curtain reveal on scroll
 **Source:** Global Footer component from `/src/components/layout/Footer.tsx`
@@ -1393,7 +886,7 @@ since the homepage opts out of the global layout).
 
 ---
 
-## 16. GLOBAL DESIGN LANGUAGE
+## 14. GLOBAL DESIGN LANGUAGE
 
 ### Color Palette
 
@@ -1423,7 +916,7 @@ None. Depth is created through color, opacity, and layering only.
 
 ---
 
-## 17. TYPOGRAPHY SYSTEM
+## 15. TYPOGRAPHY SYSTEM
 
 ### Primary Font: Josefin Sans
 
@@ -1465,7 +958,7 @@ Creates a technical precision contrast against the geometric sans.
 
 ---
 
-## 18. MOTION & EASING TOKENS
+## 16. MOTION & EASING TOKENS
 
 ### Easing
 
@@ -1475,7 +968,7 @@ Creates a technical precision contrast against the geometric sans.
 | `--ease-entrance` | `cubic-bezier(0.0, 0.0, 0.2, 1)` | Elements arriving into view |
 | `--ease-exit` | `cubic-bezier(0.4, 0.0, 1, 1)` | Elements leaving view |
 | `--ease-spring` | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Magnetic button release, node expand |
-| `--ease-cinematic` | `cubic-bezier(0.25, 0.46, 0.45, 0.94)` | Image sequence scrub lag |
+| `--ease-cinematic` | `cubic-bezier(0.25, 0.46, 0.45, 0.94)` | Scroll transitions |
 
 In GSAP terms:
 - `--ease-smooth` → `"power4.out"`
@@ -1507,13 +1000,13 @@ In GSAP terms:
 | Value | Feel | Usage |
 |-------|------|-------|
 | `scrub: true` | Instant, 1:1 | Not used — too mechanical |
-| `scrub: 1` | Slightly smooth | Image sequence scrubbing |
-| `scrub: 1.5` | Cinematic lag | Camera approach feel |
-| `scrub: 2` | Very smooth | Slow-moving parallax elements |
+| `scrub: 1` | Slightly smooth | General scroll-driven animations |
+| `scrub: 1.5` | Cinematic lag | Hero fade, parallax elements |
+| `scrub: 2` | Very smooth | Slow-moving background effects |
 
 ---
 
-## 19. COPY DIRECTION
+## 17. COPY DIRECTION
 
 ### The Voice
 
@@ -1548,7 +1041,7 @@ Every line has a reason.
 TDK DESIGN & BUILD
 ```
 
-**Scene 6 — Philosophy Statements**
+**Scene 5 — Philosophy Statements**
 ```
 We don't build buildings.
 We build the conditions for life.
@@ -1567,15 +1060,15 @@ ARMONIA.
 Lakatameia, Nicosia.
 ```
 
-**Scene 7 — Projects Reel (Armonia card)**
+**Scene 6 — Projects Reel (Armonia card)**
 ```
 01
 ARMONIA APARTMENTS
-Lakatameia, Nicosia · 2025 · Residential
+Lakatameia, Nicosia · 2024 · Residential
 [VIEW PROJECT →]
 ```
 
-**Scene 8 — Process Steps**
+**Scene 7 — Process Steps**
 ```
 01  VISION
 We begin with a conversation. Not a brief. We need to understand
@@ -1601,7 +1094,7 @@ The beginning of your story.
 Every project. Every time.
 ```
 
-**Scene 9 — Contact CTA**
+**Scene 8 — Contact CTA**
 ```
 LET'S BUILD
 SOMETHING
@@ -1616,7 +1109,7 @@ hello@tdkdb.com
 
 ---
 
-## 20. PERFORMANCE STRATEGY
+## 18. PERFORMANCE STRATEGY
 
 ### Loading Priority
 
@@ -1624,134 +1117,57 @@ hello@tdkdb.com
 Priority 1 (blocks render):
   └── Base CSS, loading screen HTML
   └── Josefin Sans 300 weight (preloaded)
-  └── hero-still.webp (preloaded via <link rel="preload"> in <head>)
-  └── First 30 frames of assembly sequence
+  └── ParticleHeroBg.tsx JavaScript (~4KB gzipped)
 
-Priority 2 (loads during assembly animation):
-  └── Remaining assembly frames
-  └── All approach frames (~180)
+Priority 2 (loads during loading screen / hero):
+  └── GSAP + ScrollTrigger (~30KB gzipped)
+  └── Lenis (~8KB gzipped)
+  └── SceneHero.tsx (manifesto text)
 
 Priority 3 (lazy, loads below fold):
   └── Anatomy section render image (Cloudinary)
   └── Philosophy flash images (Cloudinary)
   └── Project card images — Armonia + Almond (Cloudinary)
   └── JetBrains Mono font
+  └── SceneAnatomy, ScenePhilosophy, SceneProjects, SceneProcess, SceneContact
 ```
 
-### Preload Hero Still
-```html
-<!-- In Next.js <Head> for the homepage -->
-<link rel="preload" as="image" href="/sequences/hero-still.webp" />
-```
-This ensures something visually meaningful renders immediately, even if
-the full assembly sequence isn't loaded yet.
+### No Heavy Asset Preloading
 
-### Connection Speed Detection
-```typescript
-// On mount in HomepageCanvas.tsx
-const connection = (navigator as any).connection
-const isSlowConnection =
-  connection?.effectiveType === '2g' ||
-  connection?.effectiveType === '3g' ||
-  connection?.saveData === true
+Unlike the image sequence approach (which required preloading 26MB of frames),
+the particle hero has zero asset dependencies. The canvas renders immediately
+from code. This eliminates the primary performance bottleneck of the original design.
 
-const isMobile = window.matchMedia('(pointer: coarse)').matches ||
-                 window.innerWidth < 1024
+The loading screen exists for brand impression and pacing, not for actual preloading.
 
-if (isSlowConnection || isMobile) {
-  // Skip canvas entirely — serve mobile video experience
-  setUseMobileVideo(true)
-  return
-}
-```
-On 2G/3G or with Save-Data enabled, the full 26MB sequence would be a terrible
-experience. Serve the MP4 video fallback in this case, even on desktop.
+### Cloudinary for All Non-Hero Images
 
-### Hard Timeout (8 Seconds)
-```typescript
-// If sequences haven't loaded within 8 seconds:
-const timeout = setTimeout(() => {
-  if (!sequencesReady) {
-    // Skip loading screen — show hero still as static image
-    setShowHeroStill(true)
-    setLoadingComplete(true)
-    // Sequences continue loading in background
-    // ScrollTrigger will activate once approach frames are ready
-  }
-}, 8000)
-```
-This prevents the site being permanently blocked behind a loading screen
-on slow connections that somehow bypass the connection detection.
-
-### Vercel Edge Caching for Sequences
-```json
-// vercel.json
-{
-  "headers": [
-    {
-      "source": "/sequences/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    }
-  ]
-}
-```
-Sequence files never change once generated. Cache forever at the CDN edge.
-On repeat visits: zero download time for sequences.
-If sequences are regenerated: change the filenames (or add a version suffix).
-
-### Image Sequence File Size Budget
-
-| Sequence | Frames | Size per frame | Total budget |
-|----------|--------|---------------|--------------|
-| Assembly | ~120 | ~80KB | ~10MB |
-| Approach | ~180 | ~90KB | ~16MB |
-| Hero still | 1 | ~150KB | ~150KB |
-| **Total** | **301** | | **~26MB** |
-
-> 26MB sounds large. It is not. Apple's iPhone scrollytelling sequence
-> loads ~35MB. On modern broadband: 2–3 seconds. On mobile WiFi: 4–6 seconds.
-> This is exactly why the loading screen exists.
-
-### Reducing File Size If Needed
-
-1. Reduce WebP quality from 80 → 65 (re-run FFmpeg with `-q:v 65`)
-2. Scale frames to 1280px wide instead of 1920px
-3. Drop to 20fps instead of 24fps (fewer frames, slightly less smooth)
-
-### Cloudinary for All Non-Sequence Images
-
-All project photography and renders (Scene 5 anatomy image, Scene 7 project cards,
-etc.) are served from Cloudinary with automatic optimization:
+All project photography and renders (Anatomy building image, Projects cards, etc.)
+are served from Cloudinary with automatic optimization:
 - `f_auto` — WebP/AVIF per browser
 - `q_auto` — optimal quality per image
 - `w_[size]` — correct dimensions, never oversized
 
-This means below-fold images are not your performance bottleneck.
-The sequences are the only heavy assets — and they are managed above.
-
 ### Canvas Rendering Performance
 
-- Canvas GPU-accelerated via `will-change: transform`
-- Only `clearRect` + `drawImage` per tick — minimal operations
-- Canvas hidden (`display: none`) after Scene 4 → frees GPU memory
-- Frame arrays nulled after Scene 4 → frees RAM (~26MB returned to browser)
+- Particle physics run in a requestAnimationFrame loop at 60fps
+- All animation state uses refs — zero React re-renders during animation
+- Collision detection capped at 300 particles to maintain frame budget
+- Canvas uses `devicePixelRatio` for sharp rendering without layout reflow
+- Canvas only renders while the hero section is visible — no background animation
+  after the user scrolls past (stop the RAF loop when hero exits viewport)
 
 ### Lighthouse Targets
 
 | Page | Desktop | Mobile | Notes |
 |------|---------|--------|-------|
-| Homepage | > 80 | > 65 | Lower acceptable — sequence preloading |
+| Homepage | > 85 | > 70 | Improved — no 26MB sequence preload |
 | Almond | > 90 | > 75 | Photo slider, Cloudinary optimized |
 | All other pages | > 90 | > 80 | Standard Next.js SSG |
 
 ---
 
-## 21. CUSTOM CURSOR SYSTEM
+## 19. CUSTOM CURSOR SYSTEM
 
 ### The Cursor
 
@@ -1773,7 +1189,7 @@ This spring is what gives the interaction its premium feel.
 | Hover | `data-cursor="hover"` on buttons/links | Expands to 40px, fills threshold teal |
 | Node | `data-cursor="node"` on anatomy nodes | Expands to 60px, crosshair lines appear |
 | View | `data-cursor="view"` on project images | Expands to 80px, "VIEW" text inside |
-| Scroll | During active scroll/image sequence | Shrinks to 6px solid dot |
+| Scroll | During active scroll | Shrinks to 6px solid dot |
 
 ### Magnetic Buttons
 
@@ -1785,63 +1201,154 @@ All primary CTA buttons have magnetic behavior:
 
 ---
 
-## 22. MOBILE STRATEGY
+## 20. MOBILE STRATEGY
 
-### The Problem
-
-The image sequence scrubbing approach depends on JavaScript preloading
-hundreds of images and drawing them to canvas on scroll. On mobile:
-- Storage is more limited
-- Scroll behavior is different (momentum-based, not discrete)
-- Touch scrubbing of image sequences can feel laggy on older devices
-
-### The Solution: Autoplay Video
+### The Approach
 
 On mobile (`pointer: coarse` media query OR viewport width < 1024px):
 
-1. **Hide the canvas entirely** — `display: none`
-2. **Show an autoplay video instead** — the approach video from Higgsfield
-   (`approach-final.mp4`), plays once on load, pauses on the final frame
-3. **No scroll-jacking** — standard scroll behavior throughout
-4. **Anatomy section** — nodes become a tap-through card stack (swipeable)
-5. **All other sections** — identical to desktop, just adapted layout
+The particle hero works natively on mobile — no separate implementation needed.
+The canvas generates fewer particles automatically (smaller viewport = fewer pixels
+= lower particle count). Touch events trigger the same particle repulsion that
+mouse events do on desktop.
 
-### Mobile Video Specification
+### Mobile-Specific Adjustments
 
-Use the Higgsfield-generated `approach-final.mp4` directly.
-No FFmpeg processing needed — just use the raw export.
+1. **Hero text layout:** Fragments reposition to centered, stacked layout (see Scene 2)
+2. **Mouse parallax disabled:** Touch does not trigger text parallax (pointer: coarse check)
+3. **Touch particle interaction:** `onTouchMove` maps to the same mouse handler,
+   allowing users to drag their finger and repel particles
+4. **Anatomy section:** Nodes become tappable (not hover). Content appears in an
+   expanding panel below the image, not in a side panel. No pinning on mobile.
+5. **Projects reel:** Cards stack vertically (no horizontal scroll mechanism)
+6. **Process timeline:** Becomes vertical (top-to-bottom)
+7. **Custom cursor:** Hidden entirely (system cursor used instead)
+8. **All other sections:** Identical to desktop, just adapted layout
 
-```html
-<video
-  autoPlay
-  muted
-  playsInline
-  preload="auto"
-  onEnded={(e) => e.target.pause()}
+### Performance on Mobile
+
+The particle canvas is lightweight by design:
+- On a 375×812 screen: ~36 main particles + ~12 background particles
+- Far less than the 250+ particles on desktop
+- Canvas redraws are simple — just `arc()` calls, no complex drawing
+- If performance issues are detected on low-end devices, the canvas can be
+  replaced with a static gradient background via a feature detection check
+
+### Future Mobile Enhancement
+
+When Higgsfield video assets are available, mobile can optionally use the
+autoplay MP4 approach described in Appendix A. But the particle hero is a
+fully viable mobile experience on its own.
+
+---
+
+## 21. APPENDIX A — IMAGE SEQUENCE UPGRADE PATH (FUTURE)
+
+> **This section is preserved from the original specification. It documents the
+> cinematic image-sequence-on-canvas experience that can replace the particle hero
+> when Higgsfield video assets are finalized and FFmpeg-processed.**
 >
-  <source src="/videos/approach-mobile.mp4" type="video/mp4" />
-</video>
+> **Do NOT implement this until all of the following assets are confirmed ready:**
+> - `/public/sequences/assembly/frame-0001.webp` through `frame-XXXX.webp`
+> - `/public/sequences/approach/frame-0001.webp` through `frame-XXXX.webp`
+> - `/public/sequences/hero-still.webp`
+> - `/public/videos/approach-mobile.mp4`
+
+### What Changes in the Upgrade
+
+The particle hero (Scenes 1–3 in the current spec) is replaced by four cinematic scenes:
+
+**Scene A — The Assembly (Load Sequence)**
+The Armonia building assembles itself from scattered pieces into a complete structure.
+Plays automatically on page load (time-based RAF loop, not scroll-based).
+Duration: ~120 frames at 24fps = ~5 seconds.
+During assembly: scroll is locked (`overflow: hidden`).
+
+**Scene B — The Hero (First Resting State)**
+After assembly completes, the canvas shows the final assembled building frame.
+The manifesto text overlay (SceneHero.tsx) appears — identical to the current spec.
+Mouse parallax on text fragments. Scroll indicator at bottom.
+
+**Scene C — The Approach (Scroll Into the Building)**
+As the user scrolls, the camera pushes toward the building entrance.
+Fully scroll-controlled via GSAP ScrollTrigger on a 150vh scroll container.
+Frame-by-frame canvas drawing from the approach image sequence.
+A CSS vignette darkens edges, a warm glow appears near the entrance at 60% progress.
+
+**Scene D — The Threshold (Crossing the Door)**
+A radial bloom of teal light erupts from the center of the screen.
+The bloom expands to near-white, then recedes. The canvas fades to `display: none`.
+Scene 4 (Anatomy) becomes visible beneath. Canvas frame arrays are nulled to free RAM.
+
+### Upgrade Architecture
+
+```
+Current:                          After Upgrade:
+HeroSection.tsx                   HomepageCanvas.tsx
+  ├── LoadingScreen.tsx             ├── LoadingScreen.tsx (progress shows frame loading)
+  ├── ParticleHeroBg.tsx            ├── <canvas> (image sequence engine)
+  └── SceneHero.tsx                 ├── SceneHero.tsx (IDENTICAL — reused as-is)
+                                    └── Scroll container (760vh)
 ```
 
-The video plays once, showing the full cinematic approach to the building.
-It then pauses on the final frame. The rest of the page scrolls normally below it.
+The key design decision: **SceneHero.tsx (the manifesto text overlay) is shared
+between both versions.** It works identically whether the background is particles
+or a pre-rendered building frame. The `isVisible` prop controls its entrance,
+and the scroll-out behavior is driven by ScrollTrigger in both cases.
 
-### Mobile Asset
+### Fallback Strategy
 
-Add to FFmpeg processing (Step 4 in PART B):
+When the image sequence upgrade is active, the particle hero is preserved as
+a fallback for:
+- Mobile devices (`pointer: coarse` OR viewport < 1024px)
+- Slow connections (`navigator.connection.effectiveType === '2g'` or `'3g'`)
+- `navigator.connection.saveData === true`
+- Timeout: if sequences haven't loaded within 8 seconds
+
+### Asset Production (Higgsfield AI)
+
+Full step-by-step Higgsfield production guide available in the original
+`TDK_HOMEPAGE_EXPERIENCE_V1.md` document, Sections 4 and 5 (PART A and PART B).
+This covers account setup, prompt engineering for assembly and approach sequences,
+model selection (WAN 2.5 preferred), and FFmpeg frame extraction.
+
+### Asset Processing (FFmpeg)
+
+Frame extraction commands:
 ```bash
-# Create a compressed mobile version of the approach video
+# Assembly sequence
+ffmpeg -i raw-higgsfield-exports/assembly-final.mp4 \
+  -vf "fps=24,scale=1920:-1" \
+  -q:v 80 \
+  public/sequences/assembly/frame-%04d.webp
+
+# Approach sequence
+ffmpeg -i raw-higgsfield-exports/approach-final.mp4 \
+  -vf "fps=24,scale=1920:-1" \
+  -q:v 80 \
+  public/sequences/approach/frame-%04d.webp
+
+# Hero still (first frame of approach)
+ffmpeg -i raw-higgsfield-exports/approach-final.mp4 \
+  -vf "scale=1920:-1" \
+  -frames:v 1 \
+  public/sequences/hero-still.webp
+
+# Mobile video
 ffmpeg -i raw-higgsfield-exports/approach-final.mp4 \
   -vf "scale=1080:-1" \
-  -c:v libx264 \
-  -crf 28 \
-  -movflags faststart \
-  -an \
+  -c:v libx264 -crf 28 -movflags faststart -an \
   public/videos/approach-mobile.mp4
 ```
 
-Target size: under 8MB. The `-crf 28` setting ensures good compression
-without visible quality loss at mobile screen sizes.
+### Image Sequence File Size Budget
+
+| Sequence | Frames | Size per frame | Total budget |
+|----------|--------|---------------|--------------|
+| Assembly | ~120 | ~80KB | ~10MB |
+| Approach | ~180 | ~90KB | ~16MB |
+| Hero still | 1 | ~150KB | ~150KB |
+| **Total** | **301** | | **~26MB** |
 
 ---
 
@@ -1850,8 +1357,8 @@ without visible quality loss at mobile screen sizes.
 > every line of copy, every technical decision is documented here.
 >
 > When feeding this to Cursor, paste the relevant scene section
-> plus Section 16 (Design Language), Section 17 (Typography),
-> and Section 18 (Motion Tokens) with every prompt.
+> plus Section 14 (Design Language), Section 15 (Typography),
+> and Section 16 (Motion Tokens) with every prompt.
 >
 > The North Star remains:
 > *"This is smooth. This is creative. This is amazing."*

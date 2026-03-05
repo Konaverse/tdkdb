@@ -964,840 +964,1214 @@ Build layout utility components.
 
 ---
 
-## PHASE 4 – HOMEPAGE (SCENE BY SCENE)
+## PHASE 4 - CURSOR PROMPTS (REWRITTEN)
+### Homepage Scene-by-Scene Build — Particle Hero Edition
 
-**Goal:** Build the cinematic homepage as specified in TDK_HOMEPAGE_EXPERIENCE.md.
-**When:** All global components exist. Design system is locked. Image sequences have been
-generated in Higgsfield and processed with FFmpeg (frames live in `/public/sequences/`).
-
-> ⚠️ **Before starting Phase 4:** Confirm both image sequence folders exist and are populated:
-> - `/public/sequences/assembly/frame-0001.webp` through `frame-XXXX.webp`
-> - `/public/sequences/approach/frame-0001.webp` through `frame-XXXX.webp`
-> - `/public/sequences/hero-still.webp`
-> - `/public/videos/approach-mobile.mp4`
+> **Purpose:** This document replaces the original Phase 4 prompts in TDK_CURSOR_BUILD_STRATEGY.md.
+> The original Phase 4 assumed Higgsfield image sequences were ready before development began.
+> This rewrite decouples the hero section from image sequence assets, using an interactive
+> particle canvas as the primary hero background. Image sequences become a future enhancement
+> layer that can be integrated when Higgsfield assets are finalized.
 >
-> Also feed Cursor the full `TDK_HOMEPAGE_EXPERIENCE.md` at the start of EVERY homepage session.
+> **What changed:**
+> - Prompts 4.1–4.5 (canvas engine, loading screen, assembly, approach, threshold) are
+>   consolidated into 4.1–4.3 (particle hero, scene hero text, scroll transition)
+> - The image sequence infrastructure moves to a new Phase 4B (optional, asset-dependent)
+> - Scenes 5–10 prompts (4.4–4.9) are unchanged in scope but renumbered
+> - A new Prompt 4.10 provides the image sequence upgrade path
+>
+> **Source documents Cursor must reference:**
+> - `TDK_HOMEPAGE_EXPERIENCE.md` — Sections 7, 16, 17, 18 (Hero, Design Language, Typography, Motion)
+> - `TDK_MASTER_PLAN.md` — Section 2 (Tech Stack)
+> - `particle-hero-bg.tsx` — The pre-built particle component (copy into project)
 
 ---
 
-### PROMPT 4.0 — Feed Homepage Context (Run at Start of Every Homepage Session)
+### PHASE 4 OVERVIEW
+
+**Goal:** Build the cinematic homepage as specified in TDK_HOMEPAGE_EXPERIENCE.md,
+starting with an interactive particle hero that works immediately without pre-rendered assets.
+
+**When:** All global components exist. Design system is locked (Phase 2 complete).
+GSAP + Lenis initialized (Prompt 2.4 complete). Animation primitives built (Prompt 3.4 complete).
+
+**Architecture Change — Why Particle First:**
+
+The original plan required Higgsfield-generated image sequences (assembly + approach) to be
+finalized, FFmpeg-processed, and placed in `/public/sequences/` before any homepage work could
+begin. This created a hard dependency between asset production and development.
+
+The particle hero removes this blocker:
+- Development proceeds immediately — no waiting for video assets
+- The particle canvas provides a production-ready interactive background
+- The manifesto text overlay (Scene 2) is built identically to the original spec
+- Scenes 5–10 are completely unaffected
+- When image sequences are ready, they slot in as an enhancement (Prompt 4.10)
+
+**The New Narrative Arc:**
+
+```
+LOAD              HERO                    TRANSITION         ANATOMY
+[Loading     →    [Particle canvas   →    [Hero fades   →    [Building
+ screen]           + manifesto text]       out on scroll]      exploration]
+
+      ↓                                                            ↓
+
+PHILOSOPHY        PROJECTS               PROCESS            CONTACT → FOOTER
+[Manifesto   →    [Horizontal  →         [Timeline     →    [CTA +
+ statements]       reel]                   draws]             footer]
+```
+
+Scenes 1–4 (Assembly, Hero, Approach, Threshold) are replaced by a single hero section
+with a particle background. The cinematic scroll-jacking and image sequence scrubbing
+are deferred to the upgrade path. Everything from Scene 4 onward is unchanged.
+
+**File Structure (Homepage-Specific, Updated):**
+
+```
+src/
+  app/[locale]/(site)/
+    page.tsx                        ← Homepage root, no layout wrapper
+  components/homepage/
+    ParticleHeroBg.tsx              ← Interactive particle canvas (pre-built)
+    LoadingScreen.tsx               ← Loading screen with progress bar
+    SceneHero.tsx                   ← Manifesto text overlay on particle bg
+    HeroSection.tsx                 ← Orchestrator: loading → particles → text
+    SceneAnatomy.tsx                ← Interactive building nodes (Scene 4)
+    ScenePhilosophy.tsx             ← Manifesto statements (Scene 5)
+    SceneProjects.tsx               ← Horizontal projects reel (Scene 6)
+    SceneProcess.tsx                ← Process timeline (Scene 7)
+    SceneContact.tsx                ← CTA section (Scene 8)
+```
+
+> **Pre-requirements for Phase 4:**
+> - [ ] Phase 2 complete — all design tokens in globals.css, Tailwind config, fonts loaded
+> - [ ] Phase 3 complete — Navbar, Footer, animation primitives, layout utilities
+> - [ ] `particle-hero-bg.tsx` file ready (provided separately)
+> - [ ] GSAP + ScrollTrigger + Lenis initialized (Prompt 2.4)
+
+---
+
+### PROMPT 4.0 — Feed Homepage Context
+
+**Run this at the start of EVERY homepage Cursor session.**
 
 ```
 Before we build anything, re-read the homepage specification:
 
 [PASTE FULL CONTENTS OF TDK_HOMEPAGE_EXPERIENCE.md HERE]
 
-Also re-read the ADR at /docs/ADR.md.
+Also re-read the ADR at /docs/ADR.md if it exists.
 
 Confirm you understand these critical facts:
-1. The homepage uses HTML5 canvas + image sequences, NOT Three.js or any 3D library
-2. Two image sequences live in /public/sequences/assembly/ and /public/sequences/approach/
-3. The assembly sequence plays time-based (RAF loop) — NOT scroll-driven
-4. The approach sequence is scroll-scrubbed via GSAP ScrollTrigger on video.currentTime equivalent
-5. After Scene 4 (Threshold), the canvas is hidden — Scenes 5–10 are standard HTML
-6. HomepageCanvas.tsx must be dynamically imported with { ssr: false } (canvas is client-only)
-7. Mobile devices get an autoplay MP4 video instead of the canvas experience
+
+1. The homepage hero uses an interactive 2D Canvas particle system as its background —
+   NOT Three.js, NOT WebGL, NOT image sequences (those come later as an upgrade).
+   The particle component (ParticleHeroBg.tsx) is pre-built and ready to integrate.
+
+2. The particle canvas renders paper-white (#F5F0E8) particles with sparse teal (#66979f)
+   accents on a void-black (#0D0D0D) background. Mouse interaction repels particles.
+   This matches TDK's "cinematic architectural minimalism" design language.
+
+3. The hero text overlay (Scene 2 from the spec) is built exactly as specified:
+   manifesto text fragments with staggered clip-path reveals, mouse parallax, and
+   scroll-out behavior. The text floats above the particle canvas.
+
+4. There is NO scroll-jacking on the hero. The page scrolls naturally.
+   The hero text fades out as the user scrolls, transitioning into Scene 4 (Anatomy).
+
+5. Scenes 4–9 are standard HTML/CSS/GSAP — identical to the original spec.
+   No canvas, no image sequences, no special rendering.
+
+6. ALL client components that use canvas or GSAP must be dynamically imported
+   with { ssr: false } to prevent Next.js SSR errors.
+
+7. Mobile devices (pointer: coarse OR viewport < 1024px) get the same particle
+   effect at reduced density (automatic — fewer pixels = fewer particles).
+   Touch events should trigger particle repulsion where mouse events would.
+
+8. Design rules that apply everywhere:
+   - Zero border-radius. No exceptions. Architecture is rectilinear.
+   - Zero shadows. Depth through color, opacity, layering only.
+   - Threshold teal (#66979f) appears sparingly — never on two things at once.
+   - Josefin Sans for all text. JetBrains Mono for numbers only.
+   - GSAP for all animations. No CSS keyframes except simple infinite loops.
 
 Respond with confirmation only. No code yet.
 ```
 
 ---
 
-### PROMPT 4.1 — Image Sequence Config & Canvas Engine
+### PROMPT 4.1 — Particle Hero Background & Loading Screen
 
 **Pre-requirements:**
-- [ ] Both image sequence folders populated in `/public/sequences/`
-- [ ] Frame counts recorded (run `ls public/sequences/assembly/ | wc -l` in terminal)
+- [ ] Phase 2 and 3 complete
+- [ ] `particle-hero-bg.tsx` file available
 
 ```
-Build the image sequence configuration and canvas engine for the TDK homepage.
-Reference: TDK_HOMEPAGE_EXPERIENCE.md, Sections 3 and 4.
+Build the particle hero background and loading screen for the TDK homepage.
 
-1. /src/lib/homepage/sequenceConfig.ts
-   
-   Export a SEQUENCE_CONFIG object with the following shape.
-   Fill in the actual frame counts from the real files in /public/sequences/:
-   
-   export const SEQUENCE_CONFIG = {
-     assembly: {
-       frameCount: 192,          // ← replace with actual count from ls command
-       fps: 24,
-       path: '/sequences/assembly/frame-',
-       extension: '.webp',
-     },
-     approach: {
-       frameCount: 180,          // ← replace with actual count from ls command
-       fps: 24,
-       path: '/sequences/approach/frame-',
-       extension: '.webp',
-     },
-   } as const
+Reference: TDK_HOMEPAGE_EXPERIENCE.md, Sections 4 (Particle System), 5 (Loading Screen), 6 (Hero), and 14 (Design Language).
 
-2. /src/lib/homepage/imageSequence.ts
-   
-   Export two functions:
-   
-   a) preloadSequence(config, onProgress: (pct: number) => void): Promise<HTMLImageElement[]>
-      - Creates an array of Image objects with length = config.frameCount
-      - Loads first 30 frames immediately (await Promise.all)
-      - Begins loading remaining frames in background (no await — fire and forget)
-      - Calls onProgress(loaded / total) as each frame completes
-      - Returns the array (partially populated — consumer must handle undefined frames)
-      - Frame filename format: frame-0001.webp, frame-0002.webp (4-digit zero-padded)
-   
-   b) drawFrame(ctx: CanvasRenderingContext2D, frames: HTMLImageElement[], index: number): void
-      - Clears the canvas (ctx.clearRect)
-      - If frames[index] is loaded: draws it (ctx.drawImage) scaled to fill the canvas
-      - If frames[index] is undefined (not yet loaded): draws the closest loaded frame before it
-        (walk backward in the array until a loaded frame is found)
-      - This prevents blank frames during fast scrubbing before background load is done
+#### Step 1 — Place the Particle Component
 
-3. /src/components/homepage/HomepageCanvas.tsx (client component)
-   
-   This is the heart of the homepage. It must be exported as default
-   and dynamically imported in page.tsx with { ssr: false }.
-   
-   Structure:
-   - A full-screen <canvas> element (position: fixed, top:0, left:0, width:100vw, height:100vh, z-index:0)
-   - The canvas width and height attrs must be set to actual pixel dimensions (devicePixelRatio-aware)
-   - A scroll container div (position: relative, height: 760vh) — this is what the user scrolls
-   - Both elements rendered inside a fragment
-   
-   State:
-   - assemblyFrames: HTMLImageElement[]
-   - approachFrames: HTMLImageElement[]
-   - loadProgress: number (0–1)
-   - phase: 'loading' | 'assembly' | 'hero' | 'approach' | 'threshold' | 'complete'
-   
-   On mount:
-   - Begin preloading both sequences in parallel
-   - Update loadProgress with combined progress
-   - When first 30 frames of assembly are ready: set phase = 'assembly'
-   
-   Expose phase state to sibling components via a context or ref callback
-   (other components need to know when assembly is done to show hero text).
-   
-   Canvas resize:
-   - On window resize: recalculate canvas dimensions (account for devicePixelRatio)
-   - Redraw current frame immediately after resize
+Copy the provided particle-hero-bg.tsx to:
+/src/components/homepage/ParticleHeroBg.tsx
 
-4. /src/app/[locale]/(site)/page.tsx — Homepage Root
-   
-   Import HomepageCanvas dynamically:
-   const HomepageCanvas = dynamic(() => import('@/components/homepage/HomepageCanvas'), { ssr: false })
-   
-   The page.tsx should have NO global layout wrapper (Navbar/Footer excluded at layout level).
-   Return only:
-   - <HomepageCanvas />
-   - Scene 5–10 components (below the canvas scroll container)
-   These stack vertically in normal document flow.
+This is a 'use client' component with ZERO external dependencies beyond React.
+It renders an HTML5 2D Canvas with interactive particles:
+- Paper-white (#F5F0E8) particles — 90% of all particles
+- Teal (#66979f) accent particles — 10% (sparse, per The Threshold Rule)
+- Void-black (#0D0D0D) background
+- Mouse repulsion with spring-return physics
+- DevicePixelRatio-aware for Retina sharpness
+- Collision detection capped at 300 particles for 60fps performance
+
+DO NOT modify this component's physics or color logic. It is pre-tuned for TDK.
+
+#### Step 2 — Build the Loading Screen
+
+Create /src/components/homepage/LoadingScreen.tsx
+
+A full-screen overlay that shows during initial page load. The particle canvas
+initializes instantly (no heavy assets to preload), so this screen is brief —
+it exists for brand impression and perceived polish, not for actual loading time.
+
+Specification:
+- Position: fixed, inset: 0, z-index: 100
+- Background: var(--color-void, #0D0D0D)
+- Contents (centered both axes):
+  - "TDK" in text-display-md style, letter-spacing: 0.3em, color: var(--color-paper)
+  - Below the text: a thin horizontal line (1px tall, 200px wide, --color-paper)
+  - An inner span fills the line left-to-right via scaleX transform
+    (transform-origin: left center — never animate width, always scaleX)
+  - No percentage text, no spinner
+
+Props:
+  - progress: number (0–1) — drives the scaleX of the fill line
+  - onComplete: () => void — called when the component finishes exiting
+
+Behavior:
+  - The progress fills quickly (simulate with a 1.5-second ease-out tween via GSAP)
+  - When progress reaches 1.0: wait 200ms, then:
+    1. "TDK" text fades out (opacity 0, 400ms, --ease-smooth)
+    2. Then entire overlay fades out (opacity 0, 500ms, --ease-smooth)
+    3. Call onComplete() when fade finishes
+  - During loading: document.body.style.overflow = 'hidden' (prevent scroll)
+  - On exit: document.body.style.overflow = '' (restore default)
+
+Use GSAP timeline for the exit sequence — do NOT chain setTimeouts.
+
+#### Step 3 — Build the Hero Orchestrator
+
+Create /src/components/homepage/HeroSection.tsx (client component)
+
+This component manages the loading → particle → text reveal sequence.
+
+Structure:
+```tsx
+'use client'
+
+import dynamic from 'next/dynamic'
+import { useState, useCallback } from 'react'
+import LoadingScreen from './LoadingScreen'
+
+const ParticleHeroBg = dynamic(() => import('./ParticleHeroBg'), { ssr: false })
+const SceneHero = dynamic(() => import('./SceneHero'), { ssr: false })
+
+export default function HeroSection() {
+  const [phase, setPhase] = useState<'loading' | 'hero'>('loading')
+
+  const handleLoadingComplete = useCallback(() => {
+    setPhase('hero')
+  }, [])
+
+  return (
+    <section className="relative w-full h-screen overflow-hidden">
+      {/* Particle background — always rendering, z-0 */}
+      <ParticleHeroBg />
+
+      {/* Loading screen — z-100, fades out */}
+      {phase === 'loading' && (
+        <LoadingScreen progress={1} onComplete={handleLoadingComplete} />
+      )}
+
+      {/* Hero text — z-10, appears after loading */}
+      <SceneHero isVisible={phase === 'hero'} />
+    </section>
+  )
+}
+```
+
+Notes:
+- ParticleHeroBg renders immediately behind the loading screen.
+  When loading fades out, the particles are already animating — no blank frame.
+- SceneHero receives isVisible to control its text entrance animations.
+- The section is exactly 100vh tall. No scroll-jacking. Normal page flow below.
+
+#### Step 4 — Mobile Touch Support
+
+In ParticleHeroBg.tsx, add touch event handling alongside mouse events:
+- onTouchMove: map touch position to the same mouseRef that mouse uses
+- onTouchEnd: set mouseRef.isActive = false (same as mouseLeave)
+- This gives mobile users the particle repulsion effect on tap-and-drag
+
+Implementation:
+```tsx
+const handleTouchMove = (e: React.TouchEvent) => {
+  if (!containerRef.current) return
+  const touch = e.touches[0]
+  const rect = containerRef.current.getBoundingClientRect()
+  mouseRef.current = {
+    x: touch.clientX - rect.left,
+    y: touch.clientY - rect.top,
+    isActive: true,
+  }
+}
+
+const handleTouchEnd = () => {
+  mouseRef.current.isActive = false
+}
+```
+
+Add these to the container div's event handlers.
 ```
 
 **Check before moving on:**
-- Canvas renders full-screen with no white border or overflow
-- Console shows frame loading progress (log it temporarily)
-- Resize handler works (test by dragging browser window edge)
-- No TypeScript errors
-- `dynamic` import prevents SSR errors
+- [ ] Loading screen shows "TDK" + progress bar, fades out cleanly
+- [ ] Particle canvas is visible after loading screen exits (no white flash)
+- [ ] Particles are paper-white with sparse teal accents on void-black
+- [ ] Mouse repulsion works on desktop
+- [ ] Touch repulsion works on mobile (test in DevTools responsive mode)
+- [ ] No hydration errors in console
+- [ ] No border-radius anywhere
+- [ ] Canvas scales correctly on resize (drag browser window edge)
+- [ ] `overflow: hidden` during loading, restored after
 
 ---
 
-### PROMPT 4.2 — Loading Screen & Assembly Playback (Scene 1)
+## PROMPT 4.2 — Hero Manifesto Text Overlay (Scene 2)
 
 **Pre-requirements:**
-- [ ] Prompt 4.1 complete — canvas renders, sequences are preloading
+- [ ] Prompt 4.1 complete — particle canvas renders, loading screen works
 
 ```
-Build the loading screen and the assembly sequence playback (Scene 1).
-Reference: TDK_HOMEPAGE_EXPERIENCE.md, Sections 4 and 6.
-
-1. /src/components/homepage/LoadingScreen.tsx
-   
-   A full-screen overlay (position: fixed, inset: 0, z-index: 100, background: --color-void).
-   
-   Contents (centered, both axes):
-   - "TDK" in text-display-md style, letter-spacing: 0.3em, color: --color-paper
-   - A thin horizontal line (1px tall, 200px wide) below the text
-   - An inner span on the line that fills from left to right via scaleX transform
-     (transform-origin: left center — never animate width, always scaleX)
-   - No percentage text
-   
-   Props:
-   - progress: number (0–1) — drives the scaleX of the fill line
-   - onComplete: () => void — called when component should exit
-   
-   Behavior:
-   - When progress reaches 1.0: wait 200ms, then fade out the "TDK" text (opacity 0, 400ms)
-   - Then fade out the entire loading screen (opacity 0, 500ms)
-   - Call onComplete() when fade finishes
-   
-   During loading screen: document.body.style.overflow = 'hidden' (prevent scroll)
-   On unmount (loading complete): document.body.style.overflow = 'auto' (restore scroll)
-
-2. Assembly playback in HomepageCanvas.tsx
-   
-   After loading completes and phase transitions to 'assembly':
-   
-   Implement a RAF-based playback function:
-   
-   function playAssembly(frames, canvas, ctx, onComplete) {
-     let startTime = null
-     const DURATION = 5000 // 5 seconds
-     
-     function tick(timestamp) {
-       if (!startTime) startTime = timestamp
-       const progress = Math.min((timestamp - startTime) / DURATION, 1)
-       const frameIndex = Math.floor(progress * (frames.length - 1))
-       
-       drawFrame(ctx, frames, frameIndex)
-       
-       if (progress < 1) {
-         requestAnimationFrame(tick)
-       } else {
-         onComplete()
-       }
-     }
-     requestAnimationFrame(tick)
-   }
-   
-   On assembly complete:
-   - Set phase = 'hero'
-   - Unlock scroll (overflow: auto already set by LoadingScreen)
-   - Signal to SceneHero to show the manifesto text
-   
-   The canvas now holds the final assembly frame (= first approach frame = the hero still).
-   Nothing else changes on canvas during the hero state.
-
-3. Wire up to page.tsx
-   
-   HomepageCanvas manages LoadingScreen visibility via its loadProgress state.
-   When loadProgress hits 1.0: LoadingScreen fades out, assembly begins.
-   When assembly completes: SceneHero becomes visible (pass isAssemblyComplete prop).
-```
-
-**Check before moving on:**
-- Loading screen fills its bar proportional to image loading progress
-- Loading screen fades out cleanly (no pop or flash)
-- Assembly plays at ~5 seconds, frames advance smoothly
-- Final frame (full assembled building) remains on canvas
-- Scroll is locked during assembly, unlocked after
-
----
-
-### PROMPT 4.3 — Hero State & Manifesto Text (Scene 2)
-
-```
-Build the hero state with manifesto typography overlay (Scene 2).
-Reference: TDK_HOMEPAGE_EXPERIENCE.md, Section 7.
+Build the hero manifesto text overlay (Scene 2).
+Reference: TDK_HOMEPAGE_EXPERIENCE.md, Section 6.
 
 Create /src/components/homepage/SceneHero.tsx (client component).
 
-This is an HTML overlay (position: fixed, pointer-events: none, z-index: 10)
-that appears after the building assembly completes. The canvas continues
-showing the final assembly frame (= hero still) beneath it.
+This is an HTML overlay positioned above the particle canvas (z-index: 10,
+pointer-events: none). It displays the manifesto text fragments from the
+TDK_HOMEPAGE_EXPERIENCE.md Scene 2 specification.
 
 Props:
-- isVisible: boolean (controlled by HomepageCanvas via isAssemblyComplete)
-- scrollProgress: number (0–1, passed down from the approach ScrollTrigger)
+  - isVisible: boolean (true after loading screen exits)
 
-1. Text fragments — use the positions, sizes, and content from Section 7:
-   Each fragment is an absolutely positioned div.
-   
-   Fragment appearance animation (triggered when isVisible becomes true):
-   Each fragment: opacity 0 → 1, translateY 20px → 0
-   Duration: --duration-slow (800ms), --ease-smooth
-   
-   Staggered delays (from Section 7):
-   - "DESIGNED TO LAST."        → 200ms delay
-   - "NOT JUST BUILT. CRAFTED." → 400ms delay
-   - "Every line has a reason." → 600ms delay (italic)
-   - "TDK DESIGN & BUILD"       → 700ms delay (text-label style)
-   - Scroll indicator           → 900ms delay
+### 1. Text Fragments
 
-2. Mouse parallax on text fragments:
-   - Global mousemove listener (attach only when isVisible = true, remove on false)
-   - Each fragment has a data-depth attribute (values 0.01 to 0.03)
-   - On mousemove: translate each fragment by (mouseX - centerX) * depth
-   - Use GSAP quickSetter for performance (no layout thrashing)
+Each fragment is an absolutely positioned div within a full-screen container.
+Use the exact copy, positions, sizes, and styles from the homepage spec:
 
-3. Scroll-out behavior (driven by scrollProgress prop):
-   - When scrollProgress 0 → 0.4: each fragment fades to opacity 0 and translates outward
-   - Implemented as a useEffect watching scrollProgress, driving GSAP quickTo
+Fragment 1 — "DESIGNED TO LAST."
+  - Position: top 15%, right 8%
+  - Style: text-display-md (clamp(36px, 4vw, 64px)), weight 300
+  - Letter-spacing: 0.05em
+  - Color: var(--color-paper)
 
-4. Scroll indicator:
-   Position: bottom center, 40px from bottom
-   "SCROLL" in text-label style + vertical line below with sweeping mask animation
-   Disappears (opacity 0, instant) when scrollProgress first exceeds 0.02
+Fragment 2 — "NOT JUST BUILT. / CRAFTED."
+  - Position: top 25%, left 6%
+  - Style: text-heading (clamp(24px, 3vw, 40px)), weight 600
+  - Two lines (use <br />)
+  - Color: var(--color-paper)
 
-HomepageCanvas mounts SceneHero after assembly completes.
-HomepageCanvas passes the current approach scroll progress (0–1) as a prop.
+Fragment 3 — "Every line has a reason."
+  - Position: top 55%, left 8%
+  - Style: text-body-lg (18px), weight 300, ITALIC
+  - This is the ONLY italic text on the entire site
+  - Color: var(--color-paper)
+
+Fragment 4 — "TDK DESIGN & BUILD"
+  - Position: bottom 18%, right 8%
+  - Style: text-label (11px), weight 600, uppercase, letter-spacing 0.2em
+  - Color: var(--color-stone, #8C8C8C)
+
+Fragment 5 — Scroll Indicator
+  - Position: bottom 6%, center (left: 50%, transform: translateX(-50%))
+  - "SCROLL" in text-label style, --color-stone
+  - Below: a 1px vertical line (32px tall) with an animated mask sweep
+    (a linear-gradient mask that loops downward every 2 seconds)
+  - Disappears (opacity 0, instant, no transition) when user scrolls more than 50px
+
+### 2. Fragment Entrance Animation
+
+When isVisible becomes true, each fragment enters with a staggered animation:
+
+| Fragment | Delay | Duration | Effect |
+|----------|-------|----------|--------|
+| "DESIGNED TO LAST." | 200ms | 700ms | clip-path: inset(0 100% 0 0) → inset(0 0% 0 0) |
+| "NOT JUST BUILT. CRAFTED." | 400ms | 700ms | clip-path: inset(0 100% 0 0) → inset(0 0% 0 0) |
+| "Every line has a reason." | 600ms | 600ms | opacity 0→1 + translateY(20px→0) |
+| "TDK DESIGN & BUILD" | 700ms | 500ms | opacity 0→1 (simple fade) |
+| Scroll indicator | 900ms | 400ms | opacity 0→1 (simple fade) |
+
+Use a single GSAP timeline. Use --ease-smooth ("power4.out") for all easing.
+
+### 3. Mouse Parallax
+
+Each fragment drifts subtly with cursor movement:
+- Depths: [0.02, 0.025, 0.015, 0.01, 0.03] for fragments 1–5
+- On mousemove: translateX = (cursorX - centerX) × depth, same for Y
+- Use gsap.quickTo() for each fragment — creates smooth interpolation with no layout thrash
+- Only active when isVisible is true
+- Cleanup: remove mousemove listener when isVisible becomes false or on unmount
+
+### 4. Scroll-Out Behavior
+
+As the user scrolls down from the hero section:
+- Each fragment fades to opacity 0 and translates outward (away from center)
+- Drive this with a GSAP ScrollTrigger:
+  trigger: the hero section element
+  start: 'top top'
+  end: '+=40%' (40vh of scroll drives the full fade-out)
+  scrub: 1
+- Fragments at the top translate upward, fragments at the bottom translate downward
+- The scroll indicator disappears instantly (opacity 0, no transition) as soon as
+  the ScrollTrigger's progress exceeds 0.05
+
+### 5. Responsive Behavior
+
+- On mobile (< 768px): reposition fragments for a centered, stacked layout
+  Fragment 1: top 20%, centered, text-align center
+  Fragment 2: top 35%, centered
+  Fragment 3: top 55%, centered
+  Fragment 4: bottom 20%, centered
+  Fragment 5: bottom 6%, centered (unchanged)
+- Reduce display sizes by one step (text-display-md → text-heading, etc.)
+- Mouse parallax disabled on touch devices (pointer: coarse)
+- Touch does NOT trigger parallax — parallax is mouse-only
+
+### 6. Accessibility
+
+- All text fragments have appropriate semantic roles
+  Fragment 1: <h1> (primary heading for SEO and screen readers)
+  Fragment 2: <p> with aria-label
+  Fragment 3: <p>
+  Fragment 4: <p> (acts as brand identifier)
+  Fragment 5: <div role="presentation"> (decorative)
+- Respect prefers-reduced-motion: skip clip-path and translateY animations,
+  just show fragments immediately at full opacity
 ```
 
 **Check before moving on:**
-- Text appears after building assembly
-- Parallax on mouse move feels subtle, not distracting
-- Text fades correctly as scroll begins
-- Scroll indicator disappears on first scroll
+- [ ] All five text fragments appear after loading screen exits
+- [ ] Stagger timing matches the table above
+- [ ] Clip-path reveals sweep left-to-right for fragments 1 and 2
+- [ ] Italic on "Every line has a reason." and ONLY on that fragment
+- [ ] Mouse parallax is subtle — not distracting, feels like text floats in space
+- [ ] Text fades on scroll (first 40vh)
+- [ ] Scroll indicator vanishes on first scroll
+- [ ] No border-radius on any element
+- [ ] Fonts are Josefin Sans (verify in DevTools computed styles)
+- [ ] Mobile layout is centered and readable (test at 375px width)
+- [ ] Reduced motion preference is respected
 
 ---
 
-### PROMPT 4.4 — Approach Sequence Scroll Scrubbing (Scene 3)
+## PROMPT 4.3 — Hero-to-Content Scroll Transition
+
+**Pre-requirements:**
+- [ ] Prompt 4.2 complete — hero section with particle bg + text overlay works
 
 ```
-Build the scroll-driven approach image sequence (Scene 3).
+Build the transition from the hero section into the content sections below.
+Reference: TDK_HOMEPAGE_EXPERIENCE.md, Sections 7 (Transition), 14 (Design Language), and 16 (Motion Tokens).
+
+This prompt handles the visual bridge between the full-screen hero (100vh)
+and the first content section (Scene 4 — Anatomy). No scroll-jacking.
+Just a polished, cinematic exit from the hero into the standard page flow.
+
+### 1. Hero Section Exit
+
+The hero section is 100vh with position: relative (not fixed, not sticky).
+As it scrolls out of view naturally, two things happen simultaneously:
+
+a) The text fragments fade and translate outward (already built in Prompt 4.2)
+
+b) The particle canvas fades. Add to HeroSection.tsx:
+   - A GSAP ScrollTrigger on the hero section:
+     trigger: heroSection
+     start: 'top top'
+     end: 'bottom top' (when bottom of hero reaches top of viewport)
+     scrub: 1.5
+   - Animate the particle container's opacity: 1 → 0
+   - This means the particles gracefully dissolve as the user scrolls past
+
+### 2. Gradient Bleed
+
+Between the hero section and Scene 4, add a gradient div:
+- Height: 30vh
+- Background: linear-gradient(to bottom, var(--color-void) 0%, transparent 100%)
+- Position: absolute, bottom: -30vh of the hero section (overlaps the top of content)
+- z-index: 5
+- pointer-events: none
+- This prevents a hard cut between the particle background and the content below
+
+### 3. Vignette Overlay (Optional Enhancement)
+
+For cinematic depth, add a subtle vignette to the hero section:
+- Position: absolute, inset: 0, z-index: 2
+- Background: radial-gradient(ellipse at center, transparent 50%, rgba(13,13,13,0.5) 100%)
+- pointer-events: none
+- This darkens the edges of the particle canvas, drawing focus to the center
+  where the manifesto text sits
+- If this interferes with the particle visibility, reduce to 0.3 opacity
+
+### 4. Homepage Page Root
+
+Update /src/app/[locale]/(site)/page.tsx to wire everything together:
+
+```tsx
+import dynamic from 'next/dynamic'
+
+const HeroSection = dynamic(
+  () => import('@/components/homepage/HeroSection'),
+  { ssr: false }
+)
+
+// Scenes 5–10 will be added in subsequent prompts
+// For now, add placeholders so we can test the scroll transition
+
+export default function HomePage() {
+  return (
+    <main className="relative" style={{ backgroundColor: 'var(--color-void)' }}>
+      {/* Hero — 100vh, particle background + manifesto text */}
+      <HeroSection />
+
+      {/* Placeholder for Scene 4 (Anatomy) — will be replaced */}
+      <section
+        id="scene-anatomy"
+        className="relative min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: 'var(--color-void)' }}
+      >
+        <p style={{
+          color: 'var(--color-stone)',
+          fontFamily: 'var(--font-primary)',
+          fontSize: '11px',
+          fontWeight: 600,
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+        }}>
+          SCENE 4 — ANATOMY (PLACEHOLDER)
+        </p>
+      </section>
+
+      {/* More scene placeholders... */}
+    </main>
+  )
+}
+```
+
+The page.tsx should have NO global layout wrapper — the homepage opts out of
+the standard Navbar/Footer layout. The homepage includes its own embedded
+navigation and footer within the cinematic experience.
+
+### 5. Layout Exclusion
+
+Verify that the homepage is excluded from the global Navbar/Footer in
+/src/app/[locale]/(site)/layout.tsx:
+
+The layout should check the current path and conditionally render Navbar/Footer.
+The homepage (path === '/en' or '/el' or '/') should NOT get the global nav/footer.
+
+If this isn't implemented yet, add the conditional:
+```tsx
+const pathname = usePathname()
+const isHomepage = pathname === '/' || pathname === '/en' || pathname === '/el'
+
+return (
+  <>
+    {!isHomepage && <Navbar />}
+    {children}
+    {!isHomepage && <Footer />}
+  </>
+)
+```
+```
+
+**Check before moving on:**
+- [ ] Hero section scrolls out of view naturally (no scroll-jacking)
+- [ ] Particle canvas fades as hero scrolls out
+- [ ] Text fragments fade and translate as hero scrolls out
+- [ ] Gradient bleed prevents hard cut between hero and content
+- [ ] Vignette darkens edges subtly (not too heavy)
+- [ ] Scene 4 placeholder is visible when scrolling past hero
+- [ ] No global Navbar/Footer on homepage
+- [ ] Page background is void-black throughout (no white gaps)
+- [ ] Smooth scrolling via Lenis is active
+
+---
+
+## PROMPT 4.4 — Anatomy Section (Scene 4)
+
+**Pre-requirements:**
+- [ ] Prompts 4.1–4.3 complete — hero section works, scroll transition is clean
+
+```
+Build the interactive building anatomy section (Scene 4).
 Reference: TDK_HOMEPAGE_EXPERIENCE.md, Section 8.
 
-In HomepageCanvas.tsx, add the approach scroll system:
-
-1. GSAP ScrollTrigger setup (add inside useEffect after sequences are loaded):
-
-   const approachState = { frame: 0 }
-   
-   ScrollTrigger.create({
-     trigger: '#scroll-container',       // the 760vh div
-     start: 'top top',
-     end: '+=150%',                      // 150vh of scroll drives the full approach
-     scrub: 1.5,                         // 1.5s lag = cinematic smoothness
-     onUpdate: (self) => {
-       approachState.frame = self.progress * (approachFrames.length - 1)
-       const i = Math.round(approachState.frame)
-       drawFrame(ctx, approachFrames, i)
-       
-       // Pass progress to SceneHero for text fade-out
-       setApproachProgress(self.progress)
-     }
-   })
-   
-   Important: Kill this ScrollTrigger in the useEffect cleanup function.
-
-2. CSS Vignette overlay (position: fixed, pointer-events: none, z-index: 5):
-   
-   background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.7) 100%)
-   
-   Its opacity is driven by approach scroll progress:
-   - 0% progress → opacity 0.2
-   - 100% progress → opacity 0.8
-   Use a separate GSAP ScrollTrigger scrub on its opacity.
-
-3. Entrance light glow (position: fixed, pointer-events: none, z-index: 6):
-   A radial warm glow that appears as the camera approaches the door.
-   
-   background: radial-gradient(circle at 50% 55%, rgba(245,166,35,0.15) 0%, transparent 60%)
-   
-   Starts opacity 0, fades in from 60% → 100% approach progress.
-   Driven by the same ScrollTrigger (use a separate gsap.to with the same trigger).
-
-4. Scroll progress sharing:
-   HomepageCanvas holds approachProgress state (number 0–1).
-   Pass this as a prop to SceneHero (for text fade-out).
-   
-   Update approachProgress in the onUpdate callback of the ScrollTrigger.
-```
-
-**Check before moving on:**
-- Approach frames draw smoothly as user scrolls
-- No blank frames during scrubbing (drawFrame fallback works)
-- Scrubbing backward (scroll up) also works correctly
-- Vignette darkens as scroll progresses
-- Warm glow appears in final portion of approach
-- Hero text fades in first 40% of approach
-
----
-
-### PROMPT 4.5 — Threshold Transition & Canvas Teardown (Scene 4)
-
-```
-Build the threshold crossing transition and canvas cleanup (Scene 4).
-Reference: TDK_HOMEPAGE_EXPERIENCE.md, Section 9.
-
-In HomepageCanvas.tsx, add the threshold system as a continuation of the
-approach ScrollTrigger (additional 20vh after the 150vh approach ends):
-
-1. The Bloom Overlay div (position: fixed, inset: 0, z-index: 20, pointer-events: none):
-   
-   background: radial-gradient(
-     circle at 50% 55%,
-     rgba(245, 166, 35, 0) 0%,
-     rgba(255, 248, 230, 0) 0%
-   )
-   opacity: 0
-   
-   Starts fully transparent. Managed via a ref (not React state — avoids re-renders).
-
-2. Threshold ScrollTrigger (immediately after approach ends):
-   
-   ScrollTrigger.create({
-     trigger: '#scroll-container',
-     start: '+=150%',              // picks up exactly where approach ended
-     end: '+=20%',                 // 20vh to complete the bloom
-     scrub: 1,
-     onUpdate: (self) => {
-       const p = self.progress
-       if (p <= 0.5) {
-         // Bloom expands: 0% → 50% progress
-         const intensity = p * 2  // 0 → 1
-         bloomRef.current.style.background = `radial-gradient(
-           circle at 50% 55%,
-           rgba(245,166,35,${intensity * 0.9}) 0%,
-           rgba(255,253,247,${intensity * 0.95}) 60%
-         )`
-         bloomRef.current.style.opacity = String(intensity)
-       } else {
-         // Bloom recedes: 50% → 100% progress
-         const intensity = 1 - ((p - 0.5) * 2)  // 1 → 0
-         bloomRef.current.style.opacity = String(intensity)
-       }
-     },
-     onLeave: () => {
-       // Bloom complete — hide canvas, show Scene 5
-       canvasRef.current.style.opacity = '0'
-       canvasRef.current.style.transition = 'opacity 0.3s'
-       setTimeout(() => {
-         canvasRef.current.style.display = 'none'  // free GPU memory
-         // Null out frame arrays to free RAM
-         setAssemblyFrames([])
-         setApproachFrames([])
-       }, 300)
-       setPhase('complete')
-     }
-   })
-
-3. After canvas is hidden:
-   The bloom div also hides (opacity 0 from the onUpdate logic).
-   Scene 5 (Anatomy) is now the first visible element.
-   Normal page scroll continues from here — no more scroll-jacking.
-
-4. Audio comment (for future enhancement):
-   // AUDIO_CUE: threshold_bloom — a soft ambient chime could play here
-```
-
-**Check before moving on:**
-- Bloom appears and expands as scroll reaches the threshold
-- Bloom recedes correctly
-- Canvas becomes invisible after threshold (check in DevTools: display none)
-- Scene 5 is visible after canvas hides
-- Frame arrays are cleared (check memory in DevTools performance tab)
-
----
-
-### PROMPT 4.6 — Anatomy Section (Scene 5)
-
-```
-Build the interactive building anatomy section (Scene 5).
-
-Reference: TDK_HOMEPAGE_EXPERIENCE.md, Section 8.
-
-Create /src/components/homepage/SceneAnatomy.tsx
+Create /src/components/homepage/SceneAnatomy.tsx (client component)
 
 This is a PINNED section — when it enters the viewport, it pins for 100vh of scroll,
-during which the user interacts with building nodes.
+during which the user interacts with building hotspot nodes.
 
-Layout:
-- Full screen, two columns (50/50)
-- Left: text panel (position: relative, overflow hidden)
-- Right: building render image + interactive nodes
+### Layout
 
-Right panel:
-- Use the front-facing Armonia render (standard <img>, not canvas — we're past the canvas sequences)
-- File: /public/images/armonia/front-facing.webp
+Two columns, 50/50 split:
+- Left: text panel (holds node descriptions)
+- Right: building render image + 6 interactive nodes overlaid
+
+Full screen height (100vh when pinned). Background: var(--color-void).
+
+### Right Panel — Building Image + Nodes
+
+Use the front-facing Armonia render. For now use a placeholder image:
+- File path: /public/images/armonia/front-facing.webp
+- If file doesn't exist, create a placeholder div (aspect-ratio 3:4, --color-surface
+  background with "ARMONIA RENDER" in text-label style, centered)
 - Image fills the right half, object-fit: cover
+- The building "breathes" — a very subtle scale oscillation:
+  transform: scale() alternating 1.000 ↔ 1.003 over a 4-second CSS sine loop
+  This gives the static image life.
 
-Node component (for each of the 6 nodes):
-- Position: absolute, placed precisely on the building render
-- Visual: outer ring (24px, thin stroke, animated pulse) + inner dot (6px, filled)
-- Color: --color-paper at 40% opacity (default), --color-threshold at 100% (active)
-- Pulse animation: ring scales from 1.0 to 1.4 and fades, repeating, 2s loop, staggered start per node
+### The 6 Nodes (Positioned on the Building Image)
 
-The 6 nodes and their positions (as % of image width/height):
-Node 1 – Entrance:    left: 48%, top: 72%
-Node 2 – Facade:      left: 50%, top: 40%
-Node 3 – Balconies:   left: 35%, top: 52%
-Node 4 – Glazing:     left: 65%, top: 45%
-Node 5 – Rooftop:     left: 50%, top: 18%
-Node 6 – Landscape:   left: 30%, top: 82%
+| # | Name | Position (% of right panel) | Heading | Body |
+|---|------|-----------------------------|---------|------|
+| 1 | Entrance | left: 48%, top: 72% | "The First Impression" | "Recessed lighting. Timber-lined walls. A door that announces arrival. The entrance of Armonia was designed to make every return home feel intentional." |
+| 2 | Facade | left: 50%, top: 38% | "The Language of White" | "White is not a neutral choice. In the Mediterranean light of Nicosia, white is alive — it shifts from warm cream at dawn to luminous silver at noon. Every facade surface was calculated for how it holds that light." |
+| 3 | Balconies | left: 30%, top: 50% | "Living Extended" | "The balconies are not additions. They are extensions of the living floor — same ceiling height, same material continuity, designed so the threshold between inside and outside is a question of temperature, not architecture." |
+| 4 | Glazing | left: 70%, top: 44% | "Glass as Architecture" | "Floor-to-ceiling glazing on every primary room. The frames are narrow by design — the view is the furniture. Passive solar orientation ensures winter sun penetrates deep while summer overhangs prevent overheating." |
+| 5 | Rooftop | left: 50%, top: 16% | "The Fifth Facade" | "Most buildings forget their rooftops. Armonia's is designed to be inhabited — a private sky-level terrace with views across Lakatameia toward the Pentadaktylos mountains." |
+| 6 | Landscape | left: 28%, top: 80% | "Grounded" | "The boundary between public pavement and private threshold is handled in natural stone — a material that weathers slowly and gracefully, unlike concrete. This is how a building belongs to its street." |
 
-Left panel — default state:
+### Node Visual Design
+
+Default state:
+- 20px outer ring: 1px solid rgba(255,255,255,0.3), border-radius: 50%
+- 6px inner dot: background rgba(255,255,255,0.5), border-radius: 50%
+- Pulse animation: outer ring scales 1.0 → 1.5 and fades out, repeating every 2.5s
+- Each node staggered start: +0ms, +400ms, +800ms, +1200ms, +1600ms, +2000ms
+- pointer-events: auto (these are interactive)
+- data-cursor="node" attribute for custom cursor
+
+Hover/Active state:
+- Outer ring color: var(--color-threshold), scale 1.2x
+- Inner dot: var(--color-threshold), scale 1.5x
+- All OTHER nodes: opacity → 0.25 (150ms, --ease-smooth)
+- Connector line draws from active node to left panel (see below)
+
+### Connector Line
+
+An SVG element spans the full anatomy section (position: absolute, inset: 0):
+- When a node activates: an SVG <path> draws from the node's center to the left
+  edge of the screen at the same vertical position
+- Line: 1px stroke, var(--color-threshold)
+- Animation: stroke-dashoffset from full-length to 0 over 400ms
+- On deactivate: line fades out (opacity 0, 200ms)
+
+### Left Panel
+
+Default state:
 - "EXPLORE THE BUILDING" in text-label style, centered vertically
-- A thin line above and below the text
+- Thin var(--color-border) lines above and below the text
+- The text pulses faintly (opacity 0.6 → 1.0 → 0.6, 3s loop) to invite interaction
 
-Left panel — node active state (on hover):
-- Previous text: translateY(-100%) + opacity 0 (exits upward), duration 300ms
-- New text slides in from below: translateY(100%) → 0 + opacity 0 → 1
-- Content: heading (text-heading) + body (text-body-lg)
-- Use the copy from TDK_HOMEPAGE_EXPERIENCE.md Section 8.2 for each node
-- A thin threshold line (2px, --color-threshold) appears above the heading
+On node hover:
+- Default text exits upward: translateY(-100%) + opacity 0, 300ms, ease-exit
+- Threshold accent line: 2px tall, var(--color-threshold), 40px wide, slides in from left (300ms)
+- Node heading: slides in from below (translateY(30px → 0), opacity 0 → 1, 350ms, ease-smooth)
+- Node body copy: same animation, 80ms delay after heading
+- Heading uses text-heading style, body uses text-body-lg style
+- Body copy max-width: 400px (prevent overly long lines)
 
-Connector line:
-- When a node is active: a thin SVG line draws from the node to the left edge of the screen
-- The line is an SVG overlay spanning the full section
-- Path draws via stroke-dashoffset animation, duration 400ms
+On hover end:
+- Content exits downward (reverse), default state returns
 
-After interaction (user has hovered 3+ nodes, or 8 seconds):
-- "↓ CONTINUE" appears at bottom center in text-label style
-- On next scroll: section unpins and scroll continues
+### Pin & Unpin
+
+GSAP ScrollTrigger configuration:
+- trigger: the anatomy section
+- pin: true
+- anticipatePin: 1
+- start: 'top top'
+- end: '+=100%' (100vh of scroll while pinned)
+
+After user has hovered 3+ nodes, OR after 10 seconds of dwell time:
+- "↓ CONTINUE" appears at bottom center, text-label style
+- Fades in gently (opacity 0 → 1, 500ms)
+- On continued scroll: section unpins, normal scroll resumes
+
+### Mobile (< 1024px)
+
+- Stack vertically: image on top (60vh), text panel below
+- Nodes become tappable (not hover — use onClick)
+- Active node's content appears below the image in an expanding panel
+- No connector line on mobile
+- No pin on mobile — normal scroll, nodes are always visible
 ```
 
 **Check before moving on:**
-- All 6 nodes are positioned correctly on the building image
-- Text transitions are smooth (no jump or flash)
-- Connector line draws correctly
-- Section pins and unpins properly
-- Works on touch (tap to activate node on mobile)
+- [ ] All 6 nodes positioned correctly on the building image (or placeholder)
+- [ ] Hover activates node, dims others, draws connector line
+- [ ] Text transitions in left panel are smooth (no jump or flash)
+- [ ] Section pins for 100vh and unpins after interaction or timeout
+- [ ] "CONTINUE" prompt appears after 3 hovers or 10 seconds
+- [ ] Mobile: tappable nodes, stacked layout, no pin
+- [ ] Custom cursor attribute (data-cursor="node") on all nodes
 
 ---
 
-### PROMPT 4.7 — Philosophy Section (Scene 6)
+## PROMPT 4.5 — Philosophy Section (Scene 5)
+
+**Pre-requirements:**
+- [ ] Prompt 4.4 complete — anatomy section works
 
 ```
-Build the manifesto/philosophy scroll section (Scene 6).
-
+Build the manifesto/philosophy scroll section (Scene 5).
 Reference: TDK_HOMEPAGE_EXPERIENCE.md, Section 9.
 
-Create /src/components/homepage/ScenePhilosophy.tsx
+Create /src/components/homepage/ScenePhilosophy.tsx (client component)
 
-This section is 120vh tall. Each statement occupies ~24vh of scroll.
-Statements appear via clip-path reveal and disappear via opacity fade.
+This section is 120vh tall. Large typographic statements appear one at a time,
+each revealed by a clip-path sweep. Between statements, a brief architectural
+detail image flashes. The effect is cinematic — like reading a founding document
+in a darkened cinema.
 
-The 5 statements with their copy are in Section 9.2 of the spec.
+### The 5 Statements
 
-Implementation:
+| # | Copy | Size | Weight | Scroll Range |
+|---|------|------|--------|-------------|
+| 1 | "We don't build buildings. / We build the conditions for life." | text-display-md | 300 | 0vh–20vh |
+| 2 | "Architecture is not decoration. / It is decision-making made visible." | text-display-md | 300 | 22vh–42vh |
+| 3 | "Every project begins with a question: / How should this family live?" | text-display-lg | 400 | 44vh–64vh (largest, most impactful) |
+| 4 | "TDK was founded on one belief: / Good design is non-negotiable." | text-display-md | 300 | 66vh–86vh |
+| 5 | "This is what we build. / ARMONIA. / Lakatameia, Nicosia." | "ARMONIA." at clamp(72px, 12vw, 160px) | 300 | 88vh+ (lingers) |
 
-1. Each statement is a full-screen centered div, position: absolute (within a 120vh container)
-   Stack them vertically (statement 1 at top, statement 5 at 96vh)
+Each statement centered on screen. Multi-line statements use <br />.
+Color: var(--color-paper). Font: var(--font-primary).
 
-2. For each statement:
-   - Enter animation (ScrollTrigger, scrub):
-     clip-path: inset(0 100% 0 0) → inset(0 0% 0 0) [text reveals left to right]
-     Trigger: when statement's scroll position is reached
-   - Exit animation:
-     opacity: 1 → 0 [fades as next statement enters]
+### Statement Reveal Animation
 
-3. Flash images between statements:
-   - Positioned absolutely, full screen, z-index below text
-   - opacity: 0 by default
-   - On statement transition: opacity pulses to 0.7 then back to 0, duration 500ms
-   - Apply CSS filter: grayscale(1) contrast(1.1) to all flash images
-   - Apply a grain texture overlay (CSS noise filter or a noise PNG at low opacity)
+Per statement:
+- Enter: clip-path: inset(0 100% 0 0) → inset(0 0% 0 0), 600ms, --ease-smooth
+- Multi-line: second line starts 80ms after first line begins
+- Exit: opacity 1 → 0, 300ms, as the next statement enters
+- Driven by GSAP ScrollTrigger with scrub: 1
 
-4. Background:
-   - Deep --color-void throughout
-   - A very slow gradient drift: CSS animation shifts background from
-     #0D0D0D to #0F0B08 and back over 8 seconds (barely visible warmth shift)
+### Flash Images Between Statements
 
-5. The final statement "ARMONIA." should be the largest text on the entire page:
-   font-size: clamp(72px, 12vw, 160px), weight 300, letter-spacing 0.1em
-   "Lakatameia, Nicosia." appears beneath in text-label style, --color-stone
+Between transitions 1→2, 2→3, 3→4, 4→5:
+- Full-screen div, positioned behind the text, z-index below statements
+- opacity: 0 → 0.6 → 0, total 500ms (pulse, triggered at statement boundary)
+- CSS filter: grayscale(1) contrast(1.1)
+- Noise grain overlay: a CSS repeating pattern or small noise.png at opacity 0.05
+
+For now, use placeholder images:
+- Flash 1: /public/images/philosophy/timber-grain.webp (or solid --color-surface)
+- Flash 2: /public/images/philosophy/floor-plan-sketch.webp (or solid)
+- Flash 3: /public/images/philosophy/window-frame.webp (or solid)
+- Flash 4: /public/images/philosophy/light-shafts.webp (or solid)
+
+If image files don't exist, use subtle gradient backgrounds as placeholders.
+Add comments: // TODO: Replace with Higgsfield-generated architectural detail photos
+
+### Background Warmth Drift
+
+A very slow CSS animation on the section background:
+background-color oscillates between #0D0D0D and #0F0B08 over 8 seconds.
+animation: warmth 8s ease-in-out infinite alternate
+Almost imperceptible — adds subconscious warmth.
+
+### "ARMONIA." Typography (Statement 5)
+
+This is the single most impactful typographic moment on the entire site:
+- "ARMONIA." in font-size: clamp(72px, 12vw, 160px), weight 300, letter-spacing 0.08em
+- The word should fill most of the screen width
+- "Lakatameia, Nicosia." appears beneath in text-label style, var(--color-stone)
+- Fades in 600ms after "ARMONIA." finishes its reveal
+- This statement does NOT exit — it lingers as user scrolls into Scene 6
+
+### Mobile
+
+- Same structure, reduced font sizes (one step down)
+- Flash images still pulse but at smaller viewport scale
+- Statement 5 "ARMONIA." minimum 48px font size
 ```
 
 **Check before moving on:**
-- Statements reveal and fade in sync with scroll
-- Flash images appear between transitions
-- Grain overlay is visible but subtle
-- "ARMONIA." is dramatic and large
+- [ ] Statements reveal and fade in sync with scroll
+- [ ] Flash images pulse between transitions (or placeholders visible)
+- [ ] Grain overlay is subtle, not distracting
+- [ ] "ARMONIA." is dramatic and large — fills most of the viewport width
+- [ ] Warmth drift barely perceptible but present
+- [ ] Scroll feels natural — no jumpiness in the scrub
 
 ---
 
-### PROMPT 4.8 — Projects Reel (Scene 7)
+## PROMPT 4.6 — Projects Reel (Scene 6)
+
+**Pre-requirements:**
+- [ ] Prompt 4.5 complete
 
 ```
-Build the horizontal projects reel (Scene 7).
-
+Build the horizontal projects reel (Scene 6).
 Reference: TDK_HOMEPAGE_EXPERIENCE.md, Section 10.
 
-Create /src/components/homepage/SceneProjects.tsx
+Create /src/components/homepage/SceneProjects.tsx (client component)
 
 This section is 150vh. A horizontal carousel is driven by vertical scroll.
-As you scroll down 150vh, the carousel slides left to show all projects.
+As the user scrolls down, the carousel slides left to reveal project cards.
 
-Implementation:
+### Container Setup
 
-1. Container setup:
-   - Outer: height 150vh, position relative (ScrollTrigger scrubs this)
-   - Inner (the track): position sticky, top 0, height 100vh, overflow hidden
-   - Carousel: display flex, will-change: transform
+- Outer wrapper: height 150vh, position relative
+- Inner sticky: position sticky, top 0, height 100vh, overflow hidden
+- Carousel track: display flex, will-change: transform
 
-2. ScrollTrigger:
-   - Pin the sticky inner element
-   - As scroll progresses 0% → 100% of the 150vh container:
-   - Translate the carousel: translateX(0) → translateX(-totalWidth + 100vw)
-   - Scrub: 1.5
+### ScrollTrigger
 
-3. Each project card (full-screen, 100vw × 100vh):
-   Use the project structure from Section 10.2.
+Pin the sticky inner element. As scroll progresses 0%→100% of 150vh:
+- Translate carousel: translateX(0) → translateX(-(totalWidth - 100vw))
+- scrub: 1.5
 
-   IMPORTANT: Do NOT fetch from Sanity here. Sanity is not wired until Phase 6.
-   Use hardcoded placeholder data for exactly two cards:
+### Section Header
 
-   Card 1 — Armonia:
-   {
-     id: 'armonia',
-     name: 'ARMONIA',
-     location: 'Lakatameia, Nicosia',
-     year: '2024',
-     type: 'Residential',
-     status: 'completed',
-     ctaType: 'showcase',
-     heroImageId: 'clients/tdkdb/armonia/exterior/hero',
-     ctaLabel: 'VIEW PROJECT →',
-     href: '/en/projects/armonia',
-   }
+"THE WORK" in text-label style, left-aligned, padding-left matching site grid.
+Fades out as carousel motion begins.
 
-   Card 2 — Almond:
-   {
-     id: 'almond',
-     name: 'ALMOND',
-     location: 'Nicosia',
-     year: '2025',
-     type: 'Residential',
-     status: 'in-progress',
-     ctaType: 'register-interest',
-     heroImageId: 'clients/tdkdb/almond/renders/hero',
-     ctaLabel: 'REGISTER INTEREST →',
-     href: '/en/projects/almond',
-   }
+### Project Counter
 
-   In Phase 6.3, this hardcoded array will be replaced with a Sanity query.
-   Add a comment above the data: // TODO Phase 6.3 — replace with getProjectsForHomepageReel()
+Top-right, fixed within the sticky container:
+"01 / 02" → updates as active card changes.
+Number transition: current number exits upward, new number enters from below.
+Use text-mono style (JetBrains Mono), var(--color-stone) for total, var(--color-paper) for current.
 
-   Project card visual details:
-   - Full-bleed image: cloudinaryUrl(heroImageId, { width: 1920, quality: 'auto', format: 'auto' })
-   - Use a plain <img> tag (not next/image) with the Cloudinary URL
-   - Image moves at 0.7× card speed (parallax via GSAP transform)
-   - Status badge: "COMPLETED" (--color-stone) | "IN DEVELOPMENT" (--color-threshold)
-   - Info panel: bottom-left, slides up 40px when card enters view
-   - Info: project number ("01"), name, location, year, type
-   - CTA: ghost button with label from ctaLabel, links to href
+### Project Cards
 
-4. Project counter (top-right, fixed within the sticky container):
-   Updates as active card changes: "01 / 02" → "02 / 02"
-   Transition: number flips via translateY animation
+Each card is 100vw × 100vh. Do NOT fetch from Sanity — use hardcoded data:
 
-5. Section heading (appears before carousel begins):
-   "THE WORK" in text-label style, left-aligned
-   Fades out as carousel starts
+Card 1 — Armonia:
+{
+  id: 'armonia',
+  name: 'ARMONIA APARTMENTS',
+  location: 'Lakatameia, Nicosia',
+  year: '2024',
+  type: 'Residential',
+  status: 'completed',
+  ctaType: 'showcase',
+  heroImageId: 'clients/tdkdb/armonia/exterior/hero',
+  ctaLabel: 'VIEW PROJECT',
+  href: '/en/projects/armonia',
+}
+
+Card 2 — Almond:
+{
+  id: 'almond',
+  name: 'ALMOND',
+  location: 'Nicosia, Cyprus',
+  year: '2025/26',
+  type: 'Residential',
+  status: 'in-progress',
+  ctaType: 'register-interest',
+  heroImageId: 'clients/tdkdb/almond/renders/hero',
+  ctaLabel: 'REGISTER INTEREST',
+  href: '/en/projects/almond',
+}
+
+// TODO Phase 6.3 — replace hardcoded array with getProjectsForHomepageReel()
+
+Card layout:
+- Full-bleed hero image (use cloudinaryUrl if available, else placeholder gradient)
+  Use plain <img> tag, NOT next/image
+  Image parallax: moves at 0.7× card scroll speed via GSAP transform
+- Status badge: "COMPLETED" (--color-stone text, --color-surface bg) |
+  "IN DEVELOPMENT" (--color-threshold text, darker bg)
+  Position: upper-right of the image area
+  No border-radius on badge.
+- Info panel: bottom-left, slides up 40px when card enters view
+  Project number ("01") in text-mono, --color-threshold
+  Name in text-heading
+  Location · Year · Type in text-label, --color-stone
+- CTA: right side of info panel
+  Text with arrow: "VIEW PROJECT →" or "REGISTER INTEREST →"
+  Ghost button style (border: 1px solid var(--color-border), no fill)
+  Hover: border-color → var(--color-threshold), text → var(--color-threshold)
+  data-cursor="view" attribute
+
+Almond card gets a subtle teal radial glow overlay:
+- position: absolute, inset: 0
+- background: radial-gradient(ellipse at center, rgba(102,151,159,0.08) 0%, transparent 70%)
+- Signals this project is active/available, not just historical
+
+### Mobile (< 1024px)
+
+- No horizontal scroll mechanism
+- Cards stack vertically as full-width blocks (100vw × 70vh each)
+- Standard vertical scroll, no pinning
+- Image: object-fit cover, 60% of card height
+- Info panel: below image, always visible
 ```
 
 **Check before moving on:**
-- Horizontal scroll is driven by vertical scroll correctly
-- Parallax on images works
-- Project counter updates
-- Info panel slides up on card entry
-- No horizontal scroll bar visible
+- [ ] Horizontal scroll driven by vertical scroll works
+- [ ] Parallax on card images is smooth
+- [ ] Counter updates as cards scroll into view
+- [ ] Info panel slides up on card entry
+- [ ] Status badges show correct text and colors
+- [ ] No horizontal scrollbar visible
+- [ ] Ghost button hover states work
+- [ ] Almond card has subtle teal glow
+- [ ] Mobile: cards stack vertically
 
 ---
 
-### PROMPT 4.9 — Process Section (Scene 8)
+## PROMPT 4.7 — Process Section (Scene 7)
+
+**Pre-requirements:**
+- [ ] Prompt 4.6 complete
 
 ```
-Build the process timeline section (Scene 8).
-
+Build the process timeline section (Scene 7).
 Reference: TDK_HOMEPAGE_EXPERIENCE.md, Section 11.
 
-Create /src/components/homepage/SceneProcess.tsx
+Create /src/components/homepage/SceneProcess.tsx (client component)
 
-This section is 120vh.
+This section is 120vh. A horizontal SVG timeline draws left-to-right as the
+user scrolls, with process steps appearing as the line reaches their position.
 
-1. Background:
-   First and only place on the page with a very subtle paper texture.
-   Use a CSS noise/grain effect (not an image — use CSS background with SVG filter)
-   Color: a slightly warmer dark: #111009
+### Background
 
-2. The timeline:
-   A single horizontal SVG line that draws left-to-right as scroll progresses.
-   The line uses stroke-dashoffset animation tied to ScrollTrigger.
-   
-   5 vertical tick marks on the line at 0%, 25%, 50%, 75%, 100% of its length.
-   Each tick mark: a vertical line (1px, 20px tall)
-   
-3. Each process step (above each tick):
-   - Number: "01", "02", etc. in text-mono style, --color-threshold color
-   - Title: in text-heading style
-   - Description: in text-body style, max-width 180px
-   
-   Steps appear as the line reaches their tick position:
-   opacity 0 → 1, translateY 20px → 0
-   
-   Step content from Section 11.2:
-   01 VISION — "We begin with a conversation. Not a brief. A conversation."
-   02 DESIGN — "Architecture that responds to how you want to live."
-   03 ENGINEERING — "Structure, systems, and compliance resolved."
-   04 BUILD — "Construction managed to the millimetre."
-   05 HANDOVER — "The moment the door opens."
+Subtly warmer dark: #0F0B08 (not pure void — slight warmth)
+Very faint CSS noise/grain texture (use an SVG filter, not an image):
+```css
+filter: url("data:image/svg+xml,...") /* inline SVG noise filter */
+```
+Or a repeating noise pattern at opacity 0.02. This is the only place on the
+page with a perceptible paper texture.
 
-4. Section heading:
-   "HOW WE BUILD" in text-label style, appears above the timeline
-   Clip-path reveal left-to-right when section enters viewport
+### Section Header
 
-5. Below the process, a single sentence:
-   "Every project. Every time." in text-display-md, light weight, centered.
-   Appears after the timeline completes.
+"HOW WE BUILD" in text-label style, left-aligned.
+Clip-path reveal (left-to-right) when section enters viewport.
+
+### The SVG Timeline
+
+A full-width SVG element (width: 80vw, centered):
+- A single horizontal line from left to right
+- 5 vertical tick marks at 0%, 25%, 50%, 75%, 100% of line length
+- Each tick: 1px wide, 20px tall, centered on the line
+- Line draws via stroke-dashoffset tied to ScrollTrigger scrub
+
+ScrollTrigger:
+- trigger: the process section
+- start: 'top center'
+- end: 'bottom center'
+- scrub: 1
+
+### The 5 Process Steps
+
+Each step appears above its tick mark as the line reaches it:
+
+| # | Title | Description |
+|---|-------|-------------|
+| 01 | VISION | "We begin with a conversation. Not a brief. We need to understand how you want to live before we draw a single line." |
+| 02 | DESIGN | "Architecture that responds to your specific life — your light, your family, your relationship with the city." |
+| 03 | ENGINEERING | "Structure, systems, and compliance fully resolved. Nothing is left to chance on a building site." |
+| 04 | BUILD | "Construction managed to the millimetre. We don't hand off to a contractor — we stay present." |
+| 05 | HANDOVER | "The moment the door opens for the first time. Every detail checked. Every system explained. The beginning of your story." |
+
+Step appearance: opacity 0 → 1, translateY(20px → 0), 400ms, --ease-smooth
+Triggered when the SVG line reaches each step's tick position.
+
+Number: text-mono (JetBrains Mono), var(--color-threshold)
+Title: text-heading, var(--color-paper), uppercase
+Description: text-body, var(--color-stone), max-width 200px
+
+### Closing Line
+
+After step 5 appears, a single centered sentence fades in below the timeline:
+"Every project. Every time."
+Style: text-display-md, weight 300, var(--color-paper)
+Delay: 200ms after step 5 completes.
+
+### Mobile
+
+- Timeline becomes vertical (top-to-bottom)
+- Steps arranged on alternating sides (or all left-aligned)
+- Same draw animation, vertical direction
 ```
 
 **Check before moving on:**
-- Line draws as user scrolls
-- Steps appear in sequence as line reaches them
-- Paper texture is very subtle (not distracting)
-- Final sentence appears at the right moment
+- [ ] SVG line draws as user scrolls
+- [ ] Steps appear in sequence as line reaches them
+- [ ] Paper texture is very subtle (barely visible)
+- [ ] Step numbers are in JetBrains Mono, teal color
+- [ ] "Every project. Every time." appears last
+- [ ] Mobile: vertical timeline works
 
 ---
 
-### PROMPT 4.10 — Contact CTA & Footer (Scenes 9 & 10)
+## PROMPT 4.8 — Contact CTA & Footer (Scenes 8 & 9)
+
+**Pre-requirements:**
+- [ ] Prompt 4.7 complete
 
 ```
 Build the final two scenes: Contact CTA and Footer (Scenes 9 and 10).
-
 Reference: TDK_HOMEPAGE_EXPERIENCE.md, Sections 12 and 13.
 
-Scene 9 — Contact CTA:
-Create /src/components/homepage/SceneContact.tsx
+### Scene 8 — Contact CTA
 
-Layout from Section 12.2:
-- Full screen, --color-void background
-- Centered content (both axes)
-- Headline: "LET'S BUILD SOMETHING TOGETHER."
-  Split into 3 lines as shown in the spec
-  Font: text-display-lg, weight 300
-  Animation: word-by-word stagger clip-path reveal (60ms per word)
-  Trigger: ScrollTrigger, when section enters viewport
+Create /src/components/homepage/SceneContact.tsx (client component)
 
-- CTA Button: "START A CONVERSATION →"
-  Uses the magnetic Button component (variant: primary, magnetic: true)
-  Links to /contact
-  Appears after headline (600ms delay)
+Layout:
+- Full screen (100vh), var(--color-void) background
+- All content centered (both axes)
 
-- Secondary contact info:
-  "Or reach us directly:" in text-label, --color-stone
-  Email and phone in text-body, with hover animations
-  These appear 800ms after headline
+Headline: "LET'S BUILD SOMETHING TOGETHER."
+- Split into 3 lines:
+  Line 1: "LET'S BUILD" — text-display-lg, weight 300
+  Line 2: "SOMETHING" — text-display-lg, weight 300
+  Line 3: "TOGETHER." — text-display-lg, weight 300, color: var(--color-threshold)
+  (the word AND the period are teal — subtle but intentional)
+- Animation: word-by-word stagger clip-path reveal (60ms per word, --ease-smooth)
+- Trigger: ScrollTrigger, when section center enters viewport
 
-- Background architectural lines:
-  An SVG of very faint floor plan lines (draw your own minimal one — 
-  just a few intersecting lines suggesting a floor plan)
-  Opacity: 0.03
-  The SVG slowly drifts upward: CSS animation, translateY 0 → -20px, 
-  duration 20s, repeat infinite, ease linear
+CTA Button: "START A CONVERSATION →"
+- Uses the magnetic Button component from Phase 3 (variant: primary, magnetic: true)
+- If magnetic Button doesn't exist yet, create a simple ghost button:
+  border: 1px solid var(--color-paper), no fill, hover: border + text → --color-threshold
+- Links to /contact (or /en/contact with locale)
+- Appears 600ms after headline animation completes
+- Animation: fade + scale(0.95 → 1), --ease-spring
+- data-cursor="hover" attribute
 
-Scene 10 — Homepage Footer:
-Reuse the global Footer component (/src/components/layout/Footer.tsx)
-Add it at the bottom of the homepage.
-The homepage IS the only page that includes its own footer inline
-(since the layout.tsx excludes footer from homepage).
+Secondary contact:
+- "Or reach us directly:" in text-label, var(--color-stone)
+- "hello@tdkdb.com" and "+357 XX XXX XXXX" in text-body, var(--color-paper)
+- Hover: color → var(--color-threshold), underline appears (1px, slides in from left)
+- Appear 800ms after headline
 
-Between Scene 9 and the footer, add a thin divider line (--color-border).
+Background architectural lines:
+- An inline SVG: ~10 intersecting line segments suggesting a minimal floor plan
+- All lines: stroke var(--color-paper), stroke-width 0.5px, opacity 0.03
+- Position absolute, full section size
+- Slow upward drift: CSS animation translateY(0 → -30px), 25s, linear, infinite
+- Extreme subtlety — subconscious texture, not a visible element
+
+### Scene 9 — Homepage Footer
+
+Import the global Footer component: /src/components/layout/Footer.tsx
+Add it directly at the bottom of the homepage.
+
+The homepage is the ONLY page that includes its own footer inline
+(since the layout.tsx excludes Navbar/Footer from the homepage).
+
+Between Scene 8 and the Footer, add:
+- A thin divider line (1px, var(--color-border), width: 80%, centered)
+- The divider draws from center outward (scaleX animation) on scroll entry
+
+Footer curtain reveal:
+- The footer starts with a --color-surface overlay covering it
+- As it scrolls into view, the overlay slides upward (translateY: 0 → -100%)
+- Duration: 800ms, --ease-smooth, triggered by ScrollTrigger
 ```
 
 **Check before moving on:**
-- Headline word-by-word reveal works
-- Magnetic button snaps to cursor
-- Background lines barely visible (opacity 0.03)
-- Footer renders correctly
-- Homepage feels complete end-to-end
+- [ ] Headline reveals word by word with stagger
+- [ ] "TOGETHER." is in teal
+- [ ] CTA button is functional, links to /contact
+- [ ] Secondary contact details appear with hover effects
+- [ ] Background lines barely visible (opacity 0.03)
+- [ ] Footer renders correctly with curtain reveal
+- [ ] Homepage feels complete end-to-end when scrolling top to bottom
 
 ---
 
-### PROMPT 4.11 — Custom Cursor
+## PROMPT 4.9 — Custom Cursor
+
+**Pre-requirements:**
+- [ ] All homepage scenes complete (4.1–4.8)
 
 ```
 Build the custom cursor system.
-
 Reference: TDK_HOMEPAGE_EXPERIENCE.md, Section 19.
 
 Create /src/components/ui/CustomCursor.tsx (client component)
 
-Implementation:
+This cursor applies to ALL pages (not just homepage). Add it to the root layout.
 
-1. Replace the default cursor:
-   Add cursor: none to the html element in globals.css
+### 1. Hide Default Cursor
 
-2. The cursor element:
-   A div, position: fixed, pointer-events: none, z-index: 9999
-   12px × 12px circle by default
-   Border: 1px solid var(--color-paper)
-   Border-radius: 50%
-   Background: transparent
-   Transform-origin: center center
+In globals.css: html { cursor: none; }
+On mobile (pointer: coarse): html { cursor: auto; } — keep system cursor
 
-3. Cursor following:
-   Track actual mouse position with mousemove
-   The cursor follows with a spring delay using GSAP quickTo:
-   gsap.quickTo(cursor, "x", { duration: 0.3, ease: "power3" })
-   gsap.quickTo(cursor, "y", { duration: 0.3, ease: "power3" })
-   This creates the trailing effect.
+### 2. Cursor Element
 
-4. States (add/remove CSS classes based on what's under the cursor):
+- Position: fixed, pointer-events: none, z-index: 9999
+- Default: 12px × 12px, border: 1px solid var(--color-paper), transparent fill
+- border-radius: 50% (YES — this is the ONE exception to the zero-radius rule.
+  The cursor circle is not architecture, it's an interface element.)
+- transform-origin: center center
 
-   Default (.cursor-default):
-   - 12px, border --color-paper, transparent fill
+### 3. Following Physics
 
-   On link/button hover (.cursor-hover):
-   - Expand to 40px over 300ms --ease-smooth
-   - Fill: --color-threshold
-   - Border: none
+Use GSAP quickTo for spring-delayed following:
+```tsx
+const xTo = gsap.quickTo(cursorRef, 'x', { duration: 0.3, ease: 'power3' })
+const yTo = gsap.quickTo(cursorRef, 'y', { duration: 0.3, ease: 'power3' })
 
-   On building nodes (.cursor-node):
-   - Expand to 60px
-   - Show crosshair: two 1px lines through center (::before and ::after)
-   - Fill: transparent, border: --color-threshold
+// On mousemove:
+xTo(e.clientX - 6) // offset by half cursor width
+yTo(e.clientY - 6)
+```
 
-   On project images (.cursor-view):
-   - Expand to 80px
-   - Fill: --color-threshold at 90% opacity
-   - Text inside: "VIEW" in text-label style, --color-void
+### 4. Cursor States
 
-   During scroll/camera movement (.cursor-scroll):
-   - Shrink to 6px
-   - Fill: --color-paper
-   - No border
+Detect via data-cursor attributes on elements. Use event delegation (single
+listener on document.body checking e.target.closest('[data-cursor]')).
 
-5. Detection:
-   Use event delegation: add data-cursor="hover|node|view|scroll" 
-   attributes to interactive elements.
-   The cursor component listens for mouseenter on elements with these attributes.
+| State | Trigger | Visual |
+|-------|---------|--------|
+| Default | Everywhere | 12px circle, paper border, transparent fill |
+| Hover | data-cursor="hover" | Expand to 40px, fill: --color-threshold, no border. Duration: 300ms, --ease-smooth |
+| Node | data-cursor="node" | Expand to 60px, border: --color-threshold. Two 1px crosshair lines through center (::before + ::after) |
+| View | data-cursor="view" | Expand to 80px, fill: --color-threshold at 90% opacity. "VIEW" text inside in text-label style, --color-void color |
+| Scroll | data-cursor="scroll" | Shrink to 6px, fill: --color-paper, no border |
 
-6. Mobile: hide cursor entirely (pointer: coarse media query)
+All transitions: --duration-fast (300ms), --ease-smooth.
 
-Add CustomCursor to the root layout.tsx.
+### 5. Magnetic Buttons Enhancement
+
+If the magnetic Button component exists (Phase 3), enhance it:
+- Detect mouse within 80px radius of button
+- Apply translateX/Y to move button max 12px toward cursor
+- On mouse leave: spring return using --ease-spring
+- Only on pointer: fine devices
+
+### 6. Global Integration
+
+Add CustomCursor to /src/app/[locale]/layout.tsx (the ROOT layout, not the site layout):
+```tsx
+import dynamic from 'next/dynamic'
+const CustomCursor = dynamic(() => import('@/components/ui/CustomCursor'), { ssr: false })
+
+// In the layout return:
+<CustomCursor />
+{children}
+```
 ```
 
 **Check before moving on:**
-- Cursor trails correctly (spring physics feel)
-- All states work
-- Cursor hidden on mobile/touch
-- No flicker or jumpiness
+- [ ] Custom cursor follows with spring physics
+- [ ] All cursor states work (test with data-cursor attributes)
+- [ ] Cursor hidden on mobile/touch
+- [ ] No flicker or jumpiness on fast mouse movement
+- [ ] "VIEW" text appears in the view state
+- [ ] Crosshair lines appear in node state
 
 ---
 
-## PHASE 5 – INTERIOR PAGES
+## PROMPT 4.10 — Image Sequence Upgrade Path (Future)
 
-**Goal:** Build all non-homepage pages following the master plan.
-**When:** Homepage complete (or at least Scenes 1-5).
-**Approach:** Each page gets its own prompt session. Feed the master plan at the start of each.
+> **When to run:** Only after Higgsfield image sequences are generated, FFmpeg-processed,
+> and placed in `/public/sequences/`. This prompt is NOT part of the initial build.
+
+```
+FUTURE UPGRADE: Replace the particle hero with the cinematic image sequence experience.
+
+This prompt activates ONLY when the following assets are confirmed ready:
+- /public/sequences/assembly/frame-0001.webp through frame-XXXX.webp
+- /public/sequences/approach/frame-0001.webp through frame-XXXX.webp
+- /public/sequences/hero-still.webp
+- /public/videos/approach-mobile.mp4
+
+The upgrade replaces HeroSection.tsx (particle + text) with the original
+Scenes 1–4 architecture from TDK_HOMEPAGE_EXPERIENCE.md:
+- Scene 1: Loading screen + assembly playback (time-based RAF loop)
+- Scene 2: Hero still + manifesto text (reuse SceneHero.tsx)
+- Scene 3: Approach scroll scrubbing (GSAP ScrollTrigger on canvas)
+- Scene 4: Threshold bloom + canvas teardown
+
+The full specification for this upgrade is in:
+- TDK_HOMEPAGE_EXPERIENCE.md, Sections 6–9
+- TDK_CURSOR_BUILD_STRATEGY.md, original Prompts 4.1–4.5
+
+Key architectural notes for the upgrade:
+1. HomepageCanvas.tsx replaces HeroSection.tsx as the primary component
+2. The scroll container becomes 760vh (loading + hero + approach + threshold)
+3. Scroll is locked during assembly (overflow: hidden), unlocked after
+4. ParticleHeroBg.tsx is preserved as a fallback for:
+   - Mobile devices (pointer: coarse OR viewport < 1024px)
+   - Slow connections (navigator.connection.effectiveType === '2g' or '3g')
+   - Load timeout (if sequences don't load within 8 seconds)
+5. SceneHero.tsx text overlay is reused — only the background changes
+
+The particle hero and the image sequence hero share the same SceneHero.tsx overlay.
+The transition between them should be seamless — the user never knows which
+background technology is running.
+
+Do NOT run this prompt until assets are confirmed. The particle hero is
+production-ready and provides a polished experience on its own.
+```
 
 ---
 
-### PROMPT 5.0 — Feed Context for Every Interior Page Session
+## HOMEPAGE COMPLETION CHECKLIST
 
-```
-Before building this page, re-read the project PRD:
+After all Phase 4 prompts are complete, verify the full homepage end-to-end:
 
-[PASTE RELEVANT SECTIONS OF TDK_MASTER_PLAN.md]
-(Section 7 for the page blueprint, Sections 4 and 5 for design/branding context)
+### Visual & Design
+- [ ] Background is void-black (#0D0D0D) throughout — no white gaps anywhere
+- [ ] All text is Josefin Sans (check DevTools computed styles)
+- [ ] Numbers are JetBrains Mono where specified
+- [ ] Threshold teal appears sparingly — never on two simultaneously visible elements
+- [ ] Zero border-radius on all elements (except cursor circle)
+- [ ] Zero shadows anywhere
+- [ ] Text selection is teal on void
 
-Key rules for all interior pages:
-- Background: --color-void (#0D0D0D)
-- Text: --color-paper (#F5F0E8)
-- Font: Josefin Sans (loaded via next/font)
-- Scroll animations: Use the FadeUp, TextReveal, StaggerGroup, CountUp
-  components from /src/components/animations/
-- No custom cursor states needed (just the default hover state)
-- All pages use the global Navbar and Footer from the layout
-- No canvas or scroll-jacking on any interior page
-- Section padding: var(--section-padding)
-- Content max-width: var(--content-max)
-- ALL images use cloudinaryUrl() from /src/lib/cloudinary/transforms.ts
-  NEVER use next/image with Cloudinary URLs — use a plain <img> tag
-  Image public IDs come from Sanity as string fields (not Sanity image objects)
-```
+### Hero Section
+- [ ] Loading screen shows "TDK" + progress bar, fades out gracefully
+- [ ] Particle canvas is paper-white on void-black with sparse teal
+- [ ] Mouse repulsion works on desktop, touch on mobile
+- [ ] Manifesto text fragments appear with staggered reveals
+- [ ] Mouse parallax on text is subtle
+- [ ] Text fades on scroll
+
+### Content Sections
+- [ ] Anatomy: nodes interactive, text transitions smooth, pins and unpins
+- [ ] Philosophy: statements reveal and fade in sync with scroll
+- [ ] Projects: horizontal scroll works, cards have parallax, counter updates
+- [ ] Process: SVG line draws, steps appear in sequence
+- [ ] Contact: headline staggers, CTA button works, background lines barely visible
+- [ ] Footer: curtain reveal, all links functional
+
+### Technical
+- [ ] No hydration errors in console
+- [ ] No SSR errors (all canvas/GSAP components use dynamic import with ssr: false)
+- [ ] Smooth scrolling via Lenis active
+- [ ] Custom cursor works across all sections
+- [ ] GSAP ScrollTriggers clean up on unmount (no memory leaks)
+- [ ] Mobile responsive (test at 375px, 768px, 1024px, 1440px, 1920px)
+- [ ] prefers-reduced-motion respected (skip animations, show content immediately)
+- [ ] Lighthouse desktop > 80, mobile > 65
+
+### Content
+- [ ] All copy matches TDK_HOMEPAGE_EXPERIENCE.md exactly
+- [ ] No placeholder text visible in production (only placeholder images acceptable)
+- [ ] Correct locale-aware links (/en/projects/armonia, etc.)
 
 ---
 

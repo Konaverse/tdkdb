@@ -172,26 +172,7 @@ export default function ScenePhilosophy() {
       });
     }, container);
 
-    // ─── Position fix for HomepageCanvas ──────────────────────────────────────
-    // HomepageCanvas is dynamic({ ssr: false }) — it adds ~260 vh to the document
-    // AFTER this effect runs, which shifts all subsequent ScrollTrigger positions.
-    // ResizeObserver fires once when body height changes and corrects them.
-    const initialHeight = document.body.scrollHeight;
-
-    const heightObserver = new ResizeObserver(() => {
-      if (document.body.scrollHeight !== initialHeight) {
-        ScrollTrigger.refresh();
-        heightObserver.disconnect();
-      }
-    });
-    heightObserver.observe(document.body);
-
-    // rAF handles the case where HomepageCanvas bundle was already prefetched
-    const rafId = requestAnimationFrame(() => ScrollTrigger.refresh());
-
     return () => {
-      cancelAnimationFrame(rafId);
-      heightObserver.disconnect();
       galleryMountObserver.disconnect();
       pauseObserver.disconnect();
       ctx.revert();

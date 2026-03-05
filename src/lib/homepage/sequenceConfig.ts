@@ -1,18 +1,4 @@
 export const SEQUENCE_CONFIG = {
-  assembly: {
-    frameCount: 120,
-    fps: 24,
-    pad: 4,
-    path: '/sequences/assembly/frame-',
-    extension: '.webp',
-  },
-  approach: {
-    frameCount: 152,
-    fps: 24,
-    pad: 3,
-    path: '/sequences/approach/frame-',
-    extension: '.webp',
-  },
   armonia360: {
     frameCount: 65,
     fps: 20,
