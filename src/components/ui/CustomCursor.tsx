@@ -1,149 +1,135 @@
 'use client';
 
-import { useLayoutEffect, useRef, useState, useEffect } from 'react';
-import { gsap } from 'gsap';
+import { useRef, useEffect } from 'react';
+import { gsap } from '@/lib/animations/gsap';
 
 type CursorState = 'default' | 'hover' | 'node' | 'view' | 'scroll';
 
-export default function CustomCursor() {
-  const cursorRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLSpanElement>(null);
-  const [cursorState, setCursorState] = useState<CursorState>('default');
-  const [isVisible, setIsVisible] = useState(false);
+const STATE: Record<CursorState, {
+  size: number;
+  bg: string;
+  borderColor: string;
+  blend: string;
+  text: string;
+  crosshair: boolean;
+}> = {
+  default: { size: 12, bg: 'transparent',               borderColor: 'rgba(245,240,232,1)',  blend: 'difference', text: '',     crosshair: false },
+  hover:   { size: 40, bg: 'var(--color-threshold)',     borderColor: 'transparent',          blend: 'normal',     text: '',     crosshair: false },
+  node:    { size: 60, bg: 'transparent',               borderColor: 'rgba(102,151,159,1)',   blend: 'normal',     text: '',     crosshair: true  },
+  view:    { size: 80, bg: 'rgba(102,151,159,0.9)',      borderColor: 'transparent',          blend: 'normal',     text: 'VIEW', crosshair: false },
+  scroll:  { size: 6,  bg: 'var(--color-paper)',         borderColor: 'transparent',          blend: 'normal',     text: '',     crosshair: false },
+};
 
-  // To avoid unmounting the layout, we just check device capability in useEffect
-  const [isPointerFine, setIsPointerFine] = useState(true);
+export default function CustomCursor() {
+  const cursorRef   = useRef<HTMLDivElement>(null);
+  const textRef     = useRef<HTMLSpanElement>(null);
+  const crosshairRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const isFine = window.matchMedia('(pointer: fine)').matches;
-    setIsPointerFine(isFine);
-  }, []);
+    // Only on fine-pointer (desktop) devices
+    if (!window.matchMedia('(pointer: fine)').matches) return;
 
-  useLayoutEffect(() => {
-    if (!isPointerFine || !cursorRef.current) return;
+    const cursor    = cursorRef.current!;
+    const text      = textRef.current!;
+    const crosshair = crosshairRef.current!;
 
-    // Use quickTo for optimal performance continuous updating
-    const xTo = gsap.quickTo(cursorRef.current, 'x', { duration: 0.3, ease: 'power3' });
-    const yTo = gsap.quickTo(cursorRef.current, 'y', { duration: 0.3, ease: 'power3' });
+    // Reveal the element (hidden by default to avoid position flash)
+    cursor.style.display = 'flex';
 
-    let isInitialized = false;
+    // quickTo for butter-smooth continuous tracking
+    const xTo = gsap.quickTo(cursor, 'x', { duration: 0.35, ease: 'power3.out' });
+    const yTo = gsap.quickTo(cursor, 'y', { duration: 0.35, ease: 'power3.out' });
 
-    const moveCursor = (e: MouseEvent) => {
-      // Offset by half the theoretical max size to keep it centered perfectly
-      // We handle visual sizing inside the div, but transform origin is center center natively
-      xTo(e.clientX);
-      yTo(e.clientY);
+    let isFirstMove = true;
+    let currentState: CursorState = 'default';
 
-      if (!isInitialized) {
-        setIsVisible(true);
-        isInitialized = true;
-      }
+    const applyState = (next: CursorState) => {
+      if (next === currentState) return;
+      currentState = next;
+      const s = STATE[next];
+
+      // Animate size + bg in one call; overwrite prevents queue buildup
+      gsap.to(cursor, {
+        width: s.size,
+        height: s.size,
+        backgroundColor: s.bg,
+        borderColor: s.borderColor,
+        duration: 0.2,
+        ease: 'power2.out',
+        overwrite: 'auto',
+      });
+
+      // blend mode is not animatable — set directly
+      cursor.style.mixBlendMode = s.blend as CSSStyleDeclaration['mixBlendMode'];
+
+      // Text label (VIEW etc.)
+      text.textContent = s.text;
+      gsap.set(text, { opacity: s.text ? 1 : 0 });
+
+      // Crosshair lines
+      gsap.set(crosshair, { opacity: s.crosshair ? 1 : 0 });
     };
 
-    const handleMouseLeave = () => setIsVisible(false);
-    const handleMouseEnter = () => setIsVisible(true);
-
-    // Event Delegation: Detect data-cursor attributes
-    const handleMouseOver = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      // Traverse up to find if we're hovering a child of a custom cursor target
-      const cursorTarget = target.closest('[data-cursor]');
-
-      if (cursorTarget) {
-        const type = cursorTarget.getAttribute('data-cursor') as CursorState;
-        setCursorState(type);
+    const onMove = (e: MouseEvent) => {
+      if (isFirstMove) {
+        // Snap instantly on first entry — eliminates the ease-from-origin stutter
+        gsap.set(cursor, { x: e.clientX, y: e.clientY, opacity: 1 });
+        isFirstMove = false;
       } else {
-        // Also check if we are hovering a button or a tag without explicit data-cursor
-        const interactiveChild = target.closest('a, button');
-        if (interactiveChild) {
-          setCursorState('hover');
-        } else {
-          setCursorState('default');
-        }
+        xTo(e.clientX);
+        yTo(e.clientY);
       }
     };
 
-    window.addEventListener('mousemove', moveCursor);
-    document.body.addEventListener('mouseleave', handleMouseLeave);
-    document.body.addEventListener('mouseenter', handleMouseEnter);
-    document.body.addEventListener('mouseover', handleMouseOver);
+    const onLeave = () => {
+      gsap.to(cursor, { opacity: 0, duration: 0.15, overwrite: 'auto' });
+      // Reset so the next entry also snaps
+      isFirstMove = true;
+    };
+
+    const onOver = (e: MouseEvent) => {
+      const el = e.target as HTMLElement;
+      const dataCursor = el.closest('[data-cursor]');
+      if (dataCursor) {
+        applyState(dataCursor.getAttribute('data-cursor') as CursorState);
+      } else if (el.closest('a, button')) {
+        applyState('hover');
+      } else {
+        applyState('default');
+      }
+    };
+
+    window.addEventListener('mousemove', onMove, { passive: true });
+    document.body.addEventListener('mouseleave', onLeave);
+    document.body.addEventListener('mouseover', onOver, { passive: true });
 
     return () => {
-      window.removeEventListener('mousemove', moveCursor);
-      document.body.removeEventListener('mouseleave', handleMouseLeave);
-      document.body.removeEventListener('mouseenter', handleMouseEnter);
-      document.body.removeEventListener('mouseover', handleMouseOver);
+      window.removeEventListener('mousemove', onMove);
+      document.body.removeEventListener('mouseleave', onLeave);
+      document.body.removeEventListener('mouseover', onOver);
     };
-  }, [isPointerFine]);
-
-  if (!isPointerFine) return null;
-
-  // Render cursor states visually
-  let size = 12;
-  let bg = 'transparent';
-  let border = '1px solid var(--color-paper)';
-  let text = '';
-  let showCrosshair = false;
-
-  switch (cursorState) {
-    case 'hover':
-      size = 40;
-      bg = 'var(--color-threshold)';
-      border = 'none';
-      break;
-    case 'node':
-      size = 60;
-      bg = 'transparent';
-      border = '1px solid var(--color-threshold)';
-      showCrosshair = true;
-      break;
-    case 'view':
-      size = 80;
-      bg = 'rgba(102, 151, 159, 0.9)'; // --color-threshold with 90% opacity roughly
-      border = 'none';
-      text = 'VIEW';
-      break;
-    case 'scroll':
-      size = 6;
-      bg = 'var(--color-paper)';
-      border = 'none';
-      break;
-    case 'default':
-    default:
-      size = 12;
-      bg = 'transparent';
-      border = '1px solid var(--color-paper)';
-      break;
-  }
+  }, []);
 
   return (
     <div
       ref={cursorRef}
-      className="pointer-events-none fixed left-0 top-0 z-[9999] flex items-center justify-center rounded-full transition-all duration-300 ease-smooth"
+      className="pointer-events-none fixed left-0 top-0 z-[9999] items-center justify-center rounded-full"
       style={{
-        width: size,
-        height: size,
-        backgroundColor: bg,
-        border: border,
-        transform: `translate(-50%, -50%)`, // Centered perfectly on pointer coords via quickTo
-        opacity: isVisible ? 1 : 0,
-        mixBlendMode: cursorState === 'default' ? 'difference' : 'normal',
+        display: 'none',          // shown in useEffect after pointer check
+        width: 12,
+        height: 12,
+        opacity: 0,               // faded in on first mousemove
+        backgroundColor: 'transparent',
+        border: '1px solid rgba(245,240,232,1)',
+        transform: 'translate(-50%, -50%)',
+        mixBlendMode: 'difference',
+        willChange: 'transform',  // GPU layer hint
       }}
     >
-      {text && (
-        <span
-          ref={textRef}
-          className="text-label text-void opacity-100 transition-opacity duration-300"
-        >
-          {text}
-        </span>
-      )}
+      <span ref={textRef} className="text-label text-void" style={{ opacity: 0 }} />
 
       {/* Crosshair for node state */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{ opacity: showCrosshair ? 1 : 0, transition: 'opacity 300ms' }}
-      >
+      <div ref={crosshairRef} className="pointer-events-none absolute inset-0" style={{ opacity: 0 }}>
         <div className="absolute left-1/2 top-1/2 h-full w-[1px] -translate-x-1/2 -translate-y-1/2 bg-threshold" />
         <div className="absolute left-1/2 top-1/2 h-[1px] w-full -translate-x-1/2 -translate-y-1/2 bg-threshold" />
       </div>

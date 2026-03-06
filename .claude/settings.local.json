@@ -27,7 +27,8 @@
       "Bash(pnpm exec:*)",
       "Bash(cmd.exe:*)",
       "Bash(npx:*)",
-      "Bash(export:*)"
+      "Bash(export:*)",
+      "Bash(dir C:\\\\Users\\\\konst\\\\Projects\\\\TDK_Design_&_Build\\\\tdkdb\\\\node_modules\\\\@react-three\\\\fiber:*)"
     ]
   }
 }

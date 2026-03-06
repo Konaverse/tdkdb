@@ -1113,22 +1113,6 @@ Build the particle hero background and loading screen for the TDK homepage.
 
 Reference: TDK_HOMEPAGE_EXPERIENCE.md, Sections 4 (Particle System), 5 (Loading Screen), 6 (Hero), and 14 (Design Language).
 
-#### Step 1 — Place the Particle Component
-
-Copy the provided particle-hero-bg.tsx to:
-/src/components/homepage/ParticleHeroBg.tsx
-
-This is a 'use client' component with ZERO external dependencies beyond React.
-It renders an HTML5 2D Canvas with interactive particles:
-- Paper-white (#F5F0E8) particles — 90% of all particles
-- Teal (#66979f) accent particles — 10% (sparse, per The Threshold Rule)
-- Void-black (#0D0D0D) background
-- Mouse repulsion with spring-return physics
-- DevicePixelRatio-aware for Retina sharpness
-- Collision detection capped at 300 particles for 60fps performance
-
-DO NOT modify this component's physics or color logic. It is pre-tuned for TDK.
-
 #### Step 2 — Build the Loading Screen
 
 Create /src/components/homepage/LoadingScreen.tsx
@@ -1250,7 +1234,7 @@ Add these to the container div's event handlers.
 
 ---
 
-## PROMPT 4.2 — Hero Manifesto Text Overlay (Scene 2)
+### PROMPT 4.2 — Hero Manifesto Text Overlay (Scene 2)
 
 **Pre-requirements:**
 - [ ] Prompt 4.1 complete — particle canvas renders, loading screen works

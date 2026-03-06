@@ -1,7 +1,7 @@
 # TDK Design & Build — Chat Handoff Document
 
 > **Purpose:** Feed this to a new Claude Code session so it picks up exactly where the previous session left off.
-> **Last updated:** 2026-03-02 (after completing Phase 4 and Phase 5)
+> **Last updated:** 2026-03-06 (Ready for new Hero Homepage Implementation)
 
 ---
 
@@ -66,6 +66,10 @@ Navbar, Footer, Button (primary/ghost/text), animation wrappers (FadeUp, TextRev
 ---
 
 ## 3. WHERE TO START
+
+### 🚀 Next Up: Hero Homepage Implementation
+We have completely cleared the hero section and reverted to a blank slate (darkness). We are now **READY FOR THE NEW HERO HOMEPAGE IMPLEMENTATION**. 
+Start by following the updated `TDK_HOMEPAGE_EXPERIENCE.md` and `TDK_CURSOR_BUILD_STRATEGY.md` prompts to build the new hero experience.
 
 ### ⚠️ Still Pending: SceneAnatomy Node Polish
 

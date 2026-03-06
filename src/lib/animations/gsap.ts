@@ -1,12 +1,13 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
 
 let isInitialized = false;
 
 export function gsapInit(): void {
   if (isInitialized || typeof window === 'undefined') return;
 
-  gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 
   gsap.defaults({
     ease: 'power3.out',
@@ -21,4 +22,4 @@ export function killAllScrollTriggers(): void {
   ScrollTrigger.clearMatchMedia();
 }
 
-export { gsap, ScrollTrigger };
+export { gsap, ScrollTrigger, MotionPathPlugin };

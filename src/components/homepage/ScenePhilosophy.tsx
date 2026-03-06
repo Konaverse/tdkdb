@@ -69,8 +69,8 @@ const STATEMENTS: Statement[] = [
 // 500 vh total → 400 vh of scroll travel → 80 vh per statement
 const CONTAINER_HEIGHT = `${STATEMENTS.length * 100}vh`;
 
-// Text fade duration (ms) — must match CSS transition below
-const FADE_DURATION = 500;
+// Fade-in duration for each new statement (ms)
+const FADE_DURATION = 450;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -78,14 +78,11 @@ export default function ScenePhilosophy() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [activeIdx, setActiveIdx] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const [isPaused, setIsPaused] = useState(true);
 
-  // Refs for scroll-driven logic — avoids stale closures inside ST callbacks
+  // Ref mirror to avoid stale closure in ST callback
   const activeIdxRef = useRef(0);
-  const targetIdxRef = useRef(0);
-  const fadingRef = useRef(false);
 
   useLayoutEffect(() => {
     gsapInit();
@@ -135,39 +132,17 @@ export default function ScenePhilosophy() {
             STATEMENTS.length - 1,
           );
 
-          // Always track what the scroll position wants, even mid-fade
-          targetIdxRef.current = newIdx;
-
           if (newIdx === activeIdxRef.current) return;
-          if (fadingRef.current) return; // a fade is already in flight; it will land on targetIdx
 
-          fadingRef.current = true;
-          setIsVisible(false);
-
-          setTimeout(() => {
-            // Use targetIdx, not newIdx — the user may have scrolled further during the fade
-            const landing = targetIdxRef.current;
-            activeIdxRef.current = landing;
-            setActiveIdx(landing);
-            setIsVisible(true);
-            fadingRef.current = false;
-          }, FADE_DURATION);
+          // Update immediately — CSS key animation handles the fade-in
+          activeIdxRef.current = newIdx;
+          setActiveIdx(newIdx);
         },
 
         onLeaveBack: () => {
-          // Scrolled back above the section — reset to statement 0
-          targetIdxRef.current = 0;
           if (activeIdxRef.current === 0) return;
-
-          fadingRef.current = true;
-          setIsVisible(false);
-
-          setTimeout(() => {
-            activeIdxRef.current = 0;
-            setActiveIdx(0);
-            setIsVisible(true);
-            fadingRef.current = false;
-          }, FADE_DURATION);
+          activeIdxRef.current = 0;
+          setActiveIdx(0);
         },
       });
     }, container);
@@ -208,12 +183,12 @@ export default function ScenePhilosophy() {
         {/* ── Dark scrim — text legibility ── */}
         <div className="pointer-events-none absolute inset-0 bg-black/55" />
 
-        {/* ── Philosophy text overlay — fades between statements on scroll ── */}
+        {/* ── Philosophy text overlay — fades in on each statement change ── */}
         <div
+          key={activeIdx}
           className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-8 text-center"
           style={{
-            opacity: isVisible ? 1 : 0,
-            transition: `opacity ${FADE_DURATION}ms cubic-bezier(0.16,1,0.3,1)`,
+            animation: `philosophy-fade-in ${FADE_DURATION}ms cubic-bezier(0.16,1,0.3,1) forwards`,
           }}
         >
           {statement.isArmonia ? (
