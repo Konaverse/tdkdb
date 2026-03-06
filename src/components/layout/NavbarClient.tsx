@@ -102,6 +102,7 @@ export default function NavbarClient({ settings }: Props) {
     }
   }, [isMenuOpen]);
 
+  const isHomepage = pathname === `/${locale}` || pathname === `/${locale}/`;
   const isActive = (path: string) => pathname.includes(`/${path}`);
 
   return (
@@ -111,11 +112,11 @@ export default function NavbarClient({ settings }: Props) {
         className={cn(
           'fixed left-0 top-0 z-[100] w-full',
           'transition-[background-color,border-color,backdrop-filter] duration-fast ease-smooth',
-          isScrolled ? 'border-b border-border' : 'border-b border-transparent',
+          (isScrolled && !isHomepage) ? 'border-b border-border' : 'border-b border-transparent',
         )}
         style={{
-          backgroundColor: isScrolled ? 'rgba(13, 13, 13, 0.85)' : 'transparent',
-          backdropFilter: isScrolled ? 'blur(20px)' : 'blur(0px)',
+          backgroundColor: (isScrolled && !isHomepage) ? 'rgba(13, 13, 13, 0.85)' : 'transparent',
+          backdropFilter: (isScrolled && !isHomepage) ? 'blur(20px)' : 'blur(0px)',
         }}
       >
         <nav className="mx-auto flex h-20 max-w-content items-center justify-between px-8">

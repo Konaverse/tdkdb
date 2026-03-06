@@ -23,7 +23,7 @@ const ARMONIA = {
   statusLabel: 'COMPLETED',
   cta: { label: 'VIEW PROJECT →', href: '/en/projects/armonia' },
   cloudinaryId: 'clients/tdkdb/armonia/exterior/armonia_square',
-  glowColor: 'rgba(212,165,116,0.15)',
+  bgId: 'v1772794906/clients/tdkdb/armonia/exterior/armonia_bg',
   rayColor: 'rgba(212,165,116,0.08)',
 };
 
@@ -34,8 +34,8 @@ const ALMOND = {
   type: 'Residential',
   statusLabel: 'IN DEVELOPMENT',
   cta: { label: 'REGISTER INTEREST →', href: '/en/projects/almond' },
-  cloudinaryId: 'clients/tdkdb/almond/renders/Almond_square',
-  glowColor: 'rgba(102,151,159,0.15)',
+  cloudinaryId: 'v1772797414/clients/tdkdb/almond/renders/Almond_square',
+  bgId: 'v1772798045/clients/tdkdb/almond/renders/almond_bg',
   rayColor: 'rgba(102,151,159,0.08)',
 };
 
@@ -273,15 +273,10 @@ export default function HeroSection() {
         opacity: 0,
         rotation: 5,
       });
-      gsap.set(
-        [
-          armoniaGlowRef.current!,
-          armoniaRaysRef.current!,
-          almondGlowRef.current!,
-          almondRaysRef.current!,
-        ],
-        { opacity: 0 },
-      );
+      // Both bgs: hidden via clipPath (circle reveal); rays: hidden via opacity
+      gsap.set(armoniaGlowRef.current!, { clipPath: 'circle(0% at 50% 50%)' });
+      gsap.set(almondGlowRef.current!, { clipPath: 'circle(0% at 50% 50%)' });
+      gsap.set([armoniaRaysRef.current!, almondRaysRef.current!], { opacity: 0 });
       gsap.set([armoniaInfoRef.current!, almondInfoRef.current!], { opacity: 0, y: 20 });
 
       // ── Arc geometry ─────────────────────────────────────────────────────
@@ -338,8 +333,8 @@ export default function HeroSection() {
         0.1,
       );
 
-      // 0.35→0.45: Armonia atmosphere (amber) blooms in, iso dims further
-      tl.to(armoniaGlowRef.current!, { opacity: 1, duration: 0.1 }, 0.35);
+      // 0.35→0.45: Armonia bg expands from center circle, rays bloom in, iso dims further
+      tl.to(armoniaGlowRef.current!, { clipPath: 'circle(170% at 50% 50%)', duration: 0.1, ease: 'power2.out' }, 0.35);
       tl.to(armoniaRaysRef.current!, { opacity: 1, duration: 0.1 }, 0.35);
       tl.to(isoWrapRef.current!, { opacity: 0.15, duration: 0.1 }, 0.35);
 
@@ -387,19 +382,13 @@ export default function HeroSection() {
         0.56,
       );
 
-      // 0.56→0.7: Amber atmosphere out
-      tl.to(
-        [armoniaGlowRef.current!, armoniaRaysRef.current!],
-        { opacity: 0, duration: 0.14 },
-        0.56,
-      );
+      // 0.56→0.7: Armonia bg collapses back to circle, rays fade out
+      tl.to(armoniaGlowRef.current!, { clipPath: 'circle(0% at 50% 50%)', duration: 0.14, ease: 'power2.in' }, 0.56);
+      tl.to(armoniaRaysRef.current!, { opacity: 0, duration: 0.14 }, 0.56);
 
-      // 0.7→0.86: Teal atmosphere in
-      tl.to(
-        [almondGlowRef.current!, almondRaysRef.current!],
-        { opacity: 1, duration: 0.16 },
-        0.7,
-      );
+      // 0.7→0.86: Almond bg expands from center circle, rays bloom in
+      tl.to(almondGlowRef.current!, { clipPath: 'circle(170% at 50% 50%)', duration: 0.16, ease: 'power2.out' }, 0.7);
+      tl.to(almondRaysRef.current!, { opacity: 1, duration: 0.16 }, 0.7);
 
       // 0.87→0.94: Almond info slides in
       tl.to(
@@ -451,8 +440,18 @@ export default function HeroSection() {
     quality: 'auto',
     format: 'auto',
   });
+  const armoniaBgUrl = cloudinaryUrl(ARMONIA.bgId, {
+    width: 1920,
+    quality: 'auto',
+    format: 'auto',
+  });
   const almondUrl = cloudinaryUrl(ALMOND.cloudinaryId, {
     width: 1400,
+    quality: 'auto',
+    format: 'auto',
+  });
+  const almondBgUrl = cloudinaryUrl(ALMOND.bgId, {
+    width: 1920,
     quality: 'auto',
     format: 'auto',
   });
@@ -469,12 +468,14 @@ export default function HeroSection() {
         <IsoLevelWarp color="102, 151, 159" speed={0.6} density={45} />
       </div>
 
-      {/* z-1: Armonia atmosphere — amber radial glow */}
+      {/* z-1: Armonia background — circle clip-path reveal */}
       <div
         ref={armoniaGlowRef}
         className="pointer-events-none absolute inset-0 z-[1]"
         style={{
-          background: `radial-gradient(circle at center, ${ARMONIA.glowColor} 0%, transparent 70%)`,
+          backgroundImage: `url(${armoniaBgUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
         }}
       />
 
@@ -486,12 +487,14 @@ export default function HeroSection() {
         <LightRays color={ARMONIA.rayColor} />
       </div>
 
-      {/* z-1: Almond atmosphere — teal radial glow */}
+      {/* z-1: Almond background — circle clip-path reveal */}
       <div
         ref={almondGlowRef}
         className="pointer-events-none absolute inset-0 z-[1]"
         style={{
-          background: `radial-gradient(circle at center, ${ALMOND.glowColor} 0%, transparent 70%)`,
+          backgroundImage: `url(${almondBgUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: '50% 45%',
         }}
       />
 
@@ -512,6 +515,15 @@ export default function HeroSection() {
         }}
       />
 
+      {/* z-2: Bottom scrim — ensures info text legibility on light backgrounds */}
+      <div
+        className="pointer-events-none absolute bottom-0 left-0 right-0 z-[2]"
+        style={{
+          height: '40%',
+          background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)',
+        }}
+      />
+
       {/* z-3: Wireframe mesh — visible in State 1 only, GSAP fades out */}
       <div
         ref={wireframeWrapRef}
@@ -528,14 +540,14 @@ export default function HeroSection() {
         src={armoniaUrl}
         alt="Armonia Apartments"
         className="pointer-events-none absolute z-[4]"
-        style={{ width: '85vmin', height: '85vmin', objectFit: 'contain' }}
+        style={{ width: '123vmin', height: '123vmin', objectFit: 'contain' }}
       />
       <img
         ref={almondRef}
         src={almondUrl}
         alt="Almond Residences"
         className="pointer-events-none absolute z-[4]"
-        style={{ width: '85vmin', height: '85vmin', objectFit: 'contain' }}
+        style={{ width: '210vmin', height: '210vmin', objectFit: 'contain' }}
       />
 
       {/* z-11: Persistent headline — starts bottom-left, moves to top-left on scroll */}

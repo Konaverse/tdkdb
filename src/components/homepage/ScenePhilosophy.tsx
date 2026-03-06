@@ -66,8 +66,11 @@ const STATEMENTS: Statement[] = [
   },
 ];
 
-// 500 vh total → 400 vh of scroll travel → 80 vh per statement
-const CONTAINER_HEIGHT = `${STATEMENTS.length * 100}vh`;
+// 1000 vh total → 900 vh of scroll travel
+// First 35% (315 vh) is a dead zone anchored on statement 0 to absorb hero pin momentum.
+// Remaining 65% (585 vh) cycles through all 5 statements → ~117 vh per statement.
+const CONTAINER_HEIGHT = `${STATEMENTS.length * 140}vh`;
+const SCROLL_BUFFER = 0.35;
 
 // Fade-in duration for each new statement (ms)
 const FADE_DURATION = 450;
@@ -126,15 +129,16 @@ export default function ScenePhilosophy() {
         end: 'bottom bottom',
 
         onUpdate: (self) => {
-          // Map 0–1 progress to 0–(N-1) statement index in equal bands
+          // Dead zone: first SCROLL_BUFFER of travel stays on statement 0,
+          // absorbing Lenis momentum from the hero pin release.
+          // Remaining travel is divided evenly across all statements.
+          const adjusted = Math.max(0, (self.progress - SCROLL_BUFFER) / (1 - SCROLL_BUFFER));
           const newIdx = Math.min(
-            Math.floor(self.progress * STATEMENTS.length),
+            Math.floor(adjusted * STATEMENTS.length),
             STATEMENTS.length - 1,
           );
 
           if (newIdx === activeIdxRef.current) return;
-
-          // Update immediately — CSS key animation handles the fade-in
           activeIdxRef.current = newIdx;
           setActiveIdx(newIdx);
         },
