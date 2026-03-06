@@ -35,7 +35,7 @@ const ALMOND = {
   statusLabel: 'IN DEVELOPMENT',
   cta: { label: 'REGISTER INTEREST →', href: '/en/projects/almond' },
   cloudinaryId: 'v1772797414/clients/tdkdb/almond/renders/Almond_square',
-  bgId: 'v1772798045/clients/tdkdb/almond/renders/almond_bg',
+  bgId: 'v1772801339/clients/tdkdb/almond/renders/almond_bg',
   rayColor: 'rgba(102,151,159,0.08)',
 };
 
@@ -494,7 +494,7 @@ export default function HeroSection() {
         style={{
           backgroundImage: `url(${almondBgUrl})`,
           backgroundSize: 'cover',
-          backgroundPosition: '50% 45%',
+          backgroundPosition: '50% 50%',
         }}
       />
 
@@ -547,7 +547,7 @@ export default function HeroSection() {
         src={almondUrl}
         alt="Almond Residences"
         className="pointer-events-none absolute z-[4]"
-        style={{ width: '210vmin', height: '210vmin', objectFit: 'contain' }}
+        style={{ width: '170vmin', height: '170vmin', objectFit: 'contain' }}
       />
 
       {/* z-11: Persistent headline — starts bottom-left, moves to top-left on scroll */}
