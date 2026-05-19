@@ -83,7 +83,9 @@ export default async function ServicesPage() {
                     </span>
                     <div className="flex flex-1 flex-col gap-4">
                       <h2 className="text-heading text-paper">{service.title}</h2>
-                      <p className="flex-1 text-body-lg text-stone transition-colors duration-500 group-hover:text-paper">{service.shortDescription}</p>
+                      <p className="flex-1 text-body-lg text-stone transition-colors duration-500 group-hover:text-paper">
+                        {service.shortDescription}
+                      </p>
                     </div>
                     <span className="text-label text-stone transition-colors duration-fast ease-smooth group-hover:text-paper">
                       EXPLORE →

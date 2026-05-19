@@ -49,10 +49,12 @@ export default function SceneHero({ isVisible }: SceneHeroProps) {
     // Parallax quickTo — desktop only
     if (isPointerFine) {
       qx.current = inners.map(
-        (el) => gsap.quickTo(el, 'x', { duration: 0.8, ease: 'power3.out' }) as unknown as QuickToFn,
+        (el) =>
+          gsap.quickTo(el, 'x', { duration: 0.8, ease: 'power3.out' }) as unknown as QuickToFn,
       );
       qy.current = inners.map(
-        (el) => gsap.quickTo(el, 'y', { duration: 0.8, ease: 'power3.out' }) as unknown as QuickToFn,
+        (el) =>
+          gsap.quickTo(el, 'y', { duration: 0.8, ease: 'power3.out' }) as unknown as QuickToFn,
       );
     }
 
@@ -173,10 +175,7 @@ export default function SceneHero({ isVisible }: SceneHeroProps) {
   }, [isVisible]);
 
   return (
-    <div
-      ref={containerRef}
-      className="pointer-events-none absolute inset-0 z-10"
-    >
+    <div ref={containerRef} className="pointer-events-none absolute inset-0 z-10">
       <style>{`
         /* Scroll indicator sweep: line grows from top, then shrinks from bottom */
         @keyframes scroll-sweep {
@@ -208,11 +207,7 @@ export default function SceneHero({ isVisible }: SceneHeroProps) {
       `}</style>
 
       {/* ── Fragment 1 — "DESIGNED TO LAST." — bottom-left, large ─────────── */}
-      <div
-        ref={f1}
-        className="sh-f1 absolute"
-        style={{ bottom: '8%', left: '6%', opacity: 0 }}
-      >
+      <div ref={f1} className="sh-f1 absolute" style={{ bottom: '8%', left: '6%', opacity: 0 }}>
         <h1
           ref={t1}
           className="text-display-lg"
@@ -223,11 +218,7 @@ export default function SceneHero({ isVisible }: SceneHeroProps) {
       </div>
 
       {/* ── Fragment 2 — "NOT JUST BUILT. / CRAFTED." — top-right, below nav */}
-      <div
-        ref={f2}
-        className="sh-f2 absolute"
-        style={{ top: '12%', right: '6%', opacity: 0 }}
-      >
+      <div ref={f2} className="sh-f2 absolute" style={{ top: '12%', right: '6%', opacity: 0 }}>
         <p
           ref={t2}
           className="text-heading"
@@ -241,31 +232,24 @@ export default function SceneHero({ isVisible }: SceneHeroProps) {
       </div>
 
       {/* ── Fragment 3 — "Every line has a reason." — top-right, below F2 ── */}
-      <div
-        ref={f3}
-        className="sh-f3 absolute"
-        style={{ top: '26%', right: '6%', opacity: 0 }}
-      >
+      <div ref={f3} className="sh-f3 absolute" style={{ top: '26%', right: '6%', opacity: 0 }}>
         <p
           ref={t3}
           className="text-body-lg"
-          style={{ fontWeight: 300, fontStyle: 'italic', color: 'var(--color-paper)', textAlign: 'right' }}
+          style={{
+            fontWeight: 300,
+            fontStyle: 'italic',
+            color: 'var(--color-paper)',
+            textAlign: 'right',
+          }}
         >
           Every line has a reason.
         </p>
       </div>
 
       {/* ── Fragment 4 — "TDK DESIGN & BUILD" ────────────────────────────── */}
-      <div
-        ref={f4}
-        className="sh-f4 absolute"
-        style={{ bottom: '18%', right: '8%', opacity: 0 }}
-      >
-        <p
-          ref={t4}
-          className="text-label"
-          style={{ color: 'var(--color-stone)' }}
-        >
+      <div ref={f4} className="sh-f4 absolute" style={{ bottom: '18%', right: '8%', opacity: 0 }}>
+        <p ref={t4} className="text-label" style={{ color: 'var(--color-stone)' }}>
           TDK DESIGN &amp; BUILD
         </p>
       </div>
@@ -278,10 +262,7 @@ export default function SceneHero({ isVisible }: SceneHeroProps) {
         role="presentation"
       >
         {/* Inner ref so we can hide this independently of the outer's scroll-out */}
-        <div
-          ref={t5}
-          className="flex flex-col items-center gap-3"
-        >
+        <div ref={t5} className="flex flex-col items-center gap-3">
           <span className="text-label" style={{ color: 'var(--color-stone)' }}>
             SCROLL
           </span>
@@ -300,7 +281,8 @@ export default function SceneHero({ isVisible }: SceneHeroProps) {
               style={{
                 position: 'absolute',
                 inset: 0,
-                background: 'linear-gradient(to bottom, transparent, var(--color-paper), transparent)',
+                background:
+                  'linear-gradient(to bottom, transparent, var(--color-paper), transparent)',
                 animation: 'scroll-sweep 2s linear infinite',
               }}
             />

@@ -133,10 +133,7 @@ export default function ScenePhilosophy() {
           // absorbing Lenis momentum from the hero pin release.
           // Remaining travel is divided evenly across all statements.
           const adjusted = Math.max(0, (self.progress - SCROLL_BUFFER) / (1 - SCROLL_BUFFER));
-          const newIdx = Math.min(
-            Math.floor(adjusted * STATEMENTS.length),
-            STATEMENTS.length - 1,
-          );
+          const newIdx = Math.min(Math.floor(adjusted * STATEMENTS.length), STATEMENTS.length - 1);
 
           if (newIdx === activeIdxRef.current) return;
           activeIdxRef.current = newIdx;

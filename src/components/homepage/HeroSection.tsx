@@ -46,12 +46,12 @@ function WordsPullUp({ text, className = '', showAsterisk = false, style }: Word
         return (
           <span
             key={i}
-            className="word inline-block relative"
+            className="word relative inline-block"
             style={{ marginRight: isLast ? 0 : '0.25em', opacity: 0 }}
           >
             {word}
             {showAsterisk && isLast && (
-              <span className="absolute top-[0.65em] -right-[0.3em] text-[0.31em]">*</span>
+              <span className="absolute -right-[0.3em] top-[0.65em] text-[0.31em]">*</span>
             )}
           </span>
         );
@@ -107,7 +107,7 @@ export default function HeroSection() {
           <div className="grid grid-cols-12 items-end gap-4">
             <div className="col-span-12 lg:col-span-8">
               <h1
-                className="font-medium leading-[0.85] tracking-[-0.05em] text-[22vw] sm:text-[20vw] md:text-[18vw] lg:text-[17vw] xl:text-[16vw] 2xl:text-[17vw]"
+                className="text-[22vw] font-medium leading-[0.85] tracking-[-0.05em] sm:text-[20vw] md:text-[18vw] lg:text-[17vw] xl:text-[16vw] 2xl:text-[17vw]"
                 style={{ color: 'var(--color-paper)', fontFamily: 'var(--font-primary)' }}
               >
                 <WordsPullUp text={TITLE} showAsterisk />

@@ -73,11 +73,7 @@ export default function SceneProjects({ projects }: SceneProjectsProps) {
       });
 
       // ── "THE WORK" heading fades out early ───────────────────────────────
-      tl.to(
-        headingRef.current,
-        { opacity: 0, y: -14, ease: 'none', duration: phaseLen * 0.3 },
-        0,
-      );
+      tl.to(headingRef.current, { opacity: 0, y: -14, ease: 'none', duration: phaseLen * 0.3 }, 0);
 
       // ── Each card's drift phase: image drifts right 0 → +15vw ────────────
       // Phase 2i in the timeline (in [2i·phaseLen, (2i+1)·phaseLen]).
@@ -88,7 +84,12 @@ export default function SceneProjects({ projects }: SceneProjectsProps) {
         tl.fromTo(
           img,
           { x: 0 },
-          { x: () => window.innerWidth * 0.15, ease: 'none', duration: phaseLen, immediateRender: false },
+          {
+            x: () => window.innerWidth * 0.15,
+            ease: 'none',
+            duration: phaseLen,
+            immediateRender: false,
+          },
           driftStart,
         );
       }

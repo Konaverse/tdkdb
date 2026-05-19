@@ -5,32 +5,70 @@ import { gsap } from '@/lib/animations/gsap';
 
 type CursorState = 'default' | 'hover' | 'node' | 'view' | 'scroll';
 
-const STATE: Record<CursorState, {
-  size: number;
-  bg: string;
-  borderColor: string;
-  blend: string;
-  text: string;
-  crosshair: boolean;
-}> = {
-  default: { size: 12, bg: 'transparent',               borderColor: 'rgba(245,240,232,1)',  blend: 'difference', text: '',     crosshair: false },
-  hover:   { size: 40, bg: 'var(--color-threshold)',     borderColor: 'transparent',          blend: 'normal',     text: '',     crosshair: false },
-  node:    { size: 60, bg: 'transparent',               borderColor: 'rgba(102,151,159,1)',   blend: 'normal',     text: '',     crosshair: true  },
-  view:    { size: 80, bg: 'rgba(102,151,159,0.9)',      borderColor: 'transparent',          blend: 'normal',     text: 'VIEW', crosshair: false },
-  scroll:  { size: 6,  bg: 'var(--color-paper)',         borderColor: 'transparent',          blend: 'normal',     text: '',     crosshair: false },
+const STATE: Record<
+  CursorState,
+  {
+    size: number;
+    bg: string;
+    borderColor: string;
+    blend: string;
+    text: string;
+    crosshair: boolean;
+  }
+> = {
+  default: {
+    size: 12,
+    bg: 'transparent',
+    borderColor: 'rgba(245,240,232,1)',
+    blend: 'difference',
+    text: '',
+    crosshair: false,
+  },
+  hover: {
+    size: 40,
+    bg: 'var(--color-threshold)',
+    borderColor: 'transparent',
+    blend: 'normal',
+    text: '',
+    crosshair: false,
+  },
+  node: {
+    size: 60,
+    bg: 'transparent',
+    borderColor: 'rgba(102,151,159,1)',
+    blend: 'normal',
+    text: '',
+    crosshair: true,
+  },
+  view: {
+    size: 80,
+    bg: 'rgba(102,151,159,0.9)',
+    borderColor: 'transparent',
+    blend: 'normal',
+    text: 'VIEW',
+    crosshair: false,
+  },
+  scroll: {
+    size: 6,
+    bg: 'var(--color-paper)',
+    borderColor: 'transparent',
+    blend: 'normal',
+    text: '',
+    crosshair: false,
+  },
 };
 
 export default function CustomCursor() {
-  const cursorRef   = useRef<HTMLDivElement>(null);
-  const textRef     = useRef<HTMLSpanElement>(null);
+  const cursorRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
   const crosshairRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Only on fine-pointer (desktop) devices
     if (!window.matchMedia('(pointer: fine)').matches) return;
 
-    const cursor    = cursorRef.current!;
-    const text      = textRef.current!;
+    const cursor = cursorRef.current!;
+    const text = textRef.current!;
     const crosshair = crosshairRef.current!;
 
     // Reveal the element (hidden by default to avoid position flash)
@@ -115,21 +153,25 @@ export default function CustomCursor() {
       ref={cursorRef}
       className="pointer-events-none fixed left-0 top-0 z-[9999] items-center justify-center rounded-full"
       style={{
-        display: 'none',          // shown in useEffect after pointer check
+        display: 'none', // shown in useEffect after pointer check
         width: 12,
         height: 12,
-        opacity: 0,               // faded in on first mousemove
+        opacity: 0, // faded in on first mousemove
         backgroundColor: 'transparent',
         border: '1px solid rgba(245,240,232,1)',
         transform: 'translate(-50%, -50%)',
         mixBlendMode: 'difference',
-        willChange: 'transform',  // GPU layer hint
+        willChange: 'transform', // GPU layer hint
       }}
     >
       <span ref={textRef} className="text-label text-void" style={{ opacity: 0 }} />
 
       {/* Crosshair for node state */}
-      <div ref={crosshairRef} className="pointer-events-none absolute inset-0" style={{ opacity: 0 }}>
+      <div
+        ref={crosshairRef}
+        className="pointer-events-none absolute inset-0"
+        style={{ opacity: 0 }}
+      >
         <div className="absolute left-1/2 top-1/2 h-full w-[1px] -translate-x-1/2 -translate-y-1/2 bg-threshold" />
         <div className="absolute left-1/2 top-1/2 h-[1px] w-full -translate-x-1/2 -translate-y-1/2 bg-threshold" />
       </div>

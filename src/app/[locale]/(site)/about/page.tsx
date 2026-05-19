@@ -136,7 +136,7 @@ export default async function AboutPage() {
           <StaggerGroup className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {teamMembers.map((member) => (
               <div key={member.name} className="group flex flex-col gap-4">
-                <div className="aspect-square w-full overflow-hidden bg-void relative">
+                <div className="relative aspect-square w-full overflow-hidden bg-void">
                   {member.photoId ? (
                     <img
                       src={teamPhoto(member.photoId)}

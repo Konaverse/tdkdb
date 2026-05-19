@@ -36,12 +36,16 @@ export default function LoadingScreen({ progress, onComplete }: LoadingScreenPro
       },
     });
 
-    tl.fromTo(fill, { scaleX: 0 }, {
-      scaleX: progress,
-      duration: 1.5,
-      ease: 'power2.out',
-      transformOrigin: 'left center',
-    })
+    tl.fromTo(
+      fill,
+      { scaleX: 0 },
+      {
+        scaleX: progress,
+        duration: 1.5,
+        ease: 'power2.out',
+        transformOrigin: 'left center',
+      },
+    )
       .to(text, { opacity: 0, duration: 0.4, ease: 'power4.out', delay: 0.2 })
       .to(overlay, { opacity: 0, duration: 0.5, ease: 'power4.out' }, '-=0.1');
 

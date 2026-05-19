@@ -74,47 +74,64 @@ export default async function ServiceDetailPage({ params }: Props) {
       <Section>
         <GridWrapper>
           <div className="grid gap-16 lg:gap-32">
-            {service.contentSections && service.contentSections.length > 0 ? (() => {
-              let imageCount = 0;
-              return service.contentSections.map((section, idx) => {
-                const hasImage = !!section.imageId;
-                const isImageRight = imageCount % 2 === 0;
-                if (hasImage) imageCount++;
+            {service.contentSections && service.contentSections.length > 0 ? (
+              (() => {
+                let imageCount = 0;
+                return service.contentSections.map((section, idx) => {
+                  const hasImage = !!section.imageId;
+                  const isImageRight = imageCount % 2 === 0;
+                  if (hasImage) imageCount++;
 
-                if (hasImage) {
+                  if (hasImage) {
+                    return (
+                      <div
+                        key={idx}
+                        className="grid grid-cols-1 items-end gap-8 md:grid-cols-2 md:gap-16"
+                      >
+                        {isImageRight ? (
+                          <>
+                            <div className="flex flex-col gap-6">
+                              {section.text && <PortableText value={section.text} />}
+                            </div>
+                            <div className="w-full">
+                              {section.imageId && (
+                                <img
+                                  src={cloudinaryUrl(section.imageId, { width: 800 })}
+                                  alt=""
+                                  className="h-auto w-full object-cover"
+                                />
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="order-last w-full md:order-first">
+                              {section.imageId && (
+                                <img
+                                  src={cloudinaryUrl(section.imageId, { width: 800 })}
+                                  alt=""
+                                  className="h-auto w-full object-cover"
+                                />
+                              )}
+                            </div>
+                            <div className="order-first flex flex-col gap-6 md:order-last">
+                              {section.text && <PortableText value={section.text} />}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  }
+
                   return (
-                    <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-end">
-                      {isImageRight ? (
-                        <>
-                          <div className="flex flex-col gap-6">
-                            {section.text && <PortableText value={section.text} />}
-                          </div>
-                          <div className="w-full">
-                            {section.imageId && <img src={cloudinaryUrl(section.imageId, { width: 800 })} alt="" className="w-full h-auto object-cover" />}
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="w-full order-last md:order-first">
-                            {section.imageId && <img src={cloudinaryUrl(section.imageId, { width: 800 })} alt="" className="w-full h-auto object-cover" />}
-                          </div>
-                          <div className="flex flex-col gap-6 order-first md:order-last">
-                            {section.text && <PortableText value={section.text} />}
-                          </div>
-                        </>
-                      )}
+                    <div key={idx} className="flex max-w-3xl flex-col gap-6">
+                      {section.text && <PortableText value={section.text} />}
                     </div>
                   );
-                }
-
-                return (
-                  <div key={idx} className="flex flex-col gap-6 max-w-3xl">
-                    {section.text && <PortableText value={section.text} />}
-                  </div>
-                );
-              });
-            })() : (
-              <div className="flex flex-col gap-6 max-w-3xl">
+                });
+              })()
+            ) : (
+              <div className="flex max-w-3xl flex-col gap-6">
                 {service.fullDescription ? (
                   <PortableText value={service.fullDescription as PortableTextBlock[]} />
                 ) : null}
