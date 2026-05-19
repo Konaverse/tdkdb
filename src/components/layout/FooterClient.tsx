@@ -49,7 +49,10 @@ export default function FooterClient({ settings }: Props) {
   const hrefFor = (path: string) => (path === '' ? `/${locale}` : `/${locale}/${path}`);
 
   return (
-    <footer ref={footerRef} className="relative overflow-hidden border-t border-border bg-void">
+    <footer
+      ref={footerRef}
+      className="relative z-[60] overflow-hidden border-t border-border bg-void"
+    >
       <div className="mx-auto max-w-content px-8">
         {/* ── Main grid ─────────────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 gap-12 py-section lg:grid-cols-3">

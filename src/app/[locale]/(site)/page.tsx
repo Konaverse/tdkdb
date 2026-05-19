@@ -1,26 +1,27 @@
-import dynamic from 'next/dynamic';
-import ScenePhilosophy from '@/components/homepage/ScenePhilosophy';
 import SceneProjects from '@/components/homepage/SceneProjects';
+import SceneAbout from '@/components/homepage/SceneAbout';
 import SceneBento from '@/components/homepage/SceneBento';
 import SceneContact from '@/components/homepage/SceneContact';
 import { getProjectsForHomepageReel } from '@/lib/sanity/queries';
 
-// Hero is client-only (canvas + GSAP) — SSR excluded
-const HeroSection = dynamic(() => import('@/components/homepage/HeroSection'), { ssr: false });
+import HeroMinimal from '@/components/homepage/HeroMinimal';
 
 export default async function HomePage() {
   const projects = await getProjectsForHomepageReel();
 
   return (
-    <main className="relative" style={{ backgroundColor: 'var(--color-void)' }}>
-      {/* Hero — V2: 400vh pinned, 4-state cinematic sequence */}
-      <HeroSection />
+    <main className="relative">
+      {/* Hero — Minimal */}
+      <HeroMinimal />
 
-      {/* Post-hero scenes */}
-      <ScenePhilosophy />
-      <SceneProjects projects={projects} />
-      <SceneBento />
-      <SceneContact />
+      <SceneAbout />
+
+      {/* Post-about scenes wrapper to cover fixed Hero content */}
+      <div className="relative z-[60] bg-void">
+        <SceneProjects projects={projects} />
+        <SceneBento />
+        <SceneContact />
+      </div>
     </main>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useParams } from 'next/navigation';
 import { gsap } from '@/lib/animations/gsap';
 import { getLenis } from '@/lib/animations/lenis';
@@ -117,12 +118,20 @@ export default function NavbarClient({ settings }: Props) {
         style={{
           backgroundColor: isScrolled && !isHomepage ? 'rgba(13, 13, 13, 0.85)' : 'transparent',
           backdropFilter: isScrolled && !isHomepage ? 'blur(20px)' : 'blur(0px)',
+          mixBlendMode: 'difference',
         }}
       >
         <nav className="mx-auto flex h-20 max-w-content items-center justify-between px-8">
           {/* Logo */}
-          <Link href={`/${locale}`} className="text-label text-paper">
-            {companyName}
+          <Link href={`/${locale}`} className="flex items-center">
+            <Image
+              src="https://res.cloudinary.com/konaverse/image/upload/v1772055539/clients/tdkdb/general/logo-dark.svg"
+              alt={companyName}
+              width={140}
+              height={36}
+              className="h-24 w-auto object-contain brightness-0 invert"
+              priority
+            />
           </Link>
 
           {/* Desktop nav links */}

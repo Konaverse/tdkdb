@@ -68,6 +68,9 @@ const config: Config = {
       borderRadius: {
         none: '0',
       },
+      backgroundImage: {
+        'gradient-conic': 'conic-gradient(var(--tw-gradient-stops))',
+      },
     },
   },
   plugins: [],
