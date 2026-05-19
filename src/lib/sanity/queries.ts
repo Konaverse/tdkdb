@@ -1,6 +1,6 @@
 // src/lib/sanity/queries.ts
 import { client } from './client';
-import type { Project, Insight, Service, SiteSettings } from './types';
+import type { Project, Insight, Service, SiteSettings, TeamMember } from './types';
 
 // --- PROJECT QUERIES ---
 
@@ -19,8 +19,8 @@ export async function getAllProjects(): Promise<Project[]> {
 }
 
 export async function getProjectsForHomepageReel(): Promise<Project[]> {
-  const query = `*[_type == 'project' && status != 'upcoming'] | order(year desc) [0...5] {
-    _id, title, slug, status, ctaType, location, year, heroImageId
+  const query = `*[_type == 'project'] | order(year desc) [0...5] {
+    _id, title, slug, status, type, ctaType, location, year, heroImageId
   }`;
 
   try {
@@ -132,7 +132,7 @@ export async function getAllServices(): Promise<Service[]> {
 
 export async function getServiceBySlug(slug: string): Promise<Service | null> {
   const query = `*[_type == 'service' && slug.current == $slug][0] {
-    _id, title, slug, shortDescription, fullDescription, heroImageId,
+    _id, title, slug, shortDescription, fullDescription, contentSections[] { text, imageId }, heroImageId,
     process[] { step, title, description },
     faq[] { question, answer },
     relatedProjectSlugs, seo
@@ -162,5 +162,21 @@ export async function getSiteSettings(): Promise<SiteSettings | null> {
   } catch (error) {
     console.error('Error fetching site settings:', error);
     return null;
+  }
+}
+
+// --- TEAM QUERIES ---
+
+export async function getAllTeamMembers(): Promise<TeamMember[]> {
+  const query = `*[_type == 'teamMember'] | order(order asc, name asc) {
+    _id, name, role, bio, photoId, email, linkedin, order
+  }`;
+
+  try {
+    const data = await client.fetch<TeamMember[]>(query);
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching team members:', error);
+    return [];
   }
 }

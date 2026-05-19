@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { heroImage } from '@/lib/cloudinary/transforms';
+import { heroImage, teamPhoto } from '@/lib/cloudinary/transforms';
 import Image from 'next/image';
 import Section from '@/components/layout/Section';
 import GridWrapper from '@/components/layout/GridWrapper';
@@ -8,6 +8,7 @@ import FadeUp from '@/components/animations/FadeUp';
 import CountUp from '@/components/animations/CountUp';
 import StaggerGroup from '@/components/animations/StaggerGroup';
 import { GhostButton } from '@/components/ui/Button';
+import { getAllTeamMembers } from '@/lib/sanity/queries';
 
 export const metadata: Metadata = {
   title: 'About | TDK Design & Build',
@@ -15,25 +16,11 @@ export const metadata: Metadata = {
     'TDK Design & Build — a real estate developer in Greece crafting thoughtful residential and commercial spaces for over 15 years.',
 };
 
-const teamMembers = [
-  {
-    name: 'Andreas Theoklitos',
-    role: 'Founder & Lead Architect',
-    bio: 'With over two decades of experience in residential architecture, Andreas shapes every project from concept to completion.',
-  },
-  {
-    name: 'Dimitra Kontou',
-    role: 'Director of Construction',
-    bio: 'Dimitra oversees all construction operations, ensuring each build meets the highest standards of quality and precision.',
-  },
-  {
-    name: 'Konstantinos Vassiliou',
-    role: 'Head of Interior Design',
-    bio: 'Konstantinos brings a refined aesthetic sensibility to every interior, blending functionality with timeless elegance.',
-  },
-];
+export const revalidate = 60;
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const teamMembers = await getAllTeamMembers();
+
   return (
     <main className="bg-void text-paper">
       {/* ── Hero ── */}
@@ -149,9 +136,16 @@ export default function AboutPage() {
           <StaggerGroup className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {teamMembers.map((member) => (
               <div key={member.name} className="group flex flex-col gap-4">
-                {/* Placeholder image square */}
-                <div className="aspect-square w-full overflow-hidden bg-void">
-                  <div className="h-full w-full bg-gradient-to-br from-surface to-void transition-transform duration-medium ease-smooth group-hover:scale-[1.03]" />
+                <div className="aspect-square w-full overflow-hidden bg-void relative">
+                  {member.photoId ? (
+                    <img
+                      src={teamPhoto(member.photoId)}
+                      alt={member.name}
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-medium ease-smooth group-hover:scale-[1.03]"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-gradient-to-br from-surface to-void transition-transform duration-medium ease-smooth group-hover:scale-[1.03]" />
+                  )}
                 </div>
                 <div>
                   <p className="mb-1 text-label transition-colors duration-fast ease-smooth group-hover:text-threshold">

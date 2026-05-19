@@ -8,7 +8,23 @@ export default defineType({
         defineField({ name: 'title', title: 'Title', type: 'string' }),
         defineField({ name: 'slug', title: 'Slug', type: 'slug', options: { source: 'title' } }),
         defineField({ name: 'shortDescription', title: 'Short Description', type: 'text' }),
-        defineField({ name: 'fullDescription', title: 'Full Description', type: 'array', of: [{ type: 'block' }] }),
+        defineField({ name: 'fullDescription', title: 'Full Description (Legacy)', type: 'array', of: [{ type: 'block' }] }),
+        defineField({
+            name: 'contentSections',
+            title: 'Content Sections',
+            description: 'Add paragraphs here. If an image is provided, it will alternate left/right.',
+            type: 'array',
+            of: [
+                defineField({
+                    name: 'contentSection',
+                    type: 'object',
+                    fields: [
+                        defineField({ name: 'text', title: 'Text Paragraph', type: 'array', of: [{ type: 'block' }] }),
+                        defineField({ name: 'imageId', title: 'Image (Cloudinary ID)', type: 'string', description: 'Optional. If provided, renders side-by-side with text.' }),
+                    ],
+                }),
+            ],
+        }),
         defineField({
             name: 'heroImageId',
             title: 'Hero Image (Cloudinary ID)',

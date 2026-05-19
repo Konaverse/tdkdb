@@ -28,7 +28,9 @@
       "Bash(cmd.exe:*)",
       "Bash(npx:*)",
       "Bash(export:*)",
-      "Bash(dir C:\\\\Users\\\\konst\\\\Projects\\\\TDK_Design_&_Build\\\\tdkdb\\\\node_modules\\\\@react-three\\\\fiber:*)"
+      "Bash(dir C:\\\\Users\\\\konst\\\\Projects\\\\TDK_Design_&_Build\\\\tdkdb\\\\node_modules\\\\@react-three\\\\fiber:*)",
+      "Bash(rm \"C:\\\\Users\\\\konst\\\\Projects\\\\TDK_Design_&_Build\\\\tdkdb\\\\src\\\\components\\\\homepage\\\\SceneAnatomy.tsx\")",
+      "Bash(rm \"C:\\\\Users\\\\konst\\\\Projects\\\\TDK_Design_&_Build\\\\tdkdb\\\\src\\\\components\\\\homepage\\\\SceneProcess.tsx\")"
     ]
   }
 }

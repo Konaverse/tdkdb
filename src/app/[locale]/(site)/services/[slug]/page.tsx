@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { heroImage } from '@/lib/cloudinary/transforms';
+import { heroImage, cloudinaryUrl } from '@/lib/cloudinary/transforms';
 import Section from '@/components/layout/Section';
 import GridWrapper from '@/components/layout/GridWrapper';
 import TextReveal from '@/components/animations/TextReveal';
@@ -73,12 +73,53 @@ export default async function ServiceDetailPage({ params }: Props) {
       {/* ── Description ── */}
       <Section>
         <GridWrapper>
-          <div className="grid gap-16 lg:gap-24">
-            <div className="flex flex-col gap-6">
-              {service.fullDescription ? (
-                <PortableText value={service.fullDescription as PortableTextBlock[]} />
-              ) : null}
-            </div>
+          <div className="grid gap-16 lg:gap-32">
+            {service.contentSections && service.contentSections.length > 0 ? (() => {
+              let imageCount = 0;
+              return service.contentSections.map((section, idx) => {
+                const hasImage = !!section.imageId;
+                const isImageRight = imageCount % 2 === 0;
+                if (hasImage) imageCount++;
+
+                if (hasImage) {
+                  return (
+                    <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-end">
+                      {isImageRight ? (
+                        <>
+                          <div className="flex flex-col gap-6">
+                            {section.text && <PortableText value={section.text} />}
+                          </div>
+                          <div className="w-full">
+                            {section.imageId && <img src={cloudinaryUrl(section.imageId, { width: 800 })} alt="" className="w-full h-auto object-cover" />}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-full order-last md:order-first">
+                            {section.imageId && <img src={cloudinaryUrl(section.imageId, { width: 800 })} alt="" className="w-full h-auto object-cover" />}
+                          </div>
+                          <div className="flex flex-col gap-6 order-first md:order-last">
+                            {section.text && <PortableText value={section.text} />}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={idx} className="flex flex-col gap-6 max-w-3xl">
+                    {section.text && <PortableText value={section.text} />}
+                  </div>
+                );
+              });
+            })() : (
+              <div className="flex flex-col gap-6 max-w-3xl">
+                {service.fullDescription ? (
+                  <PortableText value={service.fullDescription as PortableTextBlock[]} />
+                ) : null}
+              </div>
+            )}
           </div>
         </GridWrapper>
       </Section>

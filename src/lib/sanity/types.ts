@@ -112,6 +112,11 @@ export interface Insight {
 
 // --- Service ---
 
+export interface ServiceContentSection {
+  text: PortableTextBlock[];
+  imageId?: string;
+}
+
 export interface ServiceProcessStep {
   step: number;
   title: string;
@@ -129,6 +134,7 @@ export interface Service {
   slug: { current: string };
   shortDescription?: string;
   fullDescription?: PortableTextBlock[];
+  contentSections?: ServiceContentSection[];
   heroImageId?: string; // Cloudinary ID
   process?: ServiceProcessStep[];
   faq?: ServiceFAQItem[];

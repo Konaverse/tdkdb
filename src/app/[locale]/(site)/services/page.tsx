@@ -13,6 +13,7 @@ export const metadata: Metadata = {
 };
 
 import { getAllServices } from '@/lib/sanity/queries';
+import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
 
 export const revalidate = 60;
 
@@ -63,18 +64,31 @@ export default async function ServicesPage() {
               <FadeUp key={service.slug.current} delay={i * 80}>
                 <Link
                   href={`/en/services/${service.slug.current}`}
-                  className="group flex h-full flex-col gap-6 border border-transparent bg-void p-10 transition-colors duration-fast ease-smooth hover:border-paper hover:bg-surface"
+                  className="group relative flex h-full flex-col overflow-hidden border border-transparent bg-void transition-colors duration-fast ease-smooth hover:border-paper hover:bg-surface"
                 >
-                  <span className="text-display-lg font-light text-threshold opacity-20">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  <div className="flex flex-1 flex-col gap-4">
-                    <h2 className="text-heading text-paper">{service.title}</h2>
-                    <p className="flex-1 text-body-lg text-stone">{service.shortDescription}</p>
+                  {/* Background Hover Image */}
+                  {service.heroImageId && (
+                    <img
+                      src={cloudinaryUrl(service.heroImageId, { width: 800 })}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-20"
+                    />
+                  )}
+
+                  {/* Content Container */}
+                  <div className="relative z-10 flex h-full flex-col gap-6 p-10">
+                    <span className="text-display-lg font-light text-threshold opacity-20 transition-opacity duration-500 group-hover:opacity-40">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <div className="flex flex-1 flex-col gap-4">
+                      <h2 className="text-heading text-paper">{service.title}</h2>
+                      <p className="flex-1 text-body-lg text-stone transition-colors duration-500 group-hover:text-paper">{service.shortDescription}</p>
+                    </div>
+                    <span className="text-label text-stone transition-colors duration-fast ease-smooth group-hover:text-paper">
+                      EXPLORE →
+                    </span>
                   </div>
-                  <span className="text-label text-stone transition-colors duration-fast ease-smooth group-hover:text-paper">
-                    EXPLORE →
-                  </span>
                 </Link>
               </FadeUp>
             ))}

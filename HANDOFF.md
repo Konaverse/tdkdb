@@ -42,13 +42,10 @@ Navbar, Footer, Button (primary/ghost/text), animation wrappers (FadeUp, TextRev
 | 4.3 | Hero State & Manifesto Text (Scene 2) | ✅ |
 | 4.4 | Approach Sequence Scroll Scrubbing (Scene 3) | ✅ |
 | 4.5 | Threshold Crossing Transition & Canvas Cleanup (Scene 4) | ✅ |
-| 4.6 | Anatomy Section (Scene 5) | ✅ |
-| 4.6.5 | SceneAnatomy — 360° Rotation Canvas | ✅ (known issues below) |
-| 4.7 | Philosophy Section (Scene 6) | ✅ |
-| 4.8 | Projects Reel (Scene 7) | ✅ |
-| 4.9 | Process Section (Scene 8) | ✅ |
-| 4.10 | Contact CTA & Footer (Scenes 9 & 10) | ✅ |
-| 4.11 | Custom Cursor | ✅ |
+| 4.6 | Philosophy Section (Scene 5) | ✅ |
+| 4.7 | Projects Reel (Scene 6) | ✅ |
+| 4.8 | Contact CTA & Footer (Scenes 7 & 8) | ✅ |
+| 4.9 | Custom Cursor | ✅ |
 
 ### Phase 5 — Interior Pages ✅ (all stubs implemented, customisation deferred)
 
@@ -67,24 +64,10 @@ Navbar, Footer, Button (primary/ghost/text), animation wrappers (FadeUp, TextRev
 
 ## 3. WHERE TO START
 
-### 🚀 Next Up: Hero Homepage Implementation
-We have completely cleared the hero section and reverted to a blank slate (darkness). We are now **READY FOR THE NEW HERO HOMEPAGE IMPLEMENTATION**. 
-Start by following the updated `TDK_HOMEPAGE_EXPERIENCE.md` and `TDK_CURSOR_BUILD_STRATEGY.md` prompts to build the new hero experience.
+### 🚀 Next Up: Phase 7 — SEO & Analytics
+Hero V2 is built (`HeroSection.tsx`). The homepage renders: `HeroSection → ScenePhilosophy → SceneProjects → SceneContact → Footer`.
+Next is **Phase 7.1 (SEO Infrastructure)**: set up `generatePageMetadata()` utility and apply it to all static and dynamic pages.
 
-### ⚠️ Still Pending: SceneAnatomy Node Polish
-
-Two known issues remain from 4.6.5 — deferred, fix whenever convenient:
-
-**Issue 1 — Node positions don't match the 360° frames**
-The 6 hotspot node coordinates (`left`/`top` in the `NODES` array) were tuned for a static photo, not the 360° frames. Load in dev, hover the right panel (freezes at frame 0), and re-tune each node's position.
-File: `src/components/homepage/SceneAnatomy.tsx` — `NODES` array at top of file.
-
-**Issue 2 — Node-click edge cases when already zoomed**
-a) Clicking a different node while zoomed: reset scale to 1 first before starting the new 1.25 tween.
-b) Re-entering the panel with an active node: `handlePanelEnter` snaps to frame 0 even when a node is locked — consider skipping the snap if `activeNodeRef.current !== null`.
-c) Keyboard/focus click when `nodesVisible` is false: add `tabIndex={nodesVisible ? 0 : -1}` to node buttons.
-
----
 
 ### Phase 6 — Sanity CMS & Backend Integration ✅
 
@@ -112,40 +95,20 @@ This involves setting up the `generatePageMetadata()` utility and applying it to
 | File | Role |
 |---|---|
 | `src/app/[locale]/(site)/page.tsx` | SSG shell — imports all scene components + Footer |
-| `src/components/homepage/HomepageCanvas.tsx` | Canvas engine + state machine |
-| `src/components/homepage/LoadingScreen.tsx` | Full-screen loading overlay (Scene 1) |
-| `src/components/homepage/SceneHero.tsx` | Manifesto text overlay (Scene 2) |
-| `src/components/homepage/SceneAnatomy.tsx` | Interactive building anatomy (Scene 5) ✅ |
-| `src/components/homepage/ScenePhilosophy.tsx` | 3D InfiniteGallery depth tunnel (Scene 6) ✅ |
-| `src/components/homepage/SceneProjects.tsx` | Horizontal projects reel (Scene 7) ✅ |
-| `src/components/homepage/SceneProcess.tsx` | Process timeline — vertical spine (Scene 8) ✅ |
-| `src/components/homepage/SceneContact.tsx` | Contact CTA (Scene 9) ✅ |
+| `src/components/homepage/HeroSection.tsx` | V2 hero — 400vh pinned, 4-state cinematic (IsoLevelWarp + WireframeMesh + MotionPath) |
+| `src/components/homepage/ScenePhilosophy.tsx` | 3D InfiniteGallery depth tunnel ✅ |
+| `src/components/homepage/SceneProjects.tsx` | Horizontal projects reel ✅ |
+| `src/components/homepage/SceneContact.tsx` | Contact CTA ✅ |
 
-### State Machine (`HomepagePhase`)
+### Hero Architecture (V2 — HeroSection.tsx)
 
-```
-loading → assembly → hero → approach → threshold → complete
-```
-
-After `complete`: canvas `display:none`, frame arrays nulled, normal HTML scroll. SceneAnatomy and all subsequent scenes are in normal document flow.
-
-### SceneAnatomy Architecture (for context)
-
-- 200vh wrapper div with `sticky` inner section (CSS sticky, NOT GSAP pin — avoids React reconciliation issue with GSAP spacer nodes)
-- 6 interactive hotspot nodes; hover/click → SVG connector line drawn to left panel
-- Left panel text transitions via GSAP timeline (y ± 30, opacity)
-- "↓ CONTINUE" appears after 8s or after hovering 3+ nodes
-- **Right panel replaced with 360° canvas** (was static Cloudinary `<img>`)
-
-#### 360° Canvas details
-- Sequence: `armonia360` — 65 WebP frames at 20 fps, `/sequences/armonia-360/frame-0001.webp` … `frame-0065.webp`
-- Config entry in `src/lib/homepage/sequenceConfig.ts`
-- RAF loop in `startRotation()` (stable `useCallback`, all refs); wraps frame 64 → 0 seamlessly
-- **Panel hover model**: mouse enter → stops RAF, snaps canvas to frame 0, sets `nodesVisible = true`; mouse leave (no active node) → resets zoom, hides nodes, restarts RAF
-- **`activeNodeRef`** (ref mirror of `activeNode` state) used in `handlePanelLeave` to guard against restarting rotation while a node is locked
-- Node click zooms `canvasWrapperRef` to `scale: 1.25` via GSAP, `transformOrigin` set to node's `left top`; same-node click resets to `scale: 1`
-- Canvas DPR-aware sizing (`min(DPR, 2)`); resize listener redraws current frame
-- ⚠️ Known issues: node positions need re-tuning for 360° frames; click edge cases (see §3 above)
+- `src/components/homepage/HeroSection.tsx` — 400vh pinned, client-only (`dynamic({ ssr: false })`)
+- 4 states driven by scroll progress: **Iso** → **Wireframe** → **MotionPath** → **Exit**
+- Background: `IsoLevelWarp` (isometric wave grid, Three.js R3F, `dynamic({ ssr: false })`)
+- Overlay: `WireframeMesh` (`src/components/ui/WireframeMesh.tsx`)
+- MotionPathPlugin registered in `gsapInit()` in `src/lib/animations/gsap.ts`
+- `@keyframes ray-drift` defined in `src/styles/globals.css`
+- Amber (`rgba(212,165,116,…)`) + teal (`rgba(102,151,159,…)`) atmosphere per project card
 
 ### ScenePhilosophy Architecture (rebuilt — Phase 4.7)
 
@@ -166,19 +129,6 @@ After `complete`: canvas `display:none`, frame arrays nulled, normal HTML scroll
 - Slot-machine counter top-right flips "01" → "02" at tl position 0.4
 - Card info fades/slides in sequence; ghost CTA button per card
 
-### SceneProcess Architecture (Phase 4.9 — rebuilt)
-
-- **200vh** outer section → 100vh of scroll travel (CSS sticky, not GSAP pin)
-- Sticky inner panel: `h-screen flex flex-col`, `paddingTop: 64px`, `paddingBottom: 48px`
-- Heading + 48px HR rule: `flex-none` in-flow at top; clip-path reveal on section entry
-- Two-column grid: `flex-1 min-h-0`, `40% / 60%`
-  - Left: SVG vertical spine, `height: 100%`, viewBox `0 0 2 100`
-  - Ghost line (`--color-border`) always visible; progress line (`--color-threshold`) animated via **CSS `strokeDashoffset`** (NOT `attr` plugin — camelCase/kebab mismatch bug avoided)
-  - Tick marks at y=0,25,50,75,100 revealed as line reaches each position
-  - Right: 5 step blocks, `flex flex-col justify-between h-full`, slide in from `translateX(20px)`
-- Closing "Every project. Every time.": `mt-auto flex-none` — pinned to panel bottom
-- GSAP timeline `scrub: 1.5`, `start: 'top top'`, `end: 'bottom bottom'`
-- Mobile (<1024px): stacked layout, `border-left` accent, IntersectionObserver reveals
 
 ### SceneContact Architecture (Phase 4.10)
 
