@@ -95,10 +95,16 @@ export default function SceneAbout() {
           }
         }
 
+        // Fade out current paragraph
+        const currPara = paraRefs.current[i];
+        if (currPara) {
+          tl.to(currPara, { opacity: 0, y: -10, duration: 0.12, ease: 'power2.inOut' }, startTime);
+        }
+
         // Wipe in next paragraph's letters sequentially
-        const para = paraRefs.current[i + 1];
-        if (para) {
-          const chars = para.querySelectorAll('.char');
+        const nextPara = paraRefs.current[i + 1];
+        if (nextPara) {
+          const chars = nextPara.querySelectorAll('.char');
           if (chars.length > 0) {
             tl.to(
               chars,
@@ -109,10 +115,10 @@ export default function SceneAbout() {
                 duration: 0.05,
                 ease: 'power1.out',
               },
-              startTime,
+              startTime + 0.1,
             );
           } else {
-            tl.to(para, { opacity: 1, duration: 0.12 }, startTime);
+            tl.to(nextPara, { opacity: 1, duration: 0.12 }, startTime + 0.1);
           }
         }
       }
@@ -126,16 +132,15 @@ export default function SceneAbout() {
       {/* Block A: 100vh Blank white space */}
       <div className="h-screen w-full bg-white" />
 
-      {/* Block B Wrapper (The Trigger) */}
       <div ref={triggerRef} className="relative h-screen w-full bg-white">
         {/* The Pinned Element */}
         <div
           ref={pinRef}
           className="absolute inset-0 flex h-screen w-full flex-col justify-end overflow-hidden bg-white px-4 pb-2 pt-20 sm:px-6 md:px-10"
         >
-          <div className="grid h-full w-full grid-cols-12 gap-8 lg:gap-16">
+          <div className="grid h-full w-full grid-cols-12 content-start gap-4 lg:content-stretch lg:gap-16">
             {/* Left side: Container (pinned higher) */}
-            <div className="col-span-12 flex h-full flex-col justify-start lg:col-span-8">
+            <div className="col-span-12 flex flex-col justify-start lg:col-span-8 lg:h-full">
               {/* Image Container */}
               <div className="relative aspect-[16/6] w-full overflow-hidden">
                 {IMAGES.map((src, i) => (
@@ -162,7 +167,7 @@ export default function SceneAbout() {
             </div>
 
             {/* Right side: Paragraphs */}
-            <div className="hidden h-full flex-col justify-between pb-24 lg:col-span-4 lg:flex">
+            <div className="col-span-12 grid items-start pb-8 pt-4 lg:col-span-4 lg:pb-24 lg:pt-0">
               {PARAGRAPHS.map((p, i) => {
                 if (i === 0) {
                   return (
@@ -171,7 +176,7 @@ export default function SceneAbout() {
                       ref={(el) => {
                         paraRefs.current[i] = el;
                       }}
-                      className="text-base font-light text-black xl:text-lg 2xl:text-xl"
+                      className="col-start-1 row-start-1 text-base font-light text-black xl:text-lg 2xl:text-xl"
                     >
                       {p}
                     </p>
@@ -185,7 +190,7 @@ export default function SceneAbout() {
                     ref={(el) => {
                       paraRefs.current[i] = el;
                     }}
-                    className="text-base font-light text-black xl:text-lg 2xl:text-xl"
+                    className="col-start-1 row-start-1 text-base font-light text-black xl:text-lg 2xl:text-xl"
                   >
                     {words.map((word, wIdx) => (
                       <span key={wIdx} className="word inline-block">

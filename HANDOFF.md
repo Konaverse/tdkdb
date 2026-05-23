@@ -21,63 +21,67 @@ All three live in the project root:
 ## 2. WHAT'S DONE — Completed Phases
 
 ### Phase 0 — Project Scaffolding ✅
+
 Next.js 14 + TypeScript + Tailwind + pnpm. All deps, routing, env vars, vercel.json.
 
 ### Phase 1 — PRD Orientation ✅
+
 Architecture Decision Record at `docs/ADR.md` (11 decisions).
 
 ### Phase 2 — Design System & Global Tokens ✅
+
 CSS custom properties, Tailwind config, typography scale, GSAP + Lenis singletons, SmoothScrollProvider.
 
 ### Phase 3 — Global Components ✅
+
 Navbar, Footer, Button (primary/ghost/text), animation wrappers (FadeUp, TextReveal, CountUp, StaggerGroup, HorizontalReveal, Divider), Section, GridWrapper.
 
 ### Phase 4 — Homepage (Scene by Scene) — IN PROGRESS
 
-| Prompt | Scene | Status |
-|---|---|---|
-| 4.0 | Feed Homepage Context | ✅ |
-| 4.1 | Image Sequence Config & Canvas Engine | ✅ |
-| 4.2 | Loading Screen & Assembly Playback (Scene 1) | ✅ |
-| 4.3 | Hero State & Manifesto Text (Scene 2) | ✅ |
-| 4.4 | Approach Sequence Scroll Scrubbing (Scene 3) | ✅ |
-| 4.5 | Threshold Crossing Transition & Canvas Cleanup (Scene 4) | ✅ |
-| 4.6 | Philosophy Section (Scene 5) | ✅ |
-| 4.7 | Projects Reel (Scene 6) | ✅ |
-| 4.8 | Contact CTA & Footer (Scenes 7 & 8) | ✅ |
-| 4.9 | Custom Cursor | ✅ |
+| Prompt | Scene                                                    | Status |
+| ------ | -------------------------------------------------------- | ------ |
+| 4.0    | Feed Homepage Context                                    | ✅     |
+| 4.1    | Image Sequence Config & Canvas Engine                    | ✅     |
+| 4.2    | Loading Screen & Assembly Playback (Scene 1)             | ✅     |
+| 4.3    | Hero State & Manifesto Text (Scene 2)                    | ✅     |
+| 4.4    | Approach Sequence Scroll Scrubbing (Scene 3)             | ✅     |
+| 4.5    | Threshold Crossing Transition & Canvas Cleanup (Scene 4) | ✅     |
+| 4.6    | Philosophy Section (Scene 5)                             | ✅     |
+| 4.7    | Projects Reel (Scene 6)                                  | ✅     |
+| 4.8    | Contact CTA & Footer (Scenes 7 & 8)                      | ✅     |
+| 4.9    | Custom Cursor                                            | ✅     |
 
 ### Phase 5 — Interior Pages ✅ (all stubs implemented, customisation deferred)
 
-| Prompt | Page | Status |
-|---|---|---|
-| 5.1 | About | ✅ |
-| 5.2 | Services Index | ✅ |
-| 5.3 | Service Detail + Accordion | ✅ |
-| 5.4 | Projects Index + ProjectCard + FilterTabs | ✅ |
-| 5.5 | Project Detail + 12 section components + Lightbox + Interest API | ✅ |
-| 5.6 | Insights Index + Detail + ArticleCard + CategoryFilter + PortableText | ✅ |
-| 5.7 | Contact Page + Contact API | ✅ |
-| 5.8 | 404 Page | ✅ |
+| Prompt | Page                                                                  | Status |
+| ------ | --------------------------------------------------------------------- | ------ |
+| 5.1    | About                                                                 | ✅     |
+| 5.2    | Services Index                                                        | ✅     |
+| 5.3    | Service Detail + Accordion                                            | ✅     |
+| 5.4    | Projects Index + ProjectCard + FilterTabs                             | ✅     |
+| 5.5    | Project Detail + 12 section components + Lightbox + Interest API      | ✅     |
+| 5.6    | Insights Index + Detail + ArticleCard + CategoryFilter + PortableText | ✅     |
+| 5.7    | Contact Page + Contact API                                            | ✅     |
+| 5.8    | 404 Page                                                              | ✅     |
 
 ---
 
 ## 3. WHERE TO START
 
 ### 🚀 Next Up: Phase 7 — SEO & Analytics
+
 Hero V2 is built (`HeroSection.tsx`). The homepage renders: `HeroSection → ScenePhilosophy → SceneProjects → SceneContact → Footer`.
 Next is **Phase 7.1 (SEO Infrastructure)**: set up `generatePageMetadata()` utility and apply it to all static and dynamic pages.
 
-
 ### Phase 6 — Sanity CMS & Backend Integration ✅
 
-| Prompt | Phase | Status |
-|---|---|---|
-| 6.1 | Sanity Schemas | ✅ |
-| 6.2 | TypeScript Types & GROQ Queries | ✅ |
-| 6.3 | Wire Sanity to All Pages | ✅ |
-| 6.4 | Sanity Content Entry | ✅ (Almond & Insights pinned for later) |
-| Bugfixes | Global Server Layout Nav/Footer | ✅ |
+| Prompt   | Phase                           | Status                                  |
+| -------- | ------------------------------- | --------------------------------------- |
+| 6.1      | Sanity Schemas                  | ✅                                      |
+| 6.2      | TypeScript Types & GROQ Queries | ✅                                      |
+| 6.3      | Wire Sanity to All Pages        | ✅                                      |
+| 6.4      | Sanity Content Entry            | ✅ (Almond & Insights pinned for later) |
+| Bugfixes | Global Server Layout Nav/Footer | ✅                                      |
 
 ### Phase 7 — SEO & Analytics — IN PROGRESS
 
@@ -92,13 +96,13 @@ This involves setting up the `generatePageMetadata()` utility and applying it to
 
 ### File Map
 
-| File | Role |
-|---|---|
-| `src/app/[locale]/(site)/page.tsx` | SSG shell — imports all scene components + Footer |
-| `src/components/homepage/HeroSection.tsx` | V2 hero — 400vh pinned, 4-state cinematic (IsoLevelWarp + WireframeMesh + MotionPath) |
-| `src/components/homepage/ScenePhilosophy.tsx` | 3D InfiniteGallery depth tunnel ✅ |
-| `src/components/homepage/SceneProjects.tsx` | Horizontal projects reel ✅ |
-| `src/components/homepage/SceneContact.tsx` | Contact CTA ✅ |
+| File                                          | Role                                                                                  |
+| --------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `src/app/[locale]/(site)/page.tsx`            | SSG shell — imports all scene components + Footer                                     |
+| `src/components/homepage/HeroSection.tsx`     | V2 hero — 400vh pinned, 4-state cinematic (IsoLevelWarp + WireframeMesh + MotionPath) |
+| `src/components/homepage/ScenePhilosophy.tsx` | 3D InfiniteGallery depth tunnel ✅                                                    |
+| `src/components/homepage/SceneProjects.tsx`   | Horizontal projects reel ✅                                                           |
+| `src/components/homepage/SceneContact.tsx`    | Contact CTA ✅                                                                        |
 
 ### Hero Architecture (V2 — HeroSection.tsx)
 
@@ -129,7 +133,6 @@ This involves setting up the `generatePageMetadata()` utility and applying it to
 - Slot-machine counter top-right flips "01" → "02" at tl position 0.4
 - Card info fades/slides in sequence; ghost CTA button per card
 
-
 ### SceneContact Architecture (Phase 4.10)
 
 - `h-screen bg-void overflow-hidden`
@@ -152,17 +155,17 @@ This involves setting up the `generatePageMetadata()` utility and applying it to
 
 ## 5. KEY DECISIONS & DEVIATIONS
 
-| Topic | Decision |
-|---|---|
-| **Accent color** | `#66979f` teal/slate blue — NOT amber `#F5A623`. All planning docs updated. |
-| **Font variable** | JetBrains Mono → `--font-jetbrains`. Token `--font-mono` references `var(--font-jetbrains)`. |
-| **ScrollSmoother** | Not used (paid GSAP Club). Lenis handles smooth scroll instead. |
-| **Lenis package** | `@studio-freight/lenis@1.0.42` (old name, still works). |
-| **Image sequences** | Assembly: 40 WebP frames. Approach: 52 WebP frames. In `public/sequences/`. |
-| **Cloudinary images** | Stored as string public IDs. `cloudinaryUrl()` from `src/lib/cloudinary/transforms.ts`. Always `<img>`, never `next/image`. |
-| **Phase 5 data** | All interior pages use hardcoded placeholder data. Sanity wiring is Phase 6. |
-| **GSAP pin vs CSS sticky** | Use CSS sticky for homepage scenes to avoid React reconciliation errors with GSAP's spacer insertion. |
-| **ScenePhilosophy** | Rebuilt as 3D InfiniteGallery depth tunnel (Three.js R3F) — not the horizontal panel carousel described in the original spec. |
+| Topic                      | Decision                                                                                                                      |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Accent color**           | `#66979f` teal/slate blue — NOT amber `#F5A623`. All planning docs updated.                                                   |
+| **Font variable**          | JetBrains Mono → `--font-jetbrains`. Token `--font-mono` references `var(--font-jetbrains)`.                                  |
+| **ScrollSmoother**         | Not used (paid GSAP Club). Lenis handles smooth scroll instead.                                                               |
+| **Lenis package**          | `@studio-freight/lenis@1.0.42` (old name, still works).                                                                       |
+| **Image sequences**        | Assembly: 40 WebP frames. Approach: 52 WebP frames. In `public/sequences/`.                                                   |
+| **Cloudinary images**      | Stored as string public IDs. `cloudinaryUrl()` from `src/lib/cloudinary/transforms.ts`. Always `<img>`, never `next/image`.   |
+| **Phase 5 data**           | All interior pages use hardcoded placeholder data. Sanity wiring is Phase 6.                                                  |
+| **GSAP pin vs CSS sticky** | Use CSS sticky for homepage scenes to avoid React reconciliation errors with GSAP's spacer insertion.                         |
+| **ScenePhilosophy**        | Rebuilt as 3D InfiniteGallery depth tunnel (Three.js R3F) — not the horizontal panel carousel described in the original spec. |
 
 ---
 

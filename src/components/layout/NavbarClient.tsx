@@ -117,7 +117,7 @@ export default function NavbarClient({ settings }: Props) {
         )}
         style={{
           backgroundColor: isScrolled && !isHomepage ? 'rgba(13, 13, 13, 0.85)' : 'transparent',
-          backdropFilter: isScrolled && !isHomepage ? 'blur(20px)' : 'blur(0px)',
+          backdropFilter: isScrolled && !isHomepage ? 'blur(20px)' : undefined,
           mixBlendMode: 'difference',
         }}
       >
@@ -203,7 +203,7 @@ export default function NavbarClient({ settings }: Props) {
       <div
         ref={overlayRef}
         className={cn(
-          'fixed inset-0 z-[200] flex translate-x-full flex-col items-center justify-center bg-void',
+          'fixed inset-0 z-[200] flex flex-col items-center justify-center bg-void',
           !isMenuOpen && 'pointer-events-none',
         )}
         aria-hidden={!isMenuOpen}

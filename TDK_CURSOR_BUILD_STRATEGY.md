@@ -1,4 +1,5 @@
 # TDK DESIGN & BUILD – CURSOR BUILD STRATEGY
+
 ### Sequential Prompt Guide for AI-Assisted Development
 
 > **Purpose:** This document tells you exactly what to feed Cursor, in what order, and what
@@ -11,6 +12,7 @@
 > Notes below each block tell you what to check before moving on.
 >
 > **Source documents Cursor will reference:**
+>
 > - `TDK_MASTER_PLAN.md` — full site PRD
 > - `TDK_HOMEPAGE_EXPERIENCE.md` — homepage cinematic spec
 >
@@ -43,6 +45,7 @@
 ### PROMPT 0.1 — Initialize Next.js Project
 
 **Pre-requirements:**
+
 - [ ] Node.js 20+ installed
 - [ ] Vercel account created
 - [ ] GitHub repo created (name: `tdkdb`)
@@ -64,6 +67,7 @@ Do not create any pages or components yet. Just the scaffold.
 ```
 
 **Check before moving on:**
+
 - `pnpm dev` runs without errors
 - TypeScript compiles with zero errors
 - Prettier formats on save
@@ -73,6 +77,7 @@ Do not create any pages or components yet. Just the scaffold.
 ### PROMPT 0.2 — Install All Dependencies
 
 **Pre-requirements:**
+
 - [ ] Prompt 0.1 complete
 
 ```
@@ -118,6 +123,7 @@ After installing, create a /src/lib directory with empty placeholder files:
 ```
 
 **Check before moving on:**
+
 - No peer dependency conflicts
 - `pnpm dev` still runs
 - `cn()` utility works
@@ -127,6 +133,7 @@ After installing, create a /src/lib directory with empty placeholder files:
 ### PROMPT 0.3 — Folder Structure
 
 **Pre-requirements:**
+
 - [ ] Prompt 0.2 complete
 
 ```
@@ -256,6 +263,7 @@ public/
 ```
 
 **Check before moving on:**
+
 - All directories exist
 - `pnpm dev` still runs
 - No TypeScript errors from the empty files
@@ -268,6 +276,7 @@ public/
 ### PROMPT 0.4 — Environment Variables
 
 **Pre-requirements:**
+
 - [ ] Sanity project created (get project ID)
 - [ ] Resend account + API key
 - [ ] GA4 measurement ID
@@ -328,6 +337,7 @@ frontend queries) and a server client (with token, for mutations).
 ```
 
 **Check before moving on:**
+
 - `.env.local` is in `.gitignore`
 - Sanity client initializes without errors
 
@@ -336,6 +346,7 @@ frontend queries) and a server client (with token, for mutations).
 ### PROMPT 0.5 — Vercel Deployment Pipeline
 
 **Pre-requirements:**
+
 - [ ] GitHub repo pushed
 - [ ] Vercel project connected to GitHub repo
 
@@ -384,6 +395,7 @@ INTEREST_FORM_TO_EMAIL, RESEND_FROM_EMAIL
 ```
 
 **Check before moving on:**
+
 - Project deploys to Vercel preview URL
 - Security headers present (check with https://securityheaders.com)
 
@@ -399,6 +411,7 @@ INTEREST_FORM_TO_EMAIL, RESEND_FROM_EMAIL
 ### PROMPT 1.1 — Feed the Master Plan
 
 **Pre-requirements:**
+
 - [ ] Phase 0 complete
 - [ ] `TDK_MASTER_PLAN.md` in the project root
 
@@ -418,6 +431,7 @@ Do not write any code yet.
 ```
 
 **Check before moving on:**
+
 - Cursor's response shows it understood the stack, structure, and CMS
 - Note any risks it flags — they are probably real
 
@@ -426,6 +440,7 @@ Do not write any code yet.
 ### PROMPT 1.2 — Feed the Homepage Experience Doc
 
 **Pre-requirements:**
+
 - [ ] Prompt 1.1 complete
 - [ ] `TDK_HOMEPAGE_EXPERIENCE.md` in the project root
 
@@ -448,6 +463,7 @@ Do not write any code yet.
 ```
 
 **Check before moving on:**
+
 - Cursor understands the canvas + image sequence approach (NOT Three.js)
 - It correctly identified GSAP ScrollTrigger scrubbing `currentFrame` (not a camera path)
 - It understands the two sequences: assembly (time-based RAF) vs approach (scroll-scrubbed)
@@ -480,6 +496,7 @@ For each decision, include: Context, Decision, Consequences.
 ```
 
 **Check before moving on:**
+
 - ADR covers the SSR/client-side boundary for the canvas component
 - The `dynamic(() => import(...), { ssr: false })` pattern for HomepageCanvas is documented
 - Mobile fallback strategy is clearly defined
@@ -497,6 +514,7 @@ For each decision, include: Context, Decision, Consequences.
 ### PROMPT 2.1 — CSS Custom Properties & Tailwind Config
 
 **Pre-requirements:**
+
 - [ ] Phase 1 complete
 - [ ] Josefin Sans added to `/public/fonts/` (download from Google Fonts — variable font)
 
@@ -553,6 +571,7 @@ and JetBrains Mono. Use font-display: swap.
 ```
 
 **Check before moving on:**
+
 - All CSS variables accessible in browser DevTools
 - Tailwind autocomplete shows custom tokens in editor
 - Fonts load correctly in browser
@@ -562,6 +581,7 @@ and JetBrains Mono. Use font-display: swap.
 ### PROMPT 2.2 — Cloudinary URL Utility
 
 **Pre-requirements:**
+
 - [ ] `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` set in `.env.local`
 - [ ] Cloudinary folder `clients/tdkdb/` created in agency account
 
@@ -602,6 +622,7 @@ Important notes for Cursor:
 ```
 
 **Check before moving on:**
+
 - `cloudinaryUrl()` returns a valid URL with correct transform string
 - Presets return correct dimensions
 - Cloud name comes from env var (verify by checking the output URL)
@@ -644,6 +665,7 @@ In globals.css, after the CSS variables, add base styles:
 ```
 
 **Check before moving on:**
+
 - All type classes visible and correct in Storybook or a test page
 - Font rendering is smooth (antialiased)
 - Selection color is teal on void
@@ -682,6 +704,7 @@ Add SmoothScrollProvider to the root layout, wrapping all children.
 ```
 
 **Check before moving on:**
+
 - Scroll is visibly smoother on a test page with lots of content
 - No SSR hydration errors in console
 - Lenis destroys cleanly when navigating between pages
@@ -695,6 +718,7 @@ Add SmoothScrollProvider to the root layout, wrapping all children.
 
 **Pre-requirement: Favicon files must be ready before this phase completes.**
 If not already done, generate from logo SVG:
+
 - favicon.ico (16×16 + 32×32), apple-icon.png (180×180), icon.png (32×32), icon-512.png (512×512)
 - Place all in /src/app/ — Next.js App Router serves them automatically from this location
 - Create /src/app/manifest.ts:
@@ -703,7 +727,8 @@ If not already done, generate from logo SVG:
     return {
       name: 'TDK Design & Build',
       short_name: 'TDK',
-      description: 'Residential development — design, architecture, and construction. Nicosia, Cyprus.',
+      description:
+        'Residential development — design, architecture, and construction. Nicosia, Cyprus.',
       start_url: '/',
       display: 'standalone',
       background_color: '#0D0D0D',
@@ -712,7 +737,7 @@ If not already done, generate from logo SVG:
         { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
         { src: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
       ],
-    }
+    };
   }
   ```
 
@@ -773,6 +798,7 @@ For now, use a text placeholder "TDK" as the logo — we'll replace with SVG lat
 ```
 
 **Check before moving on:**
+
 - Navbar transparent on load, blurred on scroll
 - Mobile menu opens/closes with animation
 - Active page link has underline
@@ -818,6 +844,7 @@ All footer links: color --color-stone, hover transition to --color-paper over --
 ```
 
 **Check before moving on:**
+
 - Curtain reveal works on scroll
 - Layout correct on all breakpoints
 - All links functional (even if pages don't exist yet)
@@ -868,6 +895,7 @@ Export as default, also export individual variants as named exports.
 ```
 
 **Check before moving on:**
+
 - All three variants render correctly
 - Magnetic effect works smoothly
 - Component renders as `<a>` when `href` is provided
@@ -920,6 +948,7 @@ Components to build:
 ```
 
 **Check before moving on:**
+
 - All animations work correctly on a test page
 - No animation fires before element is in view
 - Reduced motion skips animation (element just appears)
@@ -957,6 +986,7 @@ Build layout utility components.
 ```
 
 **Check before moving on:**
+
 - Layout renders on a test interior page
 - Fonts load without FOUT (flash of unstyled text)
 - Section padding is consistent
@@ -965,6 +995,7 @@ Build layout utility components.
 ---
 
 ## PHASE 4 - CURSOR PROMPTS (REWRITTEN)
+
 ### Homepage Scene-by-Scene Build — Particle Hero Edition
 
 > **Purpose:** This document replaces the original Phase 4 prompts in TDK_CURSOR_BUILD_STRATEGY.md.
@@ -974,6 +1005,7 @@ Build layout utility components.
 > layer that can be integrated when Higgsfield assets are finalized.
 >
 > **What changed:**
+>
 > - Prompts 4.1–4.5 (canvas engine, loading screen, assembly, approach, threshold) are
 >   consolidated into 4.1–4.3 (particle hero, scene hero text, scroll transition)
 > - The image sequence infrastructure moves to a new Phase 4B (optional, asset-dependent)
@@ -981,6 +1013,7 @@ Build layout utility components.
 > - A new Prompt 4.10 provides the image sequence upgrade path
 >
 > **Source documents Cursor must reference:**
+>
 > - `TDK_HOMEPAGE_EXPERIENCE.md` — Sections 7, 16, 17, 18 (Hero, Design Language, Typography, Motion)
 > - `TDK_MASTER_PLAN.md` — Section 2 (Tech Stack)
 > - `particle-hero-bg.tsx` — The pre-built particle component (copy into project)
@@ -1002,6 +1035,7 @@ finalized, FFmpeg-processed, and placed in `/public/sequences/` before any homep
 begin. This created a hard dependency between asset production and development.
 
 The particle hero removes this blocker:
+
 - Development proceeds immediately — no waiting for video assets
 - The particle canvas provides a production-ready interactive background
 - The manifesto text overlay (Scene 2) is built identically to the original spec
@@ -1045,6 +1079,7 @@ src/
 ```
 
 > **Pre-requirements for Phase 4:**
+>
 > - [ ] Phase 2 complete — all design tokens in globals.css, Tailwind config, fonts loaded
 > - [ ] Phase 3 complete — Navbar, Footer, animation primitives, layout utilities
 > - [ ] `particle-hero-bg.tsx` file ready (provided separately)
@@ -1105,10 +1140,11 @@ Respond with confirmation only. No code yet.
 ### PROMPT 4.1 — Particle Hero Background & Loading Screen
 
 **Pre-requirements:**
+
 - [ ] Phase 2 and 3 complete
 - [ ] `particle-hero-bg.tsx` file available
 
-```
+````
 Build the particle hero background and loading screen for the TDK homepage.
 
 Reference: TDK_HOMEPAGE_EXPERIENCE.md, Sections 4 (Particle System), 5 (Loading Screen), 6 (Hero), and 14 (Design Language).
@@ -1185,9 +1221,10 @@ export default function HeroSection() {
     </section>
   )
 }
-```
+````
 
 Notes:
+
 - ParticleHeroBg renders immediately behind the loading screen.
   When loading fades out, the particles are already animating — no blank frame.
 - SceneHero receives isVisible to control its text entrance animations.
@@ -1196,29 +1233,32 @@ Notes:
 #### Step 4 — Mobile Touch Support
 
 In ParticleHeroBg.tsx, add touch event handling alongside mouse events:
+
 - onTouchMove: map touch position to the same mouseRef that mouse uses
 - onTouchEnd: set mouseRef.isActive = false (same as mouseLeave)
 - This gives mobile users the particle repulsion effect on tap-and-drag
 
 Implementation:
+
 ```tsx
 const handleTouchMove = (e: React.TouchEvent) => {
-  if (!containerRef.current) return
-  const touch = e.touches[0]
-  const rect = containerRef.current.getBoundingClientRect()
+  if (!containerRef.current) return;
+  const touch = e.touches[0];
+  const rect = containerRef.current.getBoundingClientRect();
   mouseRef.current = {
     x: touch.clientX - rect.left,
     y: touch.clientY - rect.top,
     isActive: true,
-  }
-}
+  };
+};
 
 const handleTouchEnd = () => {
-  mouseRef.current.isActive = false
-}
+  mouseRef.current.isActive = false;
+};
 ```
 
 Add these to the container div's event handlers.
+
 ```
 
 **Check before moving on:**
@@ -1240,6 +1280,7 @@ Add these to the container div's event handlers.
 - [ ] Prompt 4.1 complete — particle canvas renders, loading screen works
 
 ```
+
 Build the hero manifesto text overlay (Scene 2).
 Reference: TDK_HOMEPAGE_EXPERIENCE.md, Section 6.
 
@@ -1250,7 +1291,8 @@ pointer-events: none). It displays the manifesto text fragments from the
 TDK_HOMEPAGE_EXPERIENCE.md Scene 2 specification.
 
 Props:
-  - isVisible: boolean (true after loading screen exits)
+
+- isVisible: boolean (true after loading screen exits)
 
 ### 1. Text Fragments
 
@@ -1258,52 +1300,58 @@ Each fragment is an absolutely positioned div within a full-screen container.
 Use the exact copy, positions, sizes, and styles from the homepage spec:
 
 Fragment 1 — "DESIGNED TO LAST."
-  - Position: top 15%, right 8%
-  - Style: text-display-md (clamp(36px, 4vw, 64px)), weight 300
-  - Letter-spacing: 0.05em
-  - Color: var(--color-paper)
+
+- Position: top 15%, right 8%
+- Style: text-display-md (clamp(36px, 4vw, 64px)), weight 300
+- Letter-spacing: 0.05em
+- Color: var(--color-paper)
 
 Fragment 2 — "NOT JUST BUILT. / CRAFTED."
-  - Position: top 25%, left 6%
-  - Style: text-heading (clamp(24px, 3vw, 40px)), weight 600
-  - Two lines (use <br />)
-  - Color: var(--color-paper)
+
+- Position: top 25%, left 6%
+- Style: text-heading (clamp(24px, 3vw, 40px)), weight 600
+- Two lines (use <br />)
+- Color: var(--color-paper)
 
 Fragment 3 — "Every line has a reason."
-  - Position: top 55%, left 8%
-  - Style: text-body-lg (18px), weight 300, ITALIC
-  - This is the ONLY italic text on the entire site
-  - Color: var(--color-paper)
+
+- Position: top 55%, left 8%
+- Style: text-body-lg (18px), weight 300, ITALIC
+- This is the ONLY italic text on the entire site
+- Color: var(--color-paper)
 
 Fragment 4 — "TDK DESIGN & BUILD"
-  - Position: bottom 18%, right 8%
-  - Style: text-label (11px), weight 600, uppercase, letter-spacing 0.2em
-  - Color: var(--color-stone, #8C8C8C)
+
+- Position: bottom 18%, right 8%
+- Style: text-label (11px), weight 600, uppercase, letter-spacing 0.2em
+- Color: var(--color-stone, #8C8C8C)
 
 Fragment 5 — Scroll Indicator
-  - Position: bottom 6%, center (left: 50%, transform: translateX(-50%))
-  - "SCROLL" in text-label style, --color-stone
-  - Below: a 1px vertical line (32px tall) with an animated mask sweep
-    (a linear-gradient mask that loops downward every 2 seconds)
-  - Disappears (opacity 0, instant, no transition) when user scrolls more than 50px
+
+- Position: bottom 6%, center (left: 50%, transform: translateX(-50%))
+- "SCROLL" in text-label style, --color-stone
+- Below: a 1px vertical line (32px tall) with an animated mask sweep
+  (a linear-gradient mask that loops downward every 2 seconds)
+- Disappears (opacity 0, instant, no transition) when user scrolls more than 50px
 
 ### 2. Fragment Entrance Animation
 
 When isVisible becomes true, each fragment enters with a staggered animation:
 
-| Fragment | Delay | Duration | Effect |
-|----------|-------|----------|--------|
-| "DESIGNED TO LAST." | 200ms | 700ms | clip-path: inset(0 100% 0 0) → inset(0 0% 0 0) |
-| "NOT JUST BUILT. CRAFTED." | 400ms | 700ms | clip-path: inset(0 100% 0 0) → inset(0 0% 0 0) |
-| "Every line has a reason." | 600ms | 600ms | opacity 0→1 + translateY(20px→0) |
-| "TDK DESIGN & BUILD" | 700ms | 500ms | opacity 0→1 (simple fade) |
-| Scroll indicator | 900ms | 400ms | opacity 0→1 (simple fade) |
+| Fragment                   | Delay | Duration | Effect                                         |
+| -------------------------- | ----- | -------- | ---------------------------------------------- |
+| "DESIGNED TO LAST."        | 200ms | 700ms    | clip-path: inset(0 100% 0 0) → inset(0 0% 0 0) |
+| "NOT JUST BUILT. CRAFTED." | 400ms | 700ms    | clip-path: inset(0 100% 0 0) → inset(0 0% 0 0) |
+| "Every line has a reason." | 600ms | 600ms    | opacity 0→1 + translateY(20px→0)               |
+| "TDK DESIGN & BUILD"       | 700ms | 500ms    | opacity 0→1 (simple fade)                      |
+| Scroll indicator           | 900ms | 400ms    | opacity 0→1 (simple fade)                      |
 
 Use a single GSAP timeline. Use --ease-smooth ("power4.out") for all easing.
 
 ### 3. Mouse Parallax
 
 Each fragment drifts subtly with cursor movement:
+
 - Depths: [0.02, 0.025, 0.015, 0.01, 0.03] for fragments 1–5
 - On mousemove: translateX = (cursorX - centerX) × depth, same for Y
 - Use gsap.quickTo() for each fragment — creates smooth interpolation with no layout thrash
@@ -1313,6 +1361,7 @@ Each fragment drifts subtly with cursor movement:
 ### 4. Scroll-Out Behavior
 
 As the user scrolls down from the hero section:
+
 - Each fragment fades to opacity 0 and translates outward (away from center)
 - Drive this with a GSAP ScrollTrigger:
   trigger: the hero section element
@@ -1345,6 +1394,7 @@ As the user scrolls down from the hero section:
   Fragment 5: <div role="presentation"> (decorative)
 - Respect prefers-reduced-motion: skip clip-path and translateY animations,
   just show fragments immediately at full opacity
+
 ```
 
 **Check before moving on:**
@@ -1368,6 +1418,7 @@ As the user scrolls down from the hero section:
 - [ ] Prompt 4.2 complete — hero section with particle bg + text overlay works
 
 ```
+
 Build the transition from the hero section into the content sections below.
 Reference: TDK_HOMEPAGE_EXPERIENCE.md, Sections 7 (Transition), 14 (Design Language), and 16 (Motion Tokens).
 
@@ -1383,17 +1434,19 @@ As it scrolls out of view naturally, two things happen simultaneously:
 a) The text fragments fade and translate outward (already built in Prompt 4.2)
 
 b) The particle canvas fades. Add to HeroSection.tsx:
-   - A GSAP ScrollTrigger on the hero section:
-     trigger: heroSection
-     start: 'top top'
-     end: 'bottom top' (when bottom of hero reaches top of viewport)
-     scrub: 1.5
-   - Animate the particle container's opacity: 1 → 0
-   - This means the particles gracefully dissolve as the user scrolls past
+
+- A GSAP ScrollTrigger on the hero section:
+  trigger: heroSection
+  start: 'top top'
+  end: 'bottom top' (when bottom of hero reaches top of viewport)
+  scrub: 1.5
+- Animate the particle container's opacity: 1 → 0
+- This means the particles gracefully dissolve as the user scrolls past
 
 ### 2. Gradient Bleed
 
 Between the hero section and Scene 4, add a gradient div:
+
 - Height: 30vh
 - Background: linear-gradient(to bottom, var(--color-void) 0%, transparent 100%)
 - Position: absolute, bottom: -30vh of the hero section (overlaps the top of content)
@@ -1404,6 +1457,7 @@ Between the hero section and Scene 4, add a gradient div:
 ### 3. Vignette Overlay (Optional Enhancement)
 
 For cinematic depth, add a subtle vignette to the hero section:
+
 - Position: absolute, inset: 0, z-index: 2
 - Background: radial-gradient(ellipse at center, transparent 50%, rgba(13,13,13,0.5) 100%)
 - pointer-events: none
@@ -1416,12 +1470,9 @@ For cinematic depth, add a subtle vignette to the hero section:
 Update /src/app/[locale]/(site)/page.tsx to wire everything together:
 
 ```tsx
-import dynamic from 'next/dynamic'
+import dynamic from 'next/dynamic';
 
-const HeroSection = dynamic(
-  () => import('@/components/homepage/HeroSection'),
-  { ssr: false }
-)
+const HeroSection = dynamic(() => import('@/components/homepage/HeroSection'), { ssr: false });
 
 // Scenes 5–10 will be added in subsequent prompts
 // For now, add placeholders so we can test the scroll transition
@@ -1435,24 +1486,26 @@ export default function HomePage() {
       {/* Placeholder for Scene 4 (Anatomy) — will be replaced */}
       <section
         id="scene-anatomy"
-        className="relative min-h-screen flex items-center justify-center"
+        className="relative flex min-h-screen items-center justify-center"
         style={{ backgroundColor: 'var(--color-void)' }}
       >
-        <p style={{
-          color: 'var(--color-stone)',
-          fontFamily: 'var(--font-primary)',
-          fontSize: '11px',
-          fontWeight: 600,
-          letterSpacing: '0.2em',
-          textTransform: 'uppercase',
-        }}>
+        <p
+          style={{
+            color: 'var(--color-stone)',
+            fontFamily: 'var(--font-primary)',
+            fontSize: '11px',
+            fontWeight: 600,
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+          }}
+        >
           SCENE 4 — ANATOMY (PLACEHOLDER)
         </p>
       </section>
 
       {/* More scene placeholders... */}
     </main>
-  )
+  );
 }
 ```
 
@@ -1469,9 +1522,10 @@ The layout should check the current path and conditionally render Navbar/Footer.
 The homepage (path === '/en' or '/el' or '/') should NOT get the global nav/footer.
 
 If this isn't implemented yet, add the conditional:
+
 ```tsx
-const pathname = usePathname()
-const isHomepage = pathname === '/' || pathname === '/en' || pathname === '/el'
+const pathname = usePathname();
+const isHomepage = pathname === '/' || pathname === '/en' || pathname === '/el';
 
 return (
   <>
@@ -1479,8 +1533,9 @@ return (
     {children}
     {!isHomepage && <Footer />}
   </>
-)
+);
 ```
+
 ```
 
 **Check before moving on:**
@@ -1502,6 +1557,7 @@ return (
 - [ ] Prompts 4.1–4.3 complete — hero section works, scroll transition is clean
 
 ```
+
 Build the interactive building anatomy section (Scene 4).
 Reference: TDK_HOMEPAGE_EXPERIENCE.md, Section 8.
 
@@ -1513,6 +1569,7 @@ during which the user interacts with building hotspot nodes.
 ### Layout
 
 Two columns, 50/50 split:
+
 - Left: text panel (holds node descriptions)
 - Right: building render image + 6 interactive nodes overlaid
 
@@ -1521,6 +1578,7 @@ Full screen height (100vh when pinned). Background: var(--color-void).
 ### Right Panel — Building Image + Nodes
 
 Use the front-facing Armonia render. For now use a placeholder image:
+
 - File path: /public/images/armonia/front-facing.webp
 - If file doesn't exist, create a placeholder div (aspect-ratio 3:4, --color-surface
   background with "ARMONIA RENDER" in text-label style, centered)
@@ -1531,18 +1589,19 @@ Use the front-facing Armonia render. For now use a placeholder image:
 
 ### The 6 Nodes (Positioned on the Building Image)
 
-| # | Name | Position (% of right panel) | Heading | Body |
-|---|------|-----------------------------|---------|------|
-| 1 | Entrance | left: 48%, top: 72% | "The First Impression" | "Recessed lighting. Timber-lined walls. A door that announces arrival. The entrance of Armonia was designed to make every return home feel intentional." |
-| 2 | Facade | left: 50%, top: 38% | "The Language of White" | "White is not a neutral choice. In the Mediterranean light of Nicosia, white is alive — it shifts from warm cream at dawn to luminous silver at noon. Every facade surface was calculated for how it holds that light." |
-| 3 | Balconies | left: 30%, top: 50% | "Living Extended" | "The balconies are not additions. They are extensions of the living floor — same ceiling height, same material continuity, designed so the threshold between inside and outside is a question of temperature, not architecture." |
-| 4 | Glazing | left: 70%, top: 44% | "Glass as Architecture" | "Floor-to-ceiling glazing on every primary room. The frames are narrow by design — the view is the furniture. Passive solar orientation ensures winter sun penetrates deep while summer overhangs prevent overheating." |
-| 5 | Rooftop | left: 50%, top: 16% | "The Fifth Facade" | "Most buildings forget their rooftops. Armonia's is designed to be inhabited — a private sky-level terrace with views across Lakatameia toward the Pentadaktylos mountains." |
-| 6 | Landscape | left: 28%, top: 80% | "Grounded" | "The boundary between public pavement and private threshold is handled in natural stone — a material that weathers slowly and gracefully, unlike concrete. This is how a building belongs to its street." |
+| #   | Name      | Position (% of right panel) | Heading                 | Body                                                                                                                                                                                                                             |
+| --- | --------- | --------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Entrance  | left: 48%, top: 72%         | "The First Impression"  | "Recessed lighting. Timber-lined walls. A door that announces arrival. The entrance of Armonia was designed to make every return home feel intentional."                                                                         |
+| 2   | Facade    | left: 50%, top: 38%         | "The Language of White" | "White is not a neutral choice. In the Mediterranean light of Nicosia, white is alive — it shifts from warm cream at dawn to luminous silver at noon. Every facade surface was calculated for how it holds that light."          |
+| 3   | Balconies | left: 30%, top: 50%         | "Living Extended"       | "The balconies are not additions. They are extensions of the living floor — same ceiling height, same material continuity, designed so the threshold between inside and outside is a question of temperature, not architecture." |
+| 4   | Glazing   | left: 70%, top: 44%         | "Glass as Architecture" | "Floor-to-ceiling glazing on every primary room. The frames are narrow by design — the view is the furniture. Passive solar orientation ensures winter sun penetrates deep while summer overhangs prevent overheating."          |
+| 5   | Rooftop   | left: 50%, top: 16%         | "The Fifth Facade"      | "Most buildings forget their rooftops. Armonia's is designed to be inhabited — a private sky-level terrace with views across Lakatameia toward the Pentadaktylos mountains."                                                     |
+| 6   | Landscape | left: 28%, top: 80%         | "Grounded"              | "The boundary between public pavement and private threshold is handled in natural stone — a material that weathers slowly and gracefully, unlike concrete. This is how a building belongs to its street."                        |
 
 ### Node Visual Design
 
 Default state:
+
 - 20px outer ring: 1px solid rgba(255,255,255,0.3), border-radius: 50%
 - 6px inner dot: background rgba(255,255,255,0.5), border-radius: 50%
 - Pulse animation: outer ring scales 1.0 → 1.5 and fades out, repeating every 2.5s
@@ -1551,6 +1610,7 @@ Default state:
 - data-cursor="node" attribute for custom cursor
 
 Hover/Active state:
+
 - Outer ring color: var(--color-threshold), scale 1.2x
 - Inner dot: var(--color-threshold), scale 1.5x
 - All OTHER nodes: opacity → 0.25 (150ms, --ease-smooth)
@@ -1559,6 +1619,7 @@ Hover/Active state:
 ### Connector Line
 
 An SVG element spans the full anatomy section (position: absolute, inset: 0):
+
 - When a node activates: an SVG <path> draws from the node's center to the left
   edge of the screen at the same vertical position
 - Line: 1px stroke, var(--color-threshold)
@@ -1568,11 +1629,13 @@ An SVG element spans the full anatomy section (position: absolute, inset: 0):
 ### Left Panel
 
 Default state:
+
 - "EXPLORE THE BUILDING" in text-label style, centered vertically
 - Thin var(--color-border) lines above and below the text
 - The text pulses faintly (opacity 0.6 → 1.0 → 0.6, 3s loop) to invite interaction
 
 On node hover:
+
 - Default text exits upward: translateY(-100%) + opacity 0, 300ms, ease-exit
 - Threshold accent line: 2px tall, var(--color-threshold), 40px wide, slides in from left (300ms)
 - Node heading: slides in from below (translateY(30px → 0), opacity 0 → 1, 350ms, ease-smooth)
@@ -1581,11 +1644,13 @@ On node hover:
 - Body copy max-width: 400px (prevent overly long lines)
 
 On hover end:
+
 - Content exits downward (reverse), default state returns
 
 ### Pin & Unpin
 
 GSAP ScrollTrigger configuration:
+
 - trigger: the anatomy section
 - pin: true
 - anticipatePin: 1
@@ -1593,6 +1658,7 @@ GSAP ScrollTrigger configuration:
 - end: '+=100%' (100vh of scroll while pinned)
 
 After user has hovered 3+ nodes, OR after 10 seconds of dwell time:
+
 - "↓ CONTINUE" appears at bottom center, text-label style
 - Fades in gently (opacity 0 → 1, 500ms)
 - On continued scroll: section unpins, normal scroll resumes
@@ -1604,6 +1670,7 @@ After user has hovered 3+ nodes, OR after 10 seconds of dwell time:
 - Active node's content appears below the image in an expanding panel
 - No connector line on mobile
 - No pin on mobile — normal scroll, nodes are always visible
+
 ```
 
 **Check before moving on:**
@@ -1623,6 +1690,7 @@ After user has hovered 3+ nodes, OR after 10 seconds of dwell time:
 - [ ] Prompt 4.4 complete — anatomy section works
 
 ```
+
 Build the manifesto/philosophy scroll section (Scene 5).
 Reference: TDK_HOMEPAGE_EXPERIENCE.md, Section 9.
 
@@ -1635,13 +1703,13 @@ in a darkened cinema.
 
 ### The 5 Statements
 
-| # | Copy | Size | Weight | Scroll Range |
-|---|------|------|--------|-------------|
-| 1 | "We don't build buildings. / We build the conditions for life." | text-display-md | 300 | 0vh–20vh |
-| 2 | "Architecture is not decoration. / It is decision-making made visible." | text-display-md | 300 | 22vh–42vh |
-| 3 | "Every project begins with a question: / How should this family live?" | text-display-lg | 400 | 44vh–64vh (largest, most impactful) |
-| 4 | "TDK was founded on one belief: / Good design is non-negotiable." | text-display-md | 300 | 66vh–86vh |
-| 5 | "This is what we build. / ARMONIA. / Lakatameia, Nicosia." | "ARMONIA." at clamp(72px, 12vw, 160px) | 300 | 88vh+ (lingers) |
+| #   | Copy                                                                    | Size                                   | Weight | Scroll Range                        |
+| --- | ----------------------------------------------------------------------- | -------------------------------------- | ------ | ----------------------------------- |
+| 1   | "We don't build buildings. / We build the conditions for life."         | text-display-md                        | 300    | 0vh–20vh                            |
+| 2   | "Architecture is not decoration. / It is decision-making made visible." | text-display-md                        | 300    | 22vh–42vh                           |
+| 3   | "Every project begins with a question: / How should this family live?"  | text-display-lg                        | 400    | 44vh–64vh (largest, most impactful) |
+| 4   | "TDK was founded on one belief: / Good design is non-negotiable."       | text-display-md                        | 300    | 66vh–86vh                           |
+| 5   | "This is what we build. / ARMONIA. / Lakatameia, Nicosia."              | "ARMONIA." at clamp(72px, 12vw, 160px) | 300    | 88vh+ (lingers)                     |
 
 Each statement centered on screen. Multi-line statements use <br />.
 Color: var(--color-paper). Font: var(--font-primary).
@@ -1649,6 +1717,7 @@ Color: var(--color-paper). Font: var(--font-primary).
 ### Statement Reveal Animation
 
 Per statement:
+
 - Enter: clip-path: inset(0 100% 0 0) → inset(0 0% 0 0), 600ms, --ease-smooth
 - Multi-line: second line starts 80ms after first line begins
 - Exit: opacity 1 → 0, 300ms, as the next statement enters
@@ -1657,12 +1726,14 @@ Per statement:
 ### Flash Images Between Statements
 
 Between transitions 1→2, 2→3, 3→4, 4→5:
+
 - Full-screen div, positioned behind the text, z-index below statements
 - opacity: 0 → 0.6 → 0, total 500ms (pulse, triggered at statement boundary)
 - CSS filter: grayscale(1) contrast(1.1)
 - Noise grain overlay: a CSS repeating pattern or small noise.png at opacity 0.05
 
 For now, use placeholder images:
+
 - Flash 1: /public/images/philosophy/timber-grain.webp (or solid --color-surface)
 - Flash 2: /public/images/philosophy/floor-plan-sketch.webp (or solid)
 - Flash 3: /public/images/philosophy/window-frame.webp (or solid)
@@ -1681,6 +1752,7 @@ Almost imperceptible — adds subconscious warmth.
 ### "ARMONIA." Typography (Statement 5)
 
 This is the single most impactful typographic moment on the entire site:
+
 - "ARMONIA." in font-size: clamp(72px, 12vw, 160px), weight 300, letter-spacing 0.08em
 - The word should fill most of the screen width
 - "Lakatameia, Nicosia." appears beneath in text-label style, var(--color-stone)
@@ -1692,6 +1764,7 @@ This is the single most impactful typographic moment on the entire site:
 - Same structure, reduced font sizes (one step down)
 - Flash images still pulse but at smaller viewport scale
 - Statement 5 "ARMONIA." minimum 48px font size
+
 ```
 
 **Check before moving on:**
@@ -1710,6 +1783,7 @@ This is the single most impactful typographic moment on the entire site:
 - [ ] Prompt 4.5 complete
 
 ```
+
 Build the horizontal projects reel (Scene 6).
 Reference: TDK_HOMEPAGE_EXPERIENCE.md, Section 10.
 
@@ -1727,6 +1801,7 @@ As the user scrolls down, the carousel slides left to reveal project cards.
 ### ScrollTrigger
 
 Pin the sticky inner element. As scroll progresses 0%→100% of 150vh:
+
 - Translate carousel: translateX(0) → translateX(-(totalWidth - 100vw))
 - scrub: 1.5
 
@@ -1748,35 +1823,36 @@ Each card is 100vw × 100vh. Do NOT fetch from Sanity — use hardcoded data:
 
 Card 1 — Armonia:
 {
-  id: 'armonia',
-  name: 'ARMONIA APARTMENTS',
-  location: 'Lakatameia, Nicosia',
-  year: '2024',
-  type: 'Residential',
-  status: 'completed',
-  ctaType: 'showcase',
-  heroImageId: 'clients/tdkdb/armonia/exterior/hero',
-  ctaLabel: 'VIEW PROJECT',
-  href: '/en/projects/armonia',
+id: 'armonia',
+name: 'ARMONIA APARTMENTS',
+location: 'Lakatameia, Nicosia',
+year: '2024',
+type: 'Residential',
+status: 'completed',
+ctaType: 'showcase',
+heroImageId: 'clients/tdkdb/armonia/exterior/hero',
+ctaLabel: 'VIEW PROJECT',
+href: '/en/projects/armonia',
 }
 
 Card 2 — Almond:
 {
-  id: 'almond',
-  name: 'ALMOND',
-  location: 'Nicosia, Cyprus',
-  year: '2025/26',
-  type: 'Residential',
-  status: 'in-progress',
-  ctaType: 'register-interest',
-  heroImageId: 'clients/tdkdb/almond/renders/hero',
-  ctaLabel: 'REGISTER INTEREST',
-  href: '/en/projects/almond',
+id: 'almond',
+name: 'ALMOND',
+location: 'Nicosia, Cyprus',
+year: '2025/26',
+type: 'Residential',
+status: 'in-progress',
+ctaType: 'register-interest',
+heroImageId: 'clients/tdkdb/almond/renders/hero',
+ctaLabel: 'REGISTER INTEREST',
+href: '/en/projects/almond',
 }
 
 // TODO Phase 6.3 — replace hardcoded array with getProjectsForHomepageReel()
 
 Card layout:
+
 - Full-bleed hero image (use cloudinaryUrl if available, else placeholder gradient)
   Use plain <img> tag, NOT next/image
   Image parallax: moves at 0.7× card scroll speed via GSAP transform
@@ -1795,6 +1871,7 @@ Card layout:
   data-cursor="view" attribute
 
 Almond card gets a subtle teal radial glow overlay:
+
 - position: absolute, inset: 0
 - background: radial-gradient(ellipse at center, rgba(102,151,159,0.08) 0%, transparent 70%)
 - Signals this project is active/available, not just historical
@@ -1806,6 +1883,7 @@ Almond card gets a subtle teal radial glow overlay:
 - Standard vertical scroll, no pinning
 - Image: object-fit cover, 60% of card height
 - Info panel: below image, always visible
+
 ```
 
 **Check before moving on:**
@@ -1827,6 +1905,7 @@ Almond card gets a subtle teal radial glow overlay:
 - [ ] Prompt 4.6 complete
 
 ```
+
 Build the process timeline section (Scene 7).
 Reference: TDK_HOMEPAGE_EXPERIENCE.md, Section 11.
 
@@ -1839,9 +1918,11 @@ user scrolls, with process steps appearing as the line reaches their position.
 
 Subtly warmer dark: #0F0B08 (not pure void — slight warmth)
 Very faint CSS noise/grain texture (use an SVG filter, not an image):
+
 ```css
-filter: url("data:image/svg+xml,...") /* inline SVG noise filter */
+filter: url('data:image/svg+xml,...'); /* inline SVG noise filter */
 ```
+
 Or a repeating noise pattern at opacity 0.02. This is the only place on the
 page with a perceptible paper texture.
 
@@ -1853,12 +1934,14 @@ Clip-path reveal (left-to-right) when section enters viewport.
 ### The SVG Timeline
 
 A full-width SVG element (width: 80vw, centered):
+
 - A single horizontal line from left to right
 - 5 vertical tick marks at 0%, 25%, 50%, 75%, 100% of line length
 - Each tick: 1px wide, 20px tall, centered on the line
 - Line draws via stroke-dashoffset tied to ScrollTrigger scrub
 
 ScrollTrigger:
+
 - trigger: the process section
 - start: 'top center'
 - end: 'bottom center'
@@ -1868,13 +1951,13 @@ ScrollTrigger:
 
 Each step appears above its tick mark as the line reaches it:
 
-| # | Title | Description |
-|---|-------|-------------|
-| 01 | VISION | "We begin with a conversation. Not a brief. We need to understand how you want to live before we draw a single line." |
-| 02 | DESIGN | "Architecture that responds to your specific life — your light, your family, your relationship with the city." |
-| 03 | ENGINEERING | "Structure, systems, and compliance fully resolved. Nothing is left to chance on a building site." |
-| 04 | BUILD | "Construction managed to the millimetre. We don't hand off to a contractor — we stay present." |
-| 05 | HANDOVER | "The moment the door opens for the first time. Every detail checked. Every system explained. The beginning of your story." |
+| #   | Title       | Description                                                                                                                |
+| --- | ----------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 01  | VISION      | "We begin with a conversation. Not a brief. We need to understand how you want to live before we draw a single line."      |
+| 02  | DESIGN      | "Architecture that responds to your specific life — your light, your family, your relationship with the city."             |
+| 03  | ENGINEERING | "Structure, systems, and compliance fully resolved. Nothing is left to chance on a building site."                         |
+| 04  | BUILD       | "Construction managed to the millimetre. We don't hand off to a contractor — we stay present."                             |
+| 05  | HANDOVER    | "The moment the door opens for the first time. Every detail checked. Every system explained. The beginning of your story." |
 
 Step appearance: opacity 0 → 1, translateY(20px → 0), 400ms, --ease-smooth
 Triggered when the SVG line reaches each step's tick position.
@@ -1895,6 +1978,7 @@ Delay: 200ms after step 5 completes.
 - Timeline becomes vertical (top-to-bottom)
 - Steps arranged on alternating sides (or all left-aligned)
 - Same draw animation, vertical direction
+
 ```
 
 **Check before moving on:**
@@ -1913,6 +1997,7 @@ Delay: 200ms after step 5 completes.
 - [ ] Prompt 4.7 complete
 
 ```
+
 Build the final two scenes: Contact CTA and Footer (Scenes 9 and 10).
 Reference: TDK_HOMEPAGE_EXPERIENCE.md, Sections 12 and 13.
 
@@ -1921,10 +2006,12 @@ Reference: TDK_HOMEPAGE_EXPERIENCE.md, Sections 12 and 13.
 Create /src/components/homepage/SceneContact.tsx (client component)
 
 Layout:
+
 - Full screen (100vh), var(--color-void) background
 - All content centered (both axes)
 
 Headline: "LET'S BUILD SOMETHING TOGETHER."
+
 - Split into 3 lines:
   Line 1: "LET'S BUILD" — text-display-lg, weight 300
   Line 2: "SOMETHING" — text-display-lg, weight 300
@@ -1934,6 +2021,7 @@ Headline: "LET'S BUILD SOMETHING TOGETHER."
 - Trigger: ScrollTrigger, when section center enters viewport
 
 CTA Button: "START A CONVERSATION →"
+
 - Uses the magnetic Button component from Phase 3 (variant: primary, magnetic: true)
 - If magnetic Button doesn't exist yet, create a simple ghost button:
   border: 1px solid var(--color-paper), no fill, hover: border + text → --color-threshold
@@ -1943,12 +2031,14 @@ CTA Button: "START A CONVERSATION →"
 - data-cursor="hover" attribute
 
 Secondary contact:
+
 - "Or reach us directly:" in text-label, var(--color-stone)
 - "hello@tdkdb.com" and "+357 XX XXX XXXX" in text-body, var(--color-paper)
 - Hover: color → var(--color-threshold), underline appears (1px, slides in from left)
 - Appear 800ms after headline
 
 Background architectural lines:
+
 - An inline SVG: ~10 intersecting line segments suggesting a minimal floor plan
 - All lines: stroke var(--color-paper), stroke-width 0.5px, opacity 0.03
 - Position absolute, full section size
@@ -1964,13 +2054,16 @@ The homepage is the ONLY page that includes its own footer inline
 (since the layout.tsx excludes Navbar/Footer from the homepage).
 
 Between Scene 8 and the Footer, add:
+
 - A thin divider line (1px, var(--color-border), width: 80%, centered)
 - The divider draws from center outward (scaleX animation) on scroll entry
 
 Footer curtain reveal:
+
 - The footer starts with a --color-surface overlay covering it
 - As it scrolls into view, the overlay slides upward (translateY: 0 → -100%)
 - Duration: 800ms, --ease-smooth, triggered by ScrollTrigger
+
 ```
 
 **Check before moving on:**
@@ -1990,6 +2083,7 @@ Footer curtain reveal:
 - [ ] All homepage scenes complete (4.1–4.8)
 
 ```
+
 Build the custom cursor system.
 Reference: TDK_HOMEPAGE_EXPERIENCE.md, Section 19.
 
@@ -2013,13 +2107,14 @@ On mobile (pointer: coarse): html { cursor: auto; } — keep system cursor
 ### 3. Following Physics
 
 Use GSAP quickTo for spring-delayed following:
+
 ```tsx
-const xTo = gsap.quickTo(cursorRef, 'x', { duration: 0.3, ease: 'power3' })
-const yTo = gsap.quickTo(cursorRef, 'y', { duration: 0.3, ease: 'power3' })
+const xTo = gsap.quickTo(cursorRef, 'x', { duration: 0.3, ease: 'power3' });
+const yTo = gsap.quickTo(cursorRef, 'y', { duration: 0.3, ease: 'power3' });
 
 // On mousemove:
-xTo(e.clientX - 6) // offset by half cursor width
-yTo(e.clientY - 6)
+xTo(e.clientX - 6); // offset by half cursor width
+yTo(e.clientY - 6);
 ```
 
 ### 4. Cursor States
@@ -2027,19 +2122,20 @@ yTo(e.clientY - 6)
 Detect via data-cursor attributes on elements. Use event delegation (single
 listener on document.body checking e.target.closest('[data-cursor]')).
 
-| State | Trigger | Visual |
-|-------|---------|--------|
-| Default | Everywhere | 12px circle, paper border, transparent fill |
-| Hover | data-cursor="hover" | Expand to 40px, fill: --color-threshold, no border. Duration: 300ms, --ease-smooth |
-| Node | data-cursor="node" | Expand to 60px, border: --color-threshold. Two 1px crosshair lines through center (::before + ::after) |
-| View | data-cursor="view" | Expand to 80px, fill: --color-threshold at 90% opacity. "VIEW" text inside in text-label style, --color-void color |
-| Scroll | data-cursor="scroll" | Shrink to 6px, fill: --color-paper, no border |
+| State   | Trigger              | Visual                                                                                                             |
+| ------- | -------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Default | Everywhere           | 12px circle, paper border, transparent fill                                                                        |
+| Hover   | data-cursor="hover"  | Expand to 40px, fill: --color-threshold, no border. Duration: 300ms, --ease-smooth                                 |
+| Node    | data-cursor="node"   | Expand to 60px, border: --color-threshold. Two 1px crosshair lines through center (::before + ::after)             |
+| View    | data-cursor="view"   | Expand to 80px, fill: --color-threshold at 90% opacity. "VIEW" text inside in text-label style, --color-void color |
+| Scroll  | data-cursor="scroll" | Shrink to 6px, fill: --color-paper, no border                                                                      |
 
 All transitions: --duration-fast (300ms), --ease-smooth.
 
 ### 5. Magnetic Buttons Enhancement
 
 If the magnetic Button component exists (Phase 3), enhance it:
+
 - Detect mouse within 80px radius of button
 - Apply translateX/Y to move button max 12px toward cursor
 - On mouse leave: spring return using --ease-spring
@@ -2048,6 +2144,7 @@ If the magnetic Button component exists (Phase 3), enhance it:
 ### 6. Global Integration
 
 Add CustomCursor to /src/app/[locale]/layout.tsx (the ROOT layout, not the site layout):
+
 ```tsx
 import dynamic from 'next/dynamic'
 const CustomCursor = dynamic(() => import('@/components/ui/CustomCursor'), { ssr: false })
@@ -2056,6 +2153,7 @@ const CustomCursor = dynamic(() => import('@/components/ui/CustomCursor'), { ssr
 <CustomCursor />
 {children}
 ```
+
 ```
 
 **Check before moving on:**
@@ -2074,9 +2172,11 @@ const CustomCursor = dynamic(() => import('@/components/ui/CustomCursor'), { ssr
 > and placed in `/public/sequences/`. This prompt is NOT part of the initial build.
 
 ```
+
 FUTURE UPGRADE: Replace the particle hero with the cinematic image sequence experience.
 
 This prompt activates ONLY when the following assets are confirmed ready:
+
 - /public/sequences/assembly/frame-0001.webp through frame-XXXX.webp
 - /public/sequences/approach/frame-0001.webp through frame-XXXX.webp
 - /public/sequences/hero-still.webp
@@ -2084,16 +2184,19 @@ This prompt activates ONLY when the following assets are confirmed ready:
 
 The upgrade replaces HeroSection.tsx (particle + text) with the original
 Scenes 1–4 architecture from TDK_HOMEPAGE_EXPERIENCE.md:
+
 - Scene 1: Loading screen + assembly playback (time-based RAF loop)
 - Scene 2: Hero still + manifesto text (reuse SceneHero.tsx)
 - Scene 3: Approach scroll scrubbing (GSAP ScrollTrigger on canvas)
 - Scene 4: Threshold bloom + canvas teardown
 
 The full specification for this upgrade is in:
+
 - TDK_HOMEPAGE_EXPERIENCE.md, Sections 6–9
 - TDK_CURSOR_BUILD_STRATEGY.md, original Prompts 4.1–4.5
 
 Key architectural notes for the upgrade:
+
 1. HomepageCanvas.tsx replaces HeroSection.tsx as the primary component
 2. The scroll container becomes 760vh (loading + hero + approach + threshold)
 3. Scroll is locked during assembly (overflow: hidden), unlocked after
@@ -2109,6 +2212,7 @@ background technology is running.
 
 Do NOT run this prompt until assets are confirmed. The particle hero is
 production-ready and provides a polished experience on its own.
+
 ```
 
 ---
@@ -2162,11 +2266,13 @@ After all Phase 4 prompts are complete, verify the full homepage end-to-end:
 ### PROMPT 5.1 — About Page
 
 ```
+
 Build the About page following the master plan Section 6.2.
 
 File: /src/app/[locale]/(site)/about/page.tsx
 
 Sections (in order):
+
 1. Hero — full-width heading "WHO WE ARE" + subheading. Background: a large
    Armonia render at 20% opacity as a background image. TextReveal animation on heading.
 
@@ -2190,6 +2296,7 @@ Sections (in order):
    but smaller: "Ready to build? Let's talk." + ghost button linking to /contact.
 
 Generate metadata (title, description) for SEO using the metadata utility.
+
 ```
 
 ---
@@ -2197,15 +2304,17 @@ Generate metadata (title, description) for SEO using the metadata utility.
 ### PROMPT 5.2 — Services Index Page
 
 ```
+
 Build the Services index page following master plan Section 6.3.
 
 File: /src/app/[locale]/(site)/services/page.tsx
 
 Sections:
+
 1. Hero — "WHAT WE DO" heading. Full-width, TextReveal.
 
 2. Services grid — 2×2 grid (or 4-column on large screens).
-   For each service (Architecture & Design, Construction Management, 
+   For each service (Architecture & Design, Construction Management,
    Interior Design, Project Management):
    - Large number ("01", "02"...) in text-display-lg, --color-threshold, 20% opacity
    - Service name in text-heading
@@ -2220,6 +2329,7 @@ Sections:
 4. CTA — link to contact.
 
 All service cards link to /services/[slug].
+
 ```
 
 ---
@@ -2227,6 +2337,7 @@ All service cards link to /services/[slug].
 ### PROMPT 5.3 — Service Detail Page (Template)
 
 ```
+
 Build the Service detail page template following master plan Section 6.4.
 
 File: /src/app/[locale]/(site)/services/[slug]/page.tsx
@@ -2236,6 +2347,7 @@ This is a dynamic route — it receives a slug and fetches the service from Sani
 For now, build the layout with placeholder content. We'll wire Sanity later.
 
 Sections:
+
 1. Hero — service name (TextReveal), full-width, service hero image as background at 30% opacity
 2. Description — two columns: left large pull quote, right paragraphs
 3. Process/Approach — numbered list, each step has a thin teal number, heading, description
@@ -2249,6 +2361,7 @@ Sections:
 6. CTA
 
 Build a reusable Accordion component at /src/components/ui/Accordion.tsx
+
 ```
 
 ---
@@ -2256,6 +2369,7 @@ Build a reusable Accordion component at /src/components/ui/Accordion.tsx
 ### PROMPT 5.4 — Projects Index Page
 
 ```
+
 Build the Projects index page following master plan Section 7.5.
 
 File: /src/app/[locale]/(site)/projects/page.tsx
@@ -2264,6 +2378,7 @@ This page must be fully CMS-driven and scalable. Adding a new project in Sanity
 must automatically create a new card here — zero developer work required.
 
 Sections:
+
 1. Hero — "THE WORK" heading, filter controls below
 
 2. Filter controls:
@@ -2290,6 +2405,7 @@ Sections:
 Build /src/components/ui/ProjectCard.tsx — accepts project object, derives all
 display logic from project.ctaType and project.status.
 Build /src/components/ui/FilterTabs.tsx (client component).
+
 ```
 
 ---
@@ -2297,6 +2413,7 @@ Build /src/components/ui/FilterTabs.tsx (client component).
 ### PROMPT 5.5 — Project Detail Page (Single Unified Template)
 
 ```
+
 Build the single project detail page template that handles ALL projects —
 Armonia, Almond, and every future project TDK ever builds.
 
@@ -2306,9 +2423,10 @@ CRITICAL ARCHITECTURE DECISION:
 There is ONE dynamic route. NO separate armonia/page.tsx or almond/page.tsx files.
 Every project is served by /src/app/[locale]/(site)/projects/[slug]/page.tsx.
 The page reads Sanity data and renders or hides sections based on two fields:
-  - project.ctaType ('showcase' | 'register-interest' | 'contact')
-  - project.status ('completed' | 'in-progress' | 'upcoming')
-This is what makes infinite scaling possible with zero developer involvement.
+
+- project.ctaType ('showcase' | 'register-interest' | 'contact')
+- project.status ('completed' | 'in-progress' | 'upcoming')
+  This is what makes infinite scaling possible with zero developer involvement.
 
 File: /src/app/[locale]/(site)/projects/[slug]/page.tsx
 
@@ -2356,9 +2474,9 @@ BUILD THESE SECTION COMPONENTS — one file per section in /src/components/secti
    - Identical layout to ProjectRendersGallery
    - Different section heading (e.g. "THE BUILD", "PROGRESS", "COMPLETED")
    - If images array is empty → return null (section does not render)
-   Note: same component pattern, separate component file for clarity.
-   In future this could be one GallerySlider component with a heading prop —
-   but keep them separate for now to make CMS mapping explicit.
+     Note: same component pattern, separate component file for clarity.
+     In future this could be one GallerySlider component with a heading prop —
+     but keep them separate for now to make CMS mapping explicit.
 
 5. ProjectDescription.tsx
    Props: pullQuote, description (portableText), features (string[])
@@ -2446,6 +2564,7 @@ BUILD THESE SECTION COMPONENTS — one file per section in /src/components/secti
 
 BUILD THE LIGHTBOX COMPONENT:
 File: /src/components/ui/Lightbox.tsx
+
 - Full-screen overlay (position fixed, z-index 500, --color-void background)
 - Centers image, max 90vw × 90vh
 - Prev/next navigation (arrow keys + on-screen buttons)
@@ -2460,6 +2579,7 @@ File: /src/components/ui/Lightbox.tsx
 
 BUILD THE INTEREST FORM API ROUTE:
 File: /src/app/api/project-interest/route.ts
+
 - POST handler
 - Zod validation: name, email, phone, unitPreference, message, projectSlug, projectName
 - Send email via Resend:
@@ -2475,11 +2595,11 @@ File: /src/app/api/project-interest/route.ts
 - After sending email, create a `lead` document in Sanity using the Sanity write client
   (requires SANITY_API_TOKEN with write permission in env vars):
   {
-    _type: 'lead',
-    projectSlug, projectName, name, email, phone,
-    unitPreference, message,
-    submittedAt: new Date().toISOString(),
-    status: 'new'
+  \_type: 'lead',
+  projectSlug, projectName, name, email, phone,
+  unitPreference, message,
+  submittedAt: new Date().toISOString(),
+  status: 'new'
   }
 - Rate limiting: max 3 requests per IP per hour
 - Honeypot field check
@@ -2495,54 +2615,54 @@ import all section components above.
 
 Placeholder project data shape (replace with Sanity in Phase 6.3):
 const project = {
-  title: 'ARMONIA',
-  slug: 'armonia',
-  status: 'completed',
-  ctaType: 'showcase',
-  location: 'Lakatameia, Nicosia',
-  type: 'Residential',
-  year: 2024,
-  heroImageId: 'clients/tdkdb/armonia/exterior/hero',
-  rendersGallery: {
-    heading: 'THE VISION',
-    images: ['clients/tdkdb/armonia/renders/01', 'clients/tdkdb/armonia/renders/02'],
-    caption: '',
-  },
-  photosGallery: {
-    heading: 'COMPLETED',
-    images: ['clients/tdkdb/armonia/photography/01'],
-    caption: 'Professional photography',
-  },
-  pullQuote: 'A building designed to outlast trends.',
-  description: null,
-  features: ['Underground parking', 'Rooftop terrace', 'Floor-to-ceiling glazing'],
-  specs: [
-    { key: 'Total Units', value: '12' },
-    { key: 'Floor area', value: '58–145 m²' },
-    { key: 'Parking', value: 'Underground' },
-  ],
-  unitsHeading: 'UNIT BREAKDOWN',
-  unitsNote: '',
-  units: [
-    { floor: 'GF', unitType: '1-Bed', sizeM2: 58, status: 'sold' },
-    { floor: 'GF', unitType: '2-Bed', sizeM2: 82, status: 'sold' },
-    { floor: '1F', unitType: '2-Bed', sizeM2: 85, status: 'sold' },
-    { floor: '2F', unitType: 'Penthouse', sizeM2: 145, status: 'sold' },
-  ],
-  progressPercent: 100,
-  progressLabel: '',
-  constructionUpdates: [],
-  interestFormHeading: '',
-  interestFormSubtext: '',
-  mapEmbedUrl: '',
-  relatedProjectSlugs: ['almond'],
-  ctaLabel: '',
-  ctaHref: '',
-  seo: {
-    title: 'Armonia Apartments | TDK Design & Build',
-    description: 'Completed residential development in Lakatameia, Nicosia.',
-    ogImageId: 'clients/tdkdb/armonia/exterior/hero',
-  },
+title: 'ARMONIA',
+slug: 'armonia',
+status: 'completed',
+ctaType: 'showcase',
+location: 'Lakatameia, Nicosia',
+type: 'Residential',
+year: 2024,
+heroImageId: 'clients/tdkdb/armonia/exterior/hero',
+rendersGallery: {
+heading: 'THE VISION',
+images: ['clients/tdkdb/armonia/renders/01', 'clients/tdkdb/armonia/renders/02'],
+caption: '',
+},
+photosGallery: {
+heading: 'COMPLETED',
+images: ['clients/tdkdb/armonia/photography/01'],
+caption: 'Professional photography',
+},
+pullQuote: 'A building designed to outlast trends.',
+description: null,
+features: ['Underground parking', 'Rooftop terrace', 'Floor-to-ceiling glazing'],
+specs: [
+{ key: 'Total Units', value: '12' },
+{ key: 'Floor area', value: '58–145 m²' },
+{ key: 'Parking', value: 'Underground' },
+],
+unitsHeading: 'UNIT BREAKDOWN',
+unitsNote: '',
+units: [
+{ floor: 'GF', unitType: '1-Bed', sizeM2: 58, status: 'sold' },
+{ floor: 'GF', unitType: '2-Bed', sizeM2: 82, status: 'sold' },
+{ floor: '1F', unitType: '2-Bed', sizeM2: 85, status: 'sold' },
+{ floor: '2F', unitType: 'Penthouse', sizeM2: 145, status: 'sold' },
+],
+progressPercent: 100,
+progressLabel: '',
+constructionUpdates: [],
+interestFormHeading: '',
+interestFormSubtext: '',
+mapEmbedUrl: '',
+relatedProjectSlugs: ['almond'],
+ctaLabel: '',
+ctaHref: '',
+seo: {
+title: 'Armonia Apartments | TDK Design & Build',
+description: 'Completed residential development in Lakatameia, Nicosia.',
+ogImageId: 'clients/tdkdb/armonia/exterior/hero',
+},
 }
 
 Section rendering logic (conditional):
@@ -2561,6 +2681,7 @@ Section rendering logic (conditional):
 
 generateStaticParams(): returns [] for now — Sanity wiring in Phase 6.3
 generateMetadata(): uses project.seo.title and project.seo.description
+
 ```
 
 **Check before moving on:**
@@ -2584,12 +2705,14 @@ generateMetadata(): uses project.seo.title and project.seo.description
 ### PROMPT 5.6 — Insights Index & Article Pages
 
 ```
+
 Build the Insights (blog) pages following master plan Sections 7.9 and 7.10.
 
 File 1: /src/app/[locale]/(site)/insights/page.tsx (Index)
 File 2: /src/app/[locale]/(site)/insights/[slug]/page.tsx (Article)
 
 INDEX PAGE:
+
 1. Hero — featured article (full-width card, image background, title overlay)
 2. Article grid — 3 columns on desktop
    Each card: image, category badge, title, excerpt, date, read time
@@ -2601,6 +2724,7 @@ Build /src/components/ui/ArticleCard.tsx
 Build /src/components/ui/CategoryFilter.tsx
 
 ARTICLE PAGE:
+
 1. Hero — article title (text-display-md), author + date + read time + category below
    No background image — just typography on --color-void (let the writing breathe)
 2. Article body — rendered from Sanity Portable Text
@@ -2615,6 +2739,7 @@ ARTICLE PAGE:
 4. Author bio card — image, name, role, short bio
 5. Related articles — 3 cards
 6. Share — copy link + social share (native share API on mobile)
+
 ```
 
 ---
@@ -2622,11 +2747,13 @@ ARTICLE PAGE:
 ### PROMPT 5.7 — Contact Page
 
 ```
+
 Build the Contact page following master plan Section 7.11.
 
 File: /src/app/[locale]/(site)/contact/page.tsx
 
 Sections:
+
 1. Hero — "LET'S TALK" in text-display-lg. Subtext in text-body-lg.
    No background image — pure --color-void. Typography as the design.
 
@@ -2638,9 +2765,9 @@ Sections:
    - Labels: text-label style, animate up when field has content
    - No rounded corners on anything
    - Submit button: primary variant, full width, "SEND MESSAGE →"
-   
+
    Validation: Zod schema, validated client-side on submit + server-side in API route
-   
+
    Success state: form slides out, "MESSAGE RECEIVED" appears with a thin check animation
    Error state: field borders turn threshold (--color-threshold), error message in text-label below field
 
@@ -2654,6 +2781,7 @@ Sections:
    Wrap in a container with --color-surface background as fallback
 
 Build /src/app/api/contact/route.ts:
+
 - POST handler
 - Validate with Zod (same schema as client)
 - Send email via Resend FROM process.env.RESEND_FROM_EMAIL TO process.env.CONTACT_FORM_TO_EMAIL
@@ -2661,6 +2789,7 @@ Build /src/app/api/contact/route.ts:
 - Rate limiting: max 3 requests per IP per hour
 - Honeypot field check (bot protection)
 - Return appropriate JSON responses
+
 ```
 
 ---
@@ -2668,6 +2797,7 @@ Build /src/app/api/contact/route.ts:
 ### PROMPT 5.8 — 404 Page
 
 ```
+
 Build the custom 404 page.
 
 Reference: TDK_MASTER_PLAN.md Section 7.13.
@@ -2676,12 +2806,14 @@ File: /src/app/not-found.tsx
 (Next.js App Router serves this automatically for any unmatched route)
 
 Specifications:
+
 - Full-height layout (min-height: 100svh), background: --color-void
 - Navbar included at top (standard transparent variant)
 - No footer — keep it minimal
 - Content centered vertically and horizontally
 
 Layout (centered column, max-width 600px):
+
 1. Large "404" — class text-display-xl, font-weight 300, color --color-stone
 2. Heading "PAGE NOT FOUND" — class text-label, color --color-stone, letter-spacing tracked
 3. Body text "The page you're looking for has moved or doesn't exist."
@@ -2691,6 +2823,7 @@ Layout (centered column, max-width 600px):
    hover: color --color-paper, transition --duration-fast, margin-top 16px, href="/projects"
 
 Animations (GSAP, client-side only, check useReducedMotion):
+
 - "404" number: opacity 0 → 1, y: 20 → 0, duration 0.8s, ease --ease-smooth
 - Heading + body: stagger FadeUp, delay 0.4s after 404 appears
 - Button: FadeUp, delay 0.6s after 404 appears
@@ -2699,6 +2832,7 @@ Animations (GSAP, client-side only, check useReducedMotion):
 This is a server component — no 'use client' needed.
 GSAP animations run in a child client component (wrap animated elements in a
 client component that calls useGSAP on mount).
+
 ```
 
 **Check before moving on:**
@@ -2721,6 +2855,7 @@ client component that calls useGSAP on mount).
 ### PROMPT 6.1 — Sanity Schemas
 
 ```
+
 Build all Sanity content type schemas.
 
 Reference: TDK_MASTER_PLAN.md Section 12.
@@ -2729,161 +2864,163 @@ CRITICAL RULE FOR ALL IMAGE FIELDS:
 Use 'string' type — NOT Sanity's native 'image' type.
 All images live in Cloudinary. Sanity only stores the public ID as a string.
 Example field:
-  defineField({
-    name: 'heroImageId',
-    title: 'Hero Image (Cloudinary ID)',
-    type: 'string',
-    description: 'Upload to Cloudinary under clients/tdkdb/. Paste the public ID here.\nExample: clients/tdkdb/almond/renders/hero-exterior',
-  })
+defineField({
+name: 'heroImageId',
+title: 'Hero Image (Cloudinary ID)',
+type: 'string',
+description: 'Upload to Cloudinary under clients/tdkdb/. Paste the public ID here.\nExample: clients/tdkdb/almond/renders/hero-exterior',
+})
 
 File: /sanity/schemas/project.ts
 
 Core fields:
-  title (string), slug (slug, source: title), status (enum: upcoming/in-progress/completed),
-  type (enum: residential/commercial/mixed-use), location (string), year (number)
+title (string), slug (slug, source: title), status (enum: upcoming/in-progress/completed),
+type (enum: residential/commercial/mixed-use), location (string), year (number)
 
 Template control field:
-  ctaType (enum: showcase/register-interest/contact)
-  description: 'Controls page rendering. showcase = completed portfolio.
-  register-interest = active pre-sale with interest form. contact = generic enquiry.'
+ctaType (enum: showcase/register-interest/contact)
+description: 'Controls page rendering. showcase = completed portfolio.
+register-interest = active pre-sale with interest form. contact = generic enquiry.'
 
 Hero:
-  heroImageId (string — Cloudinary ID)
+heroImageId (string — Cloudinary ID)
 
 Renders Gallery (CGI renders — the vision):
-  rendersGallery (object):
-    heading (string, e.g. "THE VISION", "RENDERS")
-    images (array of strings — Cloudinary IDs)
-    caption (string, optional)
+rendersGallery (object):
+heading (string, e.g. "THE VISION", "RENDERS")
+images (array of strings — Cloudinary IDs)
+caption (string, optional)
 
 Photos Gallery (real photography — the reality):
-  photosGallery (object):
-    heading (string, e.g. "THE BUILD", "PROGRESS", "COMPLETED")
-    images (array of strings — Cloudinary IDs)
-    caption (string, optional, e.g. "Updated March 2025")
-  description: 'Add progress photos while building. Replace with finished
-  professional photography when complete. Leave empty to hide this section.'
+photosGallery (object):
+heading (string, e.g. "THE BUILD", "PROGRESS", "COMPLETED")
+images (array of strings — Cloudinary IDs)
+caption (string, optional, e.g. "Updated March 2025")
+description: 'Add progress photos while building. Replace with finished
+professional photography when complete. Leave empty to hide this section.'
 
 Content:
-  pullQuote (string)
-  description (portableText)
-  features (array of strings)
-  specs (array of objects: { key (string), value (string) })
+pullQuote (string)
+description (portableText)
+features (array of strings)
+specs (array of objects: { key (string), value (string) })
 
 Units table:
-  unitsHeading (string, e.g. "AVAILABLE UNITS" or "UNIT BREAKDOWN")
-  unitsNote (string, e.g. "Pricing available on enquiry")
-  units (array of objects: {
-    floor (string, e.g. "GF", "1F", "2F"),
-    unitType (string, e.g. "1-Bed", "2-Bed", "Penthouse"),
-    sizeM2 (number),
-    status (enum: available/reserved/sold)
-  })
+unitsHeading (string, e.g. "AVAILABLE UNITS" or "UNIT BREAKDOWN")
+unitsNote (string, e.g. "Pricing available on enquiry")
+units (array of objects: {
+floor (string, e.g. "GF", "1F", "2F"),
+unitType (string, e.g. "1-Bed", "2-Bed", "Penthouse"),
+sizeM2 (number),
+status (enum: available/reserved/sold)
+})
 
 Construction progress (shown when status = in-progress):
-  progressPercent (number, min 0, max 100)
-  progressLabel (string, e.g. "Foundation Complete · Structural Work Underway")
-  constructionUpdates (array of objects: { date (date), imageId (string — Cloudinary), caption (string) })
+progressPercent (number, min 0, max 100)
+progressLabel (string, e.g. "Foundation Complete · Structural Work Underway")
+constructionUpdates (array of objects: { date (date), imageId (string — Cloudinary), caption (string) })
 
 Interest form (shown when ctaType = register-interest):
-  interestFormHeading (string)
-  interestFormSubtext (string)
+interestFormHeading (string)
+interestFormSubtext (string)
 
 Location:
-  mapEmbedUrl (string)
-  neighborhoodDescription (portableText)
+mapEmbedUrl (string)
+neighborhoodDescription (portableText)
 
 Relations:
-  relatedProjectSlugs (array of strings)
+relatedProjectSlugs (array of strings)
 
 CTA overrides (optional — defaults driven by ctaType if left empty):
-  ctaLabel (string)
-  ctaHref (string)
+ctaLabel (string)
+ctaHref (string)
 
 SEO:
-  seo (object: { title (string), description (string), ogImageId (string — Cloudinary) })
+seo (object: { title (string), description (string), ogImageId (string — Cloudinary) })
 
 Multilingual (commented-out — activate when Greek launches):
-  // titleEl (string)
-  // pullQuoteEl (string)
-  // descriptionEl (portableText)
+// titleEl (string)
+// pullQuoteEl (string)
+// descriptionEl (portableText)
 
 ---
 
 File: /sanity/schemas/insight.ts
-  title, slug, author (reference → teamMember), publishDate (datetime),
-  category (reference → category), excerpt (text, max 200 chars),
-  heroImageId (string — Cloudinary), body (portableText),
-  seo (object: { title, description, ogImageId }),
-  relatedInsightSlugs (array of strings)
-  // Commented-out: titleEl, bodyEl
+title, slug, author (reference → teamMember), publishDate (datetime),
+category (reference → category), excerpt (text, max 200 chars),
+heroImageId (string — Cloudinary), body (portableText),
+seo (object: { title, description, ogImageId }),
+relatedInsightSlugs (array of strings)
+// Commented-out: titleEl, bodyEl
 
 ---
 
 File: /sanity/schemas/category.ts
-  title, slug, description (text)
+title, slug, description (text)
 
 ---
 
 File: /sanity/schemas/teamMember.ts
-  name, role, bio (text), photoId (string — Cloudinary), email, linkedin (url), order (number)
+name, role, bio (text), photoId (string — Cloudinary), email, linkedin (url), order (number)
 
 ---
 
 File: /sanity/schemas/service.ts
-  title, slug, shortDescription (text), fullDescription (portableText),
-  heroImageId (string — Cloudinary),
-  process (array of objects: { step (number), title (string), description (text) }),
-  faq (array of objects: { question (string), answer (portableText) }),
-  relatedProjectSlugs (array of strings),
-  seo (object: { title, description })
+title, slug, shortDescription (text), fullDescription (portableText),
+heroImageId (string — Cloudinary),
+process (array of objects: { step (number), title (string), description (text) }),
+faq (array of objects: { question (string), answer (portableText) }),
+relatedProjectSlugs (array of strings),
+seo (object: { title, description })
 
 ---
 
 File: /sanity/schemas/siteSettings.ts (singleton)
-  companyName, tagline, address, phone, email,
-  socialLinks (array: { platform (string), url (url) }),
-  logoId (string — Cloudinary), ogImageId (string — Cloudinary),
-  googleAnalyticsId
+companyName, tagline, address, phone, email,
+socialLinks (array: { platform (string), url (url) }),
+logoId (string — Cloudinary), ogImageId (string — Cloudinary),
+googleAnalyticsId
 
 ---
 
 File: /sanity/schemas/lead.ts
-  CRM document — created automatically by the API route on every interest form submission.
-  projectSlug (string)
-  projectName (string)
-  name (string)
-  email (string)
-  phone (string)
-  unitPreference (string)
-  message (text)
-  submittedAt (datetime — auto-set on creation)
-  status (enum: new/contacted/qualified/closed — default: 'new')
-  notes (text — internal TDK notes, optional)
+CRM document — created automatically by the API route on every interest form submission.
+projectSlug (string)
+projectName (string)
+name (string)
+email (string)
+phone (string)
+unitPreference (string)
+message (text)
+submittedAt (datetime — auto-set on creation)
+status (enum: new/contacted/qualified/closed — default: 'new')
+notes (text — internal TDK notes, optional)
 
 ---
 
 File: /sanity/schemas/index.ts
-  Export all schemas as an array.
+Export all schemas as an array.
 
 ---
 
 File: /sanity/desk/structure.ts
-  Custom desk structure with clear sections:
-  - Projects (grouped: In Progress · Completed · Upcoming)
-  - Insights
-  - Services
-  - Team
-  - Leads (grouped by projectSlug — shows all interest form submissions with status dropdown)
-  - Site Settings (singleton — no list, just the document)
+Custom desk structure with clear sections:
 
-  In Progress group should always show Almond first (sort by order field or hardcode).
+- Projects (grouped: In Progress · Completed · Upcoming)
+- Insights
+- Services
+- Team
+- Leads (grouped by projectSlug — shows all interest form submissions with status dropdown)
+- Site Settings (singleton — no list, just the document)
+
+In Progress group should always show Almond first (sort by order field or hardcode).
 
 ---
 
 File: /sanity/sanity.config.ts
-  Register all schemas, custom desk structure, and studio metadata.
-  title: 'TDK Design & Build'
+Register all schemas, custom desk structure, and studio metadata.
+title: 'TDK Design & Build'
+
 ```
 
 **Check before moving on:**
@@ -2899,6 +3036,7 @@ File: /sanity/sanity.config.ts
 ### PROMPT 6.2 — TypeScript Types & GROQ Queries
 
 ```
+
 Build all TypeScript types and GROQ queries for Sanity data.
 
 File: /src/lib/sanity/types.ts
@@ -2907,57 +3045,57 @@ Define TypeScript interfaces that exactly match the schemas.
 All image fields are strings (Cloudinary IDs), NOT Sanity image objects.
 
 export interface ProjectGallery {
-  heading: string
-  images: string[]
-  caption?: string
+heading: string
+images: string[]
+caption?: string
 }
 
 export interface ProjectUnit {
-  floor: string
-  unitType: string
-  sizeM2: number
-  status: 'available' | 'reserved' | 'sold'
+floor: string
+unitType: string
+sizeM2: number
+status: 'available' | 'reserved' | 'sold'
 }
 
 export interface ConstructionUpdate {
-  date: string
-  imageId: string
-  caption: string
+date: string
+imageId: string
+caption: string
 }
 
 export interface Project {
-  _id: string
-  title: string
-  slug: { current: string }
-  status: 'upcoming' | 'in-progress' | 'completed'
-  type: 'residential' | 'commercial' | 'mixed-use'
-  ctaType: 'showcase' | 'register-interest' | 'contact'
-  location: string
-  year: number
-  heroImageId: string
-  rendersGallery?: ProjectGallery
-  photosGallery?: ProjectGallery
-  pullQuote?: string
-  description?: any // portableText
-  features?: string[]
-  specs?: { key: string; value: string }[]
-  unitsHeading?: string
-  unitsNote?: string
-  units?: ProjectUnit[]
-  progressPercent?: number
-  progressLabel?: string
-  constructionUpdates?: ConstructionUpdate[]
-  interestFormHeading?: string
-  interestFormSubtext?: string
-  mapEmbedUrl?: string
-  neighborhoodDescription?: any // portableText
-  relatedProjectSlugs?: string[]
-  ctaLabel?: string
-  ctaHref?: string
-  seo?: { title: string; description: string; ogImageId: string }
-  // Multilingual (future):
-  // titleEl?: string
-  // pullQuoteEl?: string
+\_id: string
+title: string
+slug: { current: string }
+status: 'upcoming' | 'in-progress' | 'completed'
+type: 'residential' | 'commercial' | 'mixed-use'
+ctaType: 'showcase' | 'register-interest' | 'contact'
+location: string
+year: number
+heroImageId: string
+rendersGallery?: ProjectGallery
+photosGallery?: ProjectGallery
+pullQuote?: string
+description?: any // portableText
+features?: string[]
+specs?: { key: string; value: string }[]
+unitsHeading?: string
+unitsNote?: string
+units?: ProjectUnit[]
+progressPercent?: number
+progressLabel?: string
+constructionUpdates?: ConstructionUpdate[]
+interestFormHeading?: string
+interestFormSubtext?: string
+mapEmbedUrl?: string
+neighborhoodDescription?: any // portableText
+relatedProjectSlugs?: string[]
+ctaLabel?: string
+ctaHref?: string
+seo?: { title: string; description: string; ogImageId: string }
+// Multilingual (future):
+// titleEl?: string
+// pullQuoteEl?: string
 }
 
 export interface Insight { ... }
@@ -2975,55 +3113,57 @@ All queries use GROQ. All return typed responses. All are server-side only.
 PROJECT QUERIES:
 
 getAllProjects(): Promise<Project[]>
-  Query: *[_type == 'project'] | order(year desc) {
-    _id, title, slug, status, type, ctaType, location, year, heroImageId, seo
-  }
+Query: \*[_type == 'project'] | order(year desc) {
+\_id, title, slug, status, type, ctaType, location, year, heroImageId, seo
+}
 
 getProjectsForHomepageReel(): Promise<Project[]>
-  Query: *[_type == 'project' && status != 'upcoming'] | order(year desc) [0...5] {
-    _id, title, slug, status, ctaType, location, year, heroImageId
-  }
-  Used by SceneProjects (Phase 6.3 replaces the hardcoded array)
+Query: \*[_type == 'project' && status != 'upcoming'] | order(year desc) [0...5] {
+\_id, title, slug, status, ctaType, location, year, heroImageId
+}
+Used by SceneProjects (Phase 6.3 replaces the hardcoded array)
 
 getProjectBySlug(slug: string): Promise<Project | null>
-  Query: *[_type == 'project' && slug.current == $slug][0] {
-    _id, title, slug, status, type, ctaType, location, year,
-    heroImageId,
-    rendersGallery { heading, images, caption },
-    photosGallery { heading, images, caption },
-    pullQuote, description, features, specs,
-    unitsHeading, unitsNote,
-    units[] { floor, unitType, sizeM2, status },
-    progressPercent, progressLabel,
-    constructionUpdates[] { date, imageId, caption },
-    interestFormHeading, interestFormSubtext,
-    mapEmbedUrl, neighborhoodDescription,
-    relatedProjectSlugs,
-    ctaLabel, ctaHref, seo
-  }
+Query: \*[\_type == 'project' && slug.current == $slug][0] {
+\_id, title, slug, status, type, ctaType, location, year,
+heroImageId,
+rendersGallery { heading, images, caption },
+photosGallery { heading, images, caption },
+pullQuote, description, features, specs,
+unitsHeading, unitsNote,
+units[] { floor, unitType, sizeM2, status },
+progressPercent, progressLabel,
+constructionUpdates[] { date, imageId, caption },
+interestFormHeading, interestFormSubtext,
+mapEmbedUrl, neighborhoodDescription,
+relatedProjectSlugs,
+ctaLabel, ctaHref, seo
+}
 
 INSIGHT QUERIES:
 
 getAllInsights(limit?: number): Promise<Insight[]>
 getInsightBySlug(slug: string): Promise<Insight | null>
-  Include populated author and category
+Include populated author and category
 getRelatedInsights(currentSlug: string, categoryId: string, limit = 3): Promise<Insight[]>
 
 SERVICE QUERIES:
 
 getAllServices(): Promise<Service[]>
 getServiceBySlug(slug: string): Promise<Service | null>
-  Include process[], faq[], relatedProjectSlugs
+Include process[], faq[], relatedProjectSlugs
 
 GENERAL:
 
 getSiteSettings(): Promise<SiteSettings>
-  This is the singleton — fetch with [0]
+This is the singleton — fetch with [0]
 
 All queries should:
+
 - Use the CDN client for reads (fast, cached)
 - Return null/[] rather than throwing on not found
 - Be typed with generics
+
 ```
 
 **Check before moving on:**
@@ -3037,6 +3177,7 @@ All queries should:
 ### PROMPT 6.3 — Wire Sanity to All Pages
 
 ```
+
 Replace all placeholder data with real Sanity queries across every dynamic page.
 Reference: TDK_MASTER_PLAN.md Section 12, Phase 6.3.
 
@@ -3078,14 +3219,15 @@ Reference: TDK_MASTER_PLAN.md Section 12, Phase 6.3.
    /src/app/api/revalidate/route.ts
    - POST handler, validate SANITY_REVALIDATE_SECRET header
    - project document → revalidatePath('/[locale]/projects', 'layout')
-     + revalidatePath(`/[locale]/projects/${slug}`)
+     - revalidatePath(`/[locale]/projects/${slug}`)
    - insight document → revalidatePath('/[locale]/insights', 'layout')
-     + revalidatePath(`/[locale]/insights/${slug}`)
+     - revalidatePath(`/[locale]/insights/${slug}`)
    - service document → revalidatePath('/[locale]/services', 'layout')
-     + revalidatePath(`/[locale]/services/${slug}`)
+     - revalidatePath(`/[locale]/services/${slug}`)
    - siteSettings → revalidatePath('/', 'layout')
-   Register webhook in Sanity dashboard:
-   https://tdkdb.com/api/revalidate?secret=YOUR_SECRET
+     Register webhook in Sanity dashboard:
+     https://tdkdb.com/api/revalidate?secret=YOUR_SECRET
+
 ```
 
 **Check before moving on:**
@@ -3101,6 +3243,7 @@ Reference: TDK_MASTER_PLAN.md Section 12, Phase 6.3.
 ### PROMPT 6.4 — Sanity Content Entry
 
 ```
+
 This is not a code prompt — it's an instruction for entering real content into
 Sanity Studio before Phase 7. This content must be in place before SEO or
 analytics can be properly tested.
@@ -3174,11 +3317,13 @@ In Sanity Studio at /studio, create the following documents:
    - "The Lakatameia neighborhood guide"
 
 After content entry:
+
 - Trigger the ISR webhook to revalidate all pages
 - Verify both project pages render real content
 - Verify units table on Almond shows real data
 - Confirm Leads section visible in Sanity Studio with status dropdown working
   (submit a test interest form submission to verify the lead document is created)
+
 ```
 
 **Check before moving on:**
@@ -3199,6 +3344,7 @@ After content entry:
 ### PROMPT 7.1 — SEO Infrastructure
 
 ```
+
 Implement the full SEO configuration.
 
 Reference: TDK_MASTER_PLAN.md Section 10.
@@ -3238,7 +3384,7 @@ Reference: TDK_MASTER_PLAN.md Section 10.
 
 4. Create /src/app/robots.ts:
    - Allow all crawlers
-   - Disallow: /studio, /api, /_next
+   - Disallow: /studio, /api, /\_next
    - Sitemap URL: https://tdkdb.com/sitemap.xml
 
 5. Schema.org structured data:
@@ -3249,49 +3395,49 @@ Reference: TDK_MASTER_PLAN.md Section 10.
 
    a) Organization — in root layout (every page):
    {
-     "@type": "Organization",
-     "name": "TDK Design & Build",
-     "url": "https://tdkdb.com",
-     "address": { "@type": "PostalAddress", "streetAddress": "Nafpliou 1",
-       "addressLocality": "Lakatameia", "addressRegion": "Nicosia",
-       "addressCountry": "CY" },
-     "contactPoint": { "@type": "ContactPoint", "telephone": "[phone]",
-       "contactType": "sales" }
+   "@type": "Organization",
+   "name": "TDK Design & Build",
+   "url": "https://tdkdb.com",
+   "address": { "@type": "PostalAddress", "streetAddress": "Nafpliou 1",
+   "addressLocality": "Lakatameia", "addressRegion": "Nicosia",
+   "addressCountry": "CY" },
+   "contactPoint": { "@type": "ContactPoint", "telephone": "[phone]",
+   "contactType": "sales" }
    }
 
    b) LocalBusiness — on /contact page:
    {
-     "@type": "LocalBusiness",
-     "name": "TDK Design & Build",
-     "@id": "https://tdkdb.com",
-     "url": "https://tdkdb.com",
-     "telephone": "[phone]",
-     "address": { ... same as Organization ... },
-     "geo": { "@type": "GeoCoordinates", "latitude": 35.1264, "longitude": 33.3156 },
-     "openingHours": "Mo-Fr 09:00-18:00",
-     "priceRange": "€€€"
+   "@type": "LocalBusiness",
+   "name": "TDK Design & Build",
+   "@id": "https://tdkdb.com",
+   "url": "https://tdkdb.com",
+   "telephone": "[phone]",
+   "address": { ... same as Organization ... },
+   "geo": { "@type": "GeoCoordinates", "latitude": 35.1264, "longitude": 33.3156 },
+   "openingHours": "Mo-Fr 09:00-18:00",
+   "priceRange": "€€€"
    }
 
    c) RealEstateListing — on /projects/almond only:
    {
-     "@type": "RealEstateListing",
-     "name": "Almond Apartments",
-     "description": "[project description]",
-     "url": "https://tdkdb.com/en/projects/almond",
-     "address": { "@type": "PostalAddress", "addressLocality": "Nicosia",
-       "addressCountry": "CY" }
+   "@type": "RealEstateListing",
+   "name": "Almond Apartments",
+   "description": "[project description]",
+   "url": "https://tdkdb.com/en/projects/almond",
+   "address": { "@type": "PostalAddress", "addressLocality": "Nicosia",
+   "addressCountry": "CY" }
    }
 
    d) Article — on every /insights/[slug] page:
    {
-     "@type": "Article",
-     "headline": "[article title]",
-     "author": { "@type": "Person", "name": "[author name]" },
-     "datePublished": "[publishDate]",
-     "publisher": { "@type": "Organization", "name": "TDK Design & Build" }
+   "@type": "Article",
+   "headline": "[article title]",
+   "author": { "@type": "Person", "name": "[author name]" },
+   "datePublished": "[publishDate]",
+   "publisher": { "@type": "Organization", "name": "TDK Design & Build" }
    }
 
-   e) BreadcrumbList — on all sub-pages (/about, /services/*, /projects/*, /insights/*):
+   e) BreadcrumbList — on all sub-pages (/about, /services/_, /projects/_, /insights/\*):
    Generate dynamically from the current path.
    Example for /projects/almond:
    Home > Projects > Almond
@@ -3305,6 +3451,7 @@ Reference: TDK_MASTER_PLAN.md Section 10.
    For now, both EN and EL point to the same EN content (Greek pages don't exist yet).
    When Greek is live, EL href will point to the real translated page.
    This is standard practice — it won't hurt SEO to have the tags present.
+
 ```
 
 **Check before moving on:**
@@ -3322,6 +3469,7 @@ Reference: TDK_MASTER_PLAN.md Section 10.
 ### PROMPT 7.2 — Analytics Setup
 
 ```
+
 Implement GA4, cookie consent, and Microsoft Clarity.
 
 Reference: TDK_MASTER_PLAN.md Section 13.
@@ -3336,9 +3484,9 @@ Reference: TDK_MASTER_PLAN.md Section 13.
    A typed event tracking utility. Only fires if consent is active.
 
    export function trackEvent(name: string, params?: Record<string, string | number>) {
-     if (typeof window === 'undefined') return
-     if (!getConsentStatus()) return
-     window.gtag?.('event', name, params)
+   if (typeof window === 'undefined') return
+   if (!getConsentStatus()) return
+   window.gtag?.('event', name, params)
    }
 
    Pre-built named functions for every event in the analytics plan:
@@ -3391,6 +3539,7 @@ Reference: TDK_MASTER_PLAN.md Section 13.
    Create /src/app/[locale]/(site)/privacy-policy/page.tsx
    Create /src/app/[locale]/(site)/terms/page.tsx
    Placeholder content. Add a note: "Legal content to be provided by TDK."
+
 ```
 
 **Check before moving on:**
@@ -3412,6 +3561,7 @@ Reference: TDK_MASTER_PLAN.md Section 13.
 ### PROMPT 8.1 — Performance Audit & Optimization
 
 ```
+
 Run a performance audit and optimize the site.
 
 1. Bundle analysis:
@@ -3450,6 +3600,7 @@ Run a performance audit and optimize the site.
    - Contact page (target: 95+ desktop, 85+ mobile)
 
 Fix the top 3 issues from each report.
+
 ```
 
 ---
@@ -3457,9 +3608,11 @@ Fix the top 3 issues from each report.
 ### PROMPT 8.2 — Mobile Adaptation
 
 ```
+
 Implement the mobile fallback for the homepage and audit all pages on mobile.
 
 Homepage mobile adaptation (reference: TDK_HOMEPAGE_EXPERIENCE.md Section 22):
+
 1. Detect mobile/touch: use a useMediaQuery hook for pointer: coarse or max-width < 1024px
 2. On mobile: skip the canvas + image sequence system entirely (do not preload sequences)
 3. Replace with a full-screen <video> element:
@@ -3475,10 +3628,12 @@ Audit all interior pages at these widths: 375px, 428px, 768px, 1024px
 Fix any layout issues found.
 
 Key mobile rules:
+
 - Touch targets minimum 44×44px
 - No horizontal overflow on any page
 - Font sizes never below 14px
 - Inputs not zoomed on focus (font-size: 16px on inputs)
+
 ```
 
 ---
@@ -3492,6 +3647,7 @@ Key mobile rules:
 ### PROMPT 9.1 — Accessibility Audit
 
 ```
+
 Audit and fix accessibility issues across the site.
 
 Reference: TDK_MASTER_PLAN.md Section 17.
@@ -3539,6 +3695,7 @@ Run through this checklist and fix every issue:
    - All inputs have associated <label> elements
    - Error messages are announced by screen readers (aria-live)
    - Required fields marked with aria-required
+
 ```
 
 ---
@@ -3546,11 +3703,13 @@ Run through this checklist and fix every issue:
 ### PROMPT 9.2 — 301 Redirects & Migration
 
 ```
+
 Set up 301 redirects from the old WordPress site to the new site.
 
 In next.config.ts, add a redirects() function.
 
 Map old URLs to new URLs:
+
 - /home → /
 - /about-us → /about
 - /our-services → /services
@@ -3564,8 +3723,10 @@ Map old URLs to new URLs:
 All redirects: permanent: true (301)
 
 Also:
+
 - Ensure www.tdkdb.com redirects to tdkdb.com (or vice versa — pick one)
 - Ensure HTTP redirects to HTTPS (Vercel handles this, just verify)
+
 ```
 
 ---
@@ -3573,6 +3734,7 @@ Also:
 ### PROMPT 9.3 — Performance Monitoring Setup
 
 ```
+
 Set up production performance monitoring so issues after launch are caught immediately.
 
 1. Vercel Speed Insights:
@@ -3605,6 +3767,7 @@ Set up production performance monitoring so issues after launch are caught immed
    - [ ] Confirm contact form is receiving test submission
    - [ ] Check for any 404s in Vercel logs (from old WordPress URLs)
    - [ ] Verify image sequences load quickly on a real mobile device (not just emulation)
+
 ```
 
 **Check before moving on:**
@@ -3684,26 +3847,26 @@ DNS:
 
 ## QUICK REFERENCE — WHAT TO FEED CURSOR WHEN
 
-| Situation | What to feed |
-|-----------|-------------|
-| Starting any new phase | This document (the relevant phase section) |
-| Starting any homepage scene | Full `TDK_HOMEPAGE_EXPERIENCE.md` |
-| Starting any interior page | Sections 4, 5, 7 of `TDK_MASTER_PLAN.md` |
-| Cursor seems to forget the design system | Sections 4, 5 of `TDK_MASTER_PLAN.md` |
-| Cursor tries to use Three.js | "This project uses HTML5 canvas + image sequences, not Three.js. Never install or import three." |
-| Cursor tries to use next/image with Cloudinary | "Use a plain <img> tag with cloudinaryUrl() — next/image is not for Cloudinary URLs" |
-| Cursor tries to use Sanity image type | "All project images are Cloudinary IDs stored as strings in Sanity — see Section 12 of Master Plan" |
-| Cursor tries to use Framer Motion | "This project uses GSAP only for all animations. Do not install framer-motion." |
-| Cursor forgets animation patterns | Section 8 of `TDK_MASTER_PLAN.md` |
-| Cursor hardcodes image paths instead of Cloudinary | Re-paste Prompt 2.2 and Section 3 of Master Plan |
-| Debugging image sequence performance | Re-paste TDK_HOMEPAGE_EXPERIENCE.md Sections 2, 3, 4, 5 |
-| Working on any project page | Re-paste TDK_MASTER_PLAN.md Section 7.6 + Prompt 5.5 |
-| Adding a new project in Sanity | Re-paste Section 12.5 of Master Plan — Sanity workflow |
-| Cursor forgets i18n routing | Re-paste Prompt 0.3 — all routes are under /src/app/[locale]/ |
-| Cursor tries to add routes under (site)/ directly | "All routes must be under [locale]/(site)/ — see Prompt 0.3 folder structure" |
-| Adding a new Sanity query | Re-paste Prompt 6.2 types + queries file |
-| Cursor uses localStorage for consent | "Use cookies for consent state, not localStorage — see Prompt 7.2" |
-| After launch: site seems slow | Check Vercel Speed Insights + Prompt 9.3 monitoring setup |
+| Situation                                          | What to feed                                                                                        |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Starting any new phase                             | This document (the relevant phase section)                                                          |
+| Starting any homepage scene                        | Full `TDK_HOMEPAGE_EXPERIENCE.md`                                                                   |
+| Starting any interior page                         | Sections 4, 5, 7 of `TDK_MASTER_PLAN.md`                                                            |
+| Cursor seems to forget the design system           | Sections 4, 5 of `TDK_MASTER_PLAN.md`                                                               |
+| Cursor tries to use Three.js                       | "This project uses HTML5 canvas + image sequences, not Three.js. Never install or import three."    |
+| Cursor tries to use next/image with Cloudinary     | "Use a plain <img> tag with cloudinaryUrl() — next/image is not for Cloudinary URLs"                |
+| Cursor tries to use Sanity image type              | "All project images are Cloudinary IDs stored as strings in Sanity — see Section 12 of Master Plan" |
+| Cursor tries to use Framer Motion                  | "This project uses GSAP only for all animations. Do not install framer-motion."                     |
+| Cursor forgets animation patterns                  | Section 8 of `TDK_MASTER_PLAN.md`                                                                   |
+| Cursor hardcodes image paths instead of Cloudinary | Re-paste Prompt 2.2 and Section 3 of Master Plan                                                    |
+| Debugging image sequence performance               | Re-paste TDK_HOMEPAGE_EXPERIENCE.md Sections 2, 3, 4, 5                                             |
+| Working on any project page                        | Re-paste TDK_MASTER_PLAN.md Section 7.6 + Prompt 5.5                                                |
+| Adding a new project in Sanity                     | Re-paste Section 12.5 of Master Plan — Sanity workflow                                              |
+| Cursor forgets i18n routing                        | Re-paste Prompt 0.3 — all routes are under /src/app/[locale]/                                       |
+| Cursor tries to add routes under (site)/ directly  | "All routes must be under [locale]/(site)/ — see Prompt 0.3 folder structure"                       |
+| Adding a new Sanity query                          | Re-paste Prompt 6.2 types + queries file                                                            |
+| Cursor uses localStorage for consent               | "Use cookies for consent state, not localStorage — see Prompt 7.2"                                  |
+| After launch: site seems slow                      | Check Vercel Speed Insights + Prompt 9.3 monitoring setup                                           |
 
 ---
 
@@ -3733,4 +3896,4 @@ DNS:
 
 > **This document is the build bible.**
 > Follow it in sequence. Update it when decisions change.
-> The goal is a site that makes people say: *"This is smooth. This is creative. This is amazing."*
+> The goal is a site that makes people say: _"This is smooth. This is creative. This is amazing."_

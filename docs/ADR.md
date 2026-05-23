@@ -20,18 +20,18 @@ Next.js App Router supports SSG (static generation at build), ISR (incremental s
 
 ### Decision
 
-| Page | Strategy | Revalidation | Rationale |
-|---|---|---|---|
-| Homepage | SSG + client-side canvas | `revalidate: 60` | The page shell is static HTML. The canvas is client-only (`dynamic import, ssr: false`). The Projects Reel data comes from a server component fetch with ISR so new projects appear within 60 seconds of publishing. |
-| Project detail (`/projects/[slug]`) | ISR | `revalidate: 60` | TDK updates unit statuses, progress percentages, and construction photos via Sanity. 60-second ISR means changes go live within a minute without redeploy. On-demand revalidation via webhook as a secondary trigger. |
-| Insights article (`/insights/[slug]`) | ISR | `revalidate: 300` | Articles change less frequently than project data. 5-minute revalidation is sufficient. |
-| Projects index, Insights index | ISR | `revalidate: 60` / `revalidate: 300` | Mirrors the detail page revalidation so index and detail stay in sync. |
-| About, Services index, Contact | SSG | `revalidate: 3600` | Content changes are infrequent. 1-hour ISR catches any CMS edits without requiring a deploy, while keeping the pages effectively static for performance. |
-| Service detail (`/services/[slug]`) | ISR | `revalidate: 3600` | Same logic as static pages — service descriptions change rarely. |
-| Privacy Policy, Terms | SSG | No revalidation | Truly static. Changes require a deploy, which is fine for legal pages. |
-| Studio (`/studio`) | Dynamic (SSR) | None | Sanity Studio is a full client-side SPA. The page component renders the Studio shell; all logic runs in the browser. |
-| API routes | Dynamic | N/A | Server-side only. Contact form, interest form, and revalidation webhook execute on every request. |
-| 404 | SSG | None | Static error page. |
+| Page                                  | Strategy                 | Revalidation                         | Rationale                                                                                                                                                                                                             |
+| ------------------------------------- | ------------------------ | ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Homepage                              | SSG + client-side canvas | `revalidate: 60`                     | The page shell is static HTML. The canvas is client-only (`dynamic import, ssr: false`). The Projects Reel data comes from a server component fetch with ISR so new projects appear within 60 seconds of publishing.  |
+| Project detail (`/projects/[slug]`)   | ISR                      | `revalidate: 60`                     | TDK updates unit statuses, progress percentages, and construction photos via Sanity. 60-second ISR means changes go live within a minute without redeploy. On-demand revalidation via webhook as a secondary trigger. |
+| Insights article (`/insights/[slug]`) | ISR                      | `revalidate: 300`                    | Articles change less frequently than project data. 5-minute revalidation is sufficient.                                                                                                                               |
+| Projects index, Insights index        | ISR                      | `revalidate: 60` / `revalidate: 300` | Mirrors the detail page revalidation so index and detail stay in sync.                                                                                                                                                |
+| About, Services index, Contact        | SSG                      | `revalidate: 3600`                   | Content changes are infrequent. 1-hour ISR catches any CMS edits without requiring a deploy, while keeping the pages effectively static for performance.                                                              |
+| Service detail (`/services/[slug]`)   | ISR                      | `revalidate: 3600`                   | Same logic as static pages — service descriptions change rarely.                                                                                                                                                      |
+| Privacy Policy, Terms                 | SSG                      | No revalidation                      | Truly static. Changes require a deploy, which is fine for legal pages.                                                                                                                                                |
+| Studio (`/studio`)                    | Dynamic (SSR)            | None                                 | Sanity Studio is a full client-side SPA. The page component renders the Studio shell; all logic runs in the browser.                                                                                                  |
+| API routes                            | Dynamic                  | N/A                                  | Server-side only. Contact form, interest form, and revalidation webhook execute on every request.                                                                                                                     |
+| 404                                   | SSG                      | None                                 | Static error page.                                                                                                                                                                                                    |
 
 ### Consequences
 
@@ -96,13 +96,13 @@ Next.js App Router server-renders by default. Any component that accesses browse
 `HomepageCanvas` is loaded via `next/dynamic` with `ssr: false`:
 
 ```typescript
-const HomepageCanvas = dynamic(
-  () => import('@/components/homepage/HomepageCanvas'),
-  { ssr: false }
-)
+const HomepageCanvas = dynamic(() => import('@/components/homepage/HomepageCanvas'), {
+  ssr: false,
+});
 ```
 
 This means:
+
 - During SSR/SSG, the canvas component is not rendered. The HTML sent to the browser contains only the loading screen, hero-still preload, and the static scroll container.
 - On the client, `HomepageCanvas` mounts, runs connection/device detection, and either initializes the canvas + preloader or falls back to the mobile video path.
 - The scroll container `<div>` (which defines the ~760vh height for ScrollTrigger) is rendered server-side. It's a plain `<div>` with no browser API dependencies.
@@ -133,11 +133,11 @@ All GSAP initialization follows this pattern:
 1. **Registration** happens once in `lib/animations/gsap.ts`:
 
 ```typescript
-'use client'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-gsap.registerPlugin(ScrollTrigger)
-export { gsap, ScrollTrigger }
+'use client';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+gsap.registerPlugin(ScrollTrigger);
+export { gsap, ScrollTrigger };
 ```
 
 2. **Scene-level initialization** happens inside `useLayoutEffect` (not `useEffect`) with a GSAP Context for automatic cleanup:
@@ -147,10 +147,10 @@ useLayoutEffect(() => {
   const ctx = gsap.context(() => {
     // All ScrollTrigger instances, tweens, and timelines
     // created inside this callback are scoped to `ctx`
-  }, containerRef)
+  }, containerRef);
 
-  return () => ctx.revert() // kills all GSAP instances created in this context
-}, [])
+  return () => ctx.revert(); // kills all GSAP instances created in this context
+}, []);
 ```
 
 3. **`gsap.context()`** is the cleanup mechanism. Calling `ctx.revert()` on unmount kills every ScrollTrigger, tween, and timeline created within that context. This handles React Strict Mode's double-mount and route transition cleanup automatically.
@@ -185,15 +185,16 @@ Lenis is initialized in a `LenisProvider` component that wraps the entire app in
 
 ```typescript
 // Simplified pattern
-const lenis = new Lenis({ lerp: 0.1, smoothWheel: true })
+const lenis = new Lenis({ lerp: 0.1, smoothWheel: true });
 
 // Sync Lenis with GSAP ScrollTrigger
-lenis.on('scroll', ScrollTrigger.update)
-gsap.ticker.add((time) => lenis.raf(time * 1000))
-gsap.ticker.lagSmoothing(0)
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add((time) => lenis.raf(time * 1000));
+gsap.ticker.lagSmoothing(0);
 ```
 
 Key decisions:
+
 - **`lerp: 0.1`** — smooth but responsive. Lower values (0.05) feel too sluggish for a content-heavy site.
 - **GSAP ticker drives Lenis RAF** — this ensures Lenis and GSAP are frame-synced. Without this, ScrollTrigger can read a different scroll position than what Lenis reports.
 - **`lagSmoothing(0)`** — disables GSAP's lag compensation, which would conflict with Lenis's own interpolation.
@@ -216,6 +217,7 @@ Key decisions:
 Every content page needs data from Sanity. Next.js App Router supports Server Components that can fetch data directly during rendering — no API layer, no client-side fetching.
 
 The Sanity client has two variants:
+
 - **`client`** (public, CDN-enabled, read-only) — safe for server and client components.
 - **`serverClient`** (token-bearing, no CDN) — for mutations and draft previews, server-only.
 
@@ -225,12 +227,13 @@ The Sanity client has two variants:
 
 ```typescript
 // In a Server Component (e.g., page.tsx)
-import { client } from '@/lib/sanity/client'
+import { client } from '@/lib/sanity/client';
 
-const project = await client.fetch(PROJECT_QUERY, { slug })
+const project = await client.fetch(PROJECT_QUERY, { slug });
 ```
 
 Specific patterns:
+
 - **Page-level fetching:** Each `page.tsx` is a Server Component that fetches its own data and passes it as props to Client Component children.
 - **No client-side fetching for content.** Components that need interactivity (e.g., form submission, cursor state) are Client Components, but they receive their data as props from the server parent — never fetch from Sanity themselves.
 - **`serverClient` usage is restricted** to API routes only: the revalidation webhook (validates the secret), and future draft preview functionality. It is never imported in any component file.
@@ -260,17 +263,20 @@ Next.js `<Image>` component provides automatic optimization, lazy loading, and r
 ### Decision
 
 **Image sequences: raw `Image()` constructor, no Next.js optimization.**
+
 - Loaded via `new Image()` → `img.src = '/sequences/assembly/frame-0001.webp'`
 - Already optimized at build time: FFmpeg extracts at exact dimensions (1920px) and quality (`-q:v 80`) in WebP format.
 - No further optimization needed or possible — these are drawn to canvas, not rendered as `<img>` elements.
 - Cached forever via `Cache-Control: public, max-age=31536000, immutable`.
 
 **Photography and renders: `cloudinaryUrl()` utility, not `next/image`.**
+
 - All CMS images are Cloudinary IDs stored in Sanity. The `cloudinaryUrl()` function generates optimized URLs with `f_auto` (automatic WebP/AVIF), `q_auto`, and correct dimensions.
 - Rendered as standard `<img>` elements with explicit `width`, `height`, and `loading="lazy"`.
 - Cloudinary handles format negotiation, quality optimization, and CDN delivery — duplicating this through Next.js `<Image>` would add unnecessary complexity (double optimization) and doesn't improve the result.
 
 **Exception: `next/image` for local static assets only.**
+
 - The logo SVGs in `/public/images/` and any local static images use `next/image` for automatic optimization and responsive loading.
 - `next.config.mjs` includes `remotePatterns` for `res.cloudinary.com` as a safety net if `next/image` is ever used with Cloudinary URLs directly.
 
@@ -288,6 +294,7 @@ Next.js `<Image>` component provides automatic optimization, lazy loading, and r
 ### Context
 
 The design system uses two fonts:
+
 - **Josefin Sans** (300, 400, 600) — primary, used everywhere.
 - **JetBrains Mono** (400) — secondary, numbers only.
 
@@ -298,30 +305,31 @@ Josefin Sans weight 300 is the most critical — it's used for all display text,
 **Josefin Sans: loaded via `next/font/google` in the root layout.**
 
 ```typescript
-import { Josefin_Sans } from 'next/font/google'
+import { Josefin_Sans } from 'next/font/google';
 
 const josefin = Josefin_Sans({
   subsets: ['latin'],
   weight: ['300', '400', '600'],
   display: 'swap',
   variable: '--font-josefin',
-})
+});
 ```
 
 **JetBrains Mono: loaded via `next/font/google`, deferred.**
 
 ```typescript
-import { JetBrains_Mono } from 'next/font/google'
+import { JetBrains_Mono } from 'next/font/google';
 
 const jetbrains = JetBrains_Mono({
   subsets: ['latin'],
   weight: ['400'],
   display: 'swap',
   variable: '--font-mono',
-})
+});
 ```
 
 Key decisions:
+
 - **`next/font/google`** self-hosts the fonts — no external requests to Google Fonts at runtime. The font files are bundled and served from Vercel's CDN.
 - **`display: 'swap'`** shows text immediately in the fallback font, then swaps once the custom font loads. For body text this is fine. For display text, the layout shift is minimal because `next/font` preloads the font file in the initial HTML.
 - **CSS variables** (`--font-josefin`, `--font-mono`) are applied to `<html>` and referenced in Tailwind config. This decouples font loading from component code.
@@ -385,11 +393,13 @@ Additional safety measures:
 ### Context
 
 The homepage image sequence experience requires:
+
 - Preloading ~26MB of WebP frames.
 - A `<canvas>` element drawing frames at 60fps.
 - GSAP ScrollTrigger scrubbing through frames on scroll.
 
 On mobile devices:
+
 - The 26MB download is prohibitive on cellular connections.
 - Touch scroll momentum (rubber-banding) conflicts with frame scrubbing.
 - Canvas rendering is GPU-constrained on older devices.
@@ -401,18 +411,17 @@ The Master Plan specifies: mobile gets an autoplay MP4 video instead of canvas.
 **Detection runs on mount in `HomepageCanvas` (client-side only):**
 
 ```typescript
-const isMobile =
-  window.matchMedia('(pointer: coarse)').matches ||
-  window.innerWidth < 1024
+const isMobile = window.matchMedia('(pointer: coarse)').matches || window.innerWidth < 1024;
 
-const connection = (navigator as any).connection
+const connection = (navigator as any).connection;
 const isSlowConnection =
   connection?.effectiveType === '2g' ||
   connection?.effectiveType === '3g' ||
-  connection?.saveData === true
+  connection?.saveData === true;
 ```
 
 **If `isMobile || isSlowConnection`:**
+
 - Canvas is never initialized.
 - No image sequences are preloaded (zero wasted bandwidth).
 - An `<video>` element plays `approach-mobile.mp4` (< 8MB, compressed via FFmpeg) with `autoPlay muted playsInline`.
@@ -422,12 +431,14 @@ const isSlowConnection =
 - The loading screen is either skipped or shows a simplified version (no frame-count progress).
 
 **If desktop with good connection:**
+
 - Full canvas experience as specified.
 
 **Edge case — desktop with slow connection:**
 The `isSlowConnection` check catches this. A desktop user on 3G tethering gets the video path, not the 26MB sequence path. This is the correct trade-off: a 8MB video looks better than a canvas that takes 30+ seconds to load its frames.
 
 **No SSR detection.** Device detection happens client-side only because:
+
 - `navigator.connection` doesn't exist during SSR.
 - `window.matchMedia` doesn't exist during SSR.
 - The `HomepageCanvas` component is already `ssr: false` (ADR-003), so this is consistent.
@@ -447,6 +458,7 @@ The `isSlowConnection` check catches this. A desktop user on 3G tethering gets t
 ### Context
 
 The homepage canvas holds ~300 decoded `Image` objects in two arrays:
+
 - `assemblyFrames[]`: ~120 images, ~10MB decoded.
 - `approachFrames[]`: ~180 images, ~16MB decoded.
 
@@ -459,32 +471,33 @@ After Scene 4 (Threshold), the canvas is hidden and Scenes 5–10 are standard H
 ```typescript
 function teardownCanvas() {
   // 1. Null frame arrays to release decoded image memory
-  assemblyFrames.length = 0
-  approachFrames.length = 0
-  assemblyFrames = null
-  approachFrames = null
+  assemblyFrames.length = 0;
+  approachFrames.length = 0;
+  assemblyFrames = null;
+  approachFrames = null;
 
   // 2. Clear canvas context
-  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // 3. Resize canvas to 1x1 to release GPU texture memory
-  canvas.width = 1
-  canvas.height = 1
+  canvas.width = 1;
+  canvas.height = 1;
 
   // 4. Hide canvas via CSS (display: none removes it from the render tree)
-  canvas.style.display = 'none'
+  canvas.style.display = 'none';
 
   // 5. Cancel any pending RAF
-  if (rafId) cancelAnimationFrame(rafId)
+  if (rafId) cancelAnimationFrame(rafId);
 
   // 6. Kill the canvas-related GSAP context
-  canvasGsapCtx.revert()
+  canvasGsapCtx.revert();
 }
 ```
 
 This is triggered by the Scene 4 ScrollTrigger's `onLeave` callback.
 
 Key decisions:
+
 - **Setting `canvas.width = 1`** is critical. Simply hiding the canvas with CSS doesn't free the GPU-allocated texture buffer. Resizing to 1x1 forces the browser to release the previous texture (which at 1920×1080 RGBA is ~8MB of GPU memory).
 - **Nulling array references** allows the garbage collector to reclaim the decoded image data. Setting `.length = 0` first clears the array contents (removing references to individual Image objects), then nulling the variable removes the array itself.
 - **GSAP context revert** kills the assembly RAF tween, approach ScrollTrigger, vignette tween, entrance light tween, and threshold bloom tween — all in one call.

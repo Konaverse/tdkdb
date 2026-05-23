@@ -141,8 +141,7 @@ export default function SceneContact() {
 
       {/* Centered content */}
       <div className="relative flex h-full flex-col items-center justify-center px-8 text-center">
-        {/* Headline */}
-        <h2 className="mb-12 flex flex-wrap items-baseline justify-center gap-x-5 gap-y-2 text-display-xl font-[300] text-paper">
+        <h2 className="mb-12 flex flex-wrap items-baseline justify-center gap-x-5 gap-y-2 text-5xl font-[300] text-paper md:text-display-xl">
           {WORDS.map((word, i) => (
             <span key={word} className="overflow-hidden">
               <span

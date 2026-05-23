@@ -25,23 +25,23 @@ Go to [vercel.com](https://vercel.com) → select the **TDK Design & Build** pro
 
 Check all three boxes (Production, Preview, Development) for each of these:
 
-| Variable | Value |
-|---|---|
-| `NEXT_PUBLIC_SANITY_PROJECT_ID` | Your Sanity project ID |
-| `NEXT_PUBLIC_SANITY_DATASET` | `production` |
-| `NEXT_PUBLIC_SANITY_API_VERSION` | `2024-01-01` |
-| `SANITY_API_TOKEN` | Your Sanity write token |
-| `SANITY_REVALIDATE_SECRET` | Your generated secret |
-| `RESEND_API_KEY` | Your Resend API key |
-| `RESEND_FROM_EMAIL` | `noreply@tdkdb.com` |
-| `CONTACT_FORM_TO_EMAIL` | `info@tdkdb.com` |
-| `INTEREST_FORM_TO_EMAIL` | `info@tdkdb.com` |
+| Variable                            | Value                      |
+| ----------------------------------- | -------------------------- |
+| `NEXT_PUBLIC_SANITY_PROJECT_ID`     | Your Sanity project ID     |
+| `NEXT_PUBLIC_SANITY_DATASET`        | `production`               |
+| `NEXT_PUBLIC_SANITY_API_VERSION`    | `2024-01-01`               |
+| `SANITY_API_TOKEN`                  | Your Sanity write token    |
+| `SANITY_REVALIDATE_SECRET`          | Your generated secret      |
+| `RESEND_API_KEY`                    | Your Resend API key        |
+| `RESEND_FROM_EMAIL`                 | `noreply@tdkdb.com`        |
+| `CONTACT_FORM_TO_EMAIL`             | `info@tdkdb.com`           |
+| `INTEREST_FORM_TO_EMAIL`            | `info@tdkdb.com`           |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | Your Cloudinary cloud name |
-| `CLOUDINARY_API_KEY` | Your Cloudinary API key |
-| `CLOUDINARY_API_SECRET` | Your Cloudinary API secret |
-| `NEXT_PUBLIC_CLOUDINARY_BASE_PATH` | `clients/tdkdb` |
-| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | `G-8NSMZB7NPB` |
-| `NEXT_PUBLIC_CLARITY_PROJECT_ID` | Your Clarity project ID |
+| `CLOUDINARY_API_KEY`                | Your Cloudinary API key    |
+| `CLOUDINARY_API_SECRET`             | Your Cloudinary API secret |
+| `NEXT_PUBLIC_CLOUDINARY_BASE_PATH`  | `clients/tdkdb`            |
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID`     | `G-8NSMZB7NPB`             |
+| `NEXT_PUBLIC_CLARITY_PROJECT_ID`    | Your Clarity project ID    |
 
 ### 3. Add `NEXT_PUBLIC_SITE_URL` with DIFFERENT values per scope
 
@@ -50,11 +50,11 @@ need to point to the correct domain for each environment.
 
 Add it **three separate times**, each with a single scope checked:
 
-| Scope | Value |
-|---|---|
-| **Production** only | `https://tdkdb.com` |
-| **Preview** only | `https://tdkdb-preview.vercel.app` |
-| **Development** only | `http://localhost:3000` |
+| Scope                | Value                              |
+| -------------------- | ---------------------------------- |
+| **Production** only  | `https://tdkdb.com`                |
+| **Preview** only     | `https://tdkdb-preview.vercel.app` |
+| **Development** only | `http://localhost:3000`            |
 
 > **Tip:** For Preview, you can also use Vercel's built-in `VERCEL_URL` system
 > variable at runtime instead of a hardcoded preview URL. But having an explicit

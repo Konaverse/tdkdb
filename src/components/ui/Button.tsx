@@ -19,9 +19,9 @@ export interface ButtonProps {
 }
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'px-5 py-2.5',
-  md: 'px-8 py-4',
-  lg: 'px-10 py-5',
+  sm: 'px-4 py-2 sm:px-5 sm:py-2.5 text-xs sm:text-sm',
+  md: 'px-6 py-3 sm:px-8 sm:py-4 text-sm sm:text-base',
+  lg: 'px-8 py-4 sm:px-10 sm:py-5 text-base sm:text-lg',
 };
 
 export default function Button({

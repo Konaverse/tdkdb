@@ -47,6 +47,7 @@ All CMS images are **Cloudinary public IDs stored as strings in Sanity** — not
 ### Homepage Canvas
 
 The homepage uses an HTML5 `<canvas>` for a scroll-driven image sequence experience:
+
 - **Assembly sequence**: ~120 WebP frames in `/public/sequences/assembly/`
 - **Approach sequence**: ~180 WebP frames in `/public/sequences/approach/`
 - Mobile / slow connections get an MP4 fallback at `/public/videos/approach-mobile.mp4` — detected client-side via `pointer: coarse` or `window.innerWidth < 1024`.
@@ -81,6 +82,7 @@ Simple manual i18n — no `next-intl` or similar library. Config in `src/lib/i18
 ## Environment Variables
 
 Copy `.env.example` to `.env.local`. Required vars:
+
 - `NEXT_PUBLIC_SANITY_PROJECT_ID`, `NEXT_PUBLIC_SANITY_DATASET`, `NEXT_PUBLIC_SANITY_API_VERSION`
 - `SANITY_API_TOKEN` (server-only), `SANITY_REVALIDATE_SECRET`
 - `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `NEXT_PUBLIC_CLOUDINARY_BASE_PATH`
@@ -90,6 +92,7 @@ Copy `.env.example` to `.env.local`. Required vars:
 ## Key Planning Documents
 
 Full spec documents live in the project root — read these for context before building any new feature:
+
 - `TDK_MASTER_PLAN.md` — complete PRD
 - `TDK_HOMEPAGE_EXPERIENCE.md` — homepage scene-by-scene spec
 - `TDK_CURSOR_BUILD_STRATEGY.md` — sequential build prompts (current progress tracked in `HANDOFF.md`)

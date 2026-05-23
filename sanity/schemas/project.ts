@@ -1,4 +1,4 @@
-import { defineType, defineField } from 'sanity'
+import { defineType, defineField } from 'sanity';
 
 export default defineType({
   name: 'project',
@@ -37,7 +37,8 @@ export default defineType({
       name: 'ctaType',
       title: 'CTA Type',
       type: 'string',
-      description: 'Controls page rendering. showcase = completed portfolio. register-interest = active pre-sale with interest form. contact = generic enquiry.',
+      description:
+        'Controls page rendering. showcase = completed portfolio. register-interest = active pre-sale with interest form. contact = generic enquiry.',
       options: {
         list: [
           { title: 'Showcase', value: 'showcase' },
@@ -50,7 +51,8 @@ export default defineType({
       name: 'heroImageId',
       title: 'Hero Image (Cloudinary ID)',
       type: 'string',
-      description: 'Upload to Cloudinary under clients/tdkdb/. Paste the public ID here.\nExample: clients/tdkdb/almond/renders/hero-exterior',
+      description:
+        'Upload to Cloudinary under clients/tdkdb/. Paste the public ID here.\nExample: clients/tdkdb/almond/renders/hero-exterior',
     }),
     defineField({
       name: 'rendersGallery',
@@ -58,7 +60,12 @@ export default defineType({
       type: 'object',
       description: 'CGI renders — the vision',
       fields: [
-        defineField({ name: 'heading', title: 'Heading', type: 'string', description: 'e.g. "THE VISION", "RENDERS"' }),
+        defineField({
+          name: 'heading',
+          title: 'Heading',
+          type: 'string',
+          description: 'e.g. "THE VISION", "RENDERS"',
+        }),
         defineField({
           name: 'images',
           title: 'Images',
@@ -72,20 +79,36 @@ export default defineType({
       name: 'photosGallery',
       title: 'Photos Gallery',
       type: 'object',
-      description: 'Add progress photos while building. Replace with finished professional photography when complete. Leave empty to hide this section.',
+      description:
+        'Add progress photos while building. Replace with finished professional photography when complete. Leave empty to hide this section.',
       fields: [
-        defineField({ name: 'heading', title: 'Heading', type: 'string', description: 'e.g. "THE BUILD", "PROGRESS", "COMPLETED"' }),
+        defineField({
+          name: 'heading',
+          title: 'Heading',
+          type: 'string',
+          description: 'e.g. "THE BUILD", "PROGRESS", "COMPLETED"',
+        }),
         defineField({
           name: 'images',
           title: 'Images',
           type: 'array',
           of: [{ type: 'string', title: 'Cloudinary ID' }],
         }),
-        defineField({ name: 'caption', title: 'Caption', type: 'string', description: 'e.g. "Updated March 2025"' }),
+        defineField({
+          name: 'caption',
+          title: 'Caption',
+          type: 'string',
+          description: 'e.g. "Updated March 2025"',
+        }),
       ],
     }),
     defineField({ name: 'pullQuote', title: 'Pull Quote', type: 'string' }),
-    defineField({ name: 'description', title: 'Description', type: 'array', of: [{ type: 'block' }] }),
+    defineField({
+      name: 'description',
+      title: 'Description',
+      type: 'array',
+      of: [{ type: 'block' }],
+    }),
     defineField({ name: 'features', title: 'Features', type: 'array', of: [{ type: 'string' }] }),
     defineField({
       name: 'specs',
@@ -123,8 +146,18 @@ export default defineType({
           name: 'unit',
           type: 'object',
           fields: [
-            defineField({ name: 'floor', title: 'Floor', type: 'string', description: 'e.g. "GF", "1F", "2F"' }),
-            defineField({ name: 'unitType', title: 'Unit Type', type: 'string', description: 'e.g. "1-Bed", "2-Bed", "Penthouse"' }),
+            defineField({
+              name: 'floor',
+              title: 'Floor',
+              type: 'string',
+              description: 'e.g. "GF", "1F", "2F"',
+            }),
+            defineField({
+              name: 'unitType',
+              title: 'Unit Type',
+              type: 'string',
+              description: 'e.g. "1-Bed", "2-Bed", "Penthouse"',
+            }),
             defineField({ name: 'sizeM2', title: 'Size (m2)', type: 'number' }),
             defineField({
               name: 'status',
@@ -173,8 +206,18 @@ export default defineType({
     defineField({ name: 'interestFormHeading', title: 'Interest Form Heading', type: 'string' }),
     defineField({ name: 'interestFormSubtext', title: 'Interest Form Subtext', type: 'string' }),
     defineField({ name: 'mapEmbedUrl', title: 'Map Embed URL', type: 'string' }),
-    defineField({ name: 'neighborhoodDescription', title: 'Neighborhood Description', type: 'array', of: [{ type: 'block' }] }),
-    defineField({ name: 'relatedProjectSlugs', title: 'Related Project Slugs', type: 'array', of: [{ type: 'string' }] }),
+    defineField({
+      name: 'neighborhoodDescription',
+      title: 'Neighborhood Description',
+      type: 'array',
+      of: [{ type: 'block' }],
+    }),
+    defineField({
+      name: 'relatedProjectSlugs',
+      title: 'Related Project Slugs',
+      type: 'array',
+      of: [{ type: 'string' }],
+    }),
     defineField({ name: 'ctaLabel', title: 'CTA Label Override', type: 'string' }),
     defineField({ name: 'ctaHref', title: 'CTA Href Override', type: 'string' }),
     defineField({
@@ -184,11 +227,15 @@ export default defineType({
       fields: [
         defineField({ name: 'title', title: 'Title', type: 'string' }),
         defineField({ name: 'description', title: 'Description', type: 'string' }),
-        defineField({ name: 'ogImageId', title: 'Open Graph Image (Cloudinary ID)', type: 'string' }),
+        defineField({
+          name: 'ogImageId',
+          title: 'Open Graph Image (Cloudinary ID)',
+          type: 'string',
+        }),
       ],
     }),
     // defineField({ name: 'titleEl', title: 'Title (Greek)', type: 'string' }),
     // defineField({ name: 'pullQuoteEl', title: 'Pull Quote (Greek)', type: 'string' }),
     // defineField({ name: 'descriptionEl', title: 'Description (Greek)', type: 'array', of: [{ type: 'block' }] }),
   ],
-})
+});

@@ -1,4 +1,5 @@
 # TDK DESIGN & BUILD – HERO SECTION V2
+
 ### Creative & Technical Brief
 
 > **Purpose:** This document replaces the Assembly + Approach sequences (Scenes 1–4)
@@ -40,7 +41,7 @@ The hero section is a **scroll-pinned, multi-state cinematic introduction** to T
 ```
 STATE 1              STATE 2              STATE 3              STATE 4
 [Brand Canvas]  →    [Armonia Enters]  →  [The Swap]      →   [Release]
-                     
+
 Dark background      Building arcs in     Armonia arcs out     Pin releases
 Wireframe mesh       from bottom-right    to bottom-left       Normal scroll
 "DESIGNED TO LAST"   Locks center         Almond arcs in       resumes into
@@ -73,12 +74,12 @@ Interactive particle component sourced from **21st.dev**. This is a React/Three.
 
 ### Color States
 
-| State | Particle Color | Transition |
-|-------|---------------|------------|
-| State 1 (Brand Canvas) | Neutral white/light grey (`#F5F0E8` at ~20% opacity) | Default |
-| State 2 (Armonia) | Warm amber tint (`#D4A574` at ~30% opacity) | Crossfade over 800ms tied to scroll |
-| State 3 (Almond) | Cool teal tint (`#66979f` at ~30% opacity) | Crossfade over 800ms tied to scroll |
-| State 4 (Release) | Fade to neutral, then fade out entirely | 600ms as pin releases |
+| State                  | Particle Color                                       | Transition                          |
+| ---------------------- | ---------------------------------------------------- | ----------------------------------- |
+| State 1 (Brand Canvas) | Neutral white/light grey (`#F5F0E8` at ~20% opacity) | Default                             |
+| State 2 (Armonia)      | Warm amber tint (`#D4A574` at ~30% opacity)          | Crossfade over 800ms tied to scroll |
+| State 3 (Almond)       | Cool teal tint (`#66979f` at ~30% opacity)           | Crossfade over 800ms tied to scroll |
+| State 4 (Release)      | Fade to neutral, then fade out entirely              | 600ms as pin releases               |
 
 ### Implementation Notes
 
@@ -107,6 +108,7 @@ Three visual layers:
 A Three.js geometric wireframe rendered on a canvas or via `@react-three/fiber`.
 
 **Visual characteristics:**
+
 - Abstract architectural geometry — not a literal building, more of an angular polyhedron or interconnected planes that suggest structure
 - Wireframe rendering only — no solid faces, just edges
 - Color: `--color-paper` (`#F5F0E8`) at ~40% opacity
@@ -115,6 +117,7 @@ A Three.js geometric wireframe rendered on a canvas or via `@react-three/fiber`.
 - Centered in the viewport
 
 **Behavior on scroll (entering State 2):**
+
 - The wireframe fades out cleanly: `opacity: 0.4 → 0` over the first 15% of State 2's scroll progress
 - No morphing, no dissolving into particles — a clean, graceful fade
 - Once opacity reaches 0, the Three.js renderer for the wireframe can be disposed to free GPU resources
@@ -124,6 +127,7 @@ A Three.js geometric wireframe rendered on a canvas or via `@react-three/fiber`.
 **Text:** `DESIGNED TO LAST`
 
 **Style:**
+
 - Font: Josefin Sans
 - Size: `text-display-xl` → `clamp(64px, 8vw, 120px)`
 - Weight: 300 (Light)
@@ -132,17 +136,20 @@ A Three.js geometric wireframe rendered on a canvas or via `@react-three/fiber`.
 - Line-height: 1.0
 
 **Position:**
+
 - `position: absolute`
 - `bottom: clamp(48px, 6vh, 80px)`
 - `left: clamp(32px, 4vw, 64px)`
 
 **Entrance animation (on page load):**
+
 - Clip-path reveal: `inset(0 100% 0 0)` → `inset(0 0% 0 0)`
 - Duration: `--duration-slow` (800ms)
 - Easing: `--ease-smooth` (`power4.out`)
 - Delay: 300ms after page is interactive
 
 **Exit animation (as State 2 begins):**
+
 - `opacity: 1 → 0` + `translateY: 0 → -30px`
 - Duration: 500ms
 - Tied to scroll progress: completes within the first 20% of the pin
@@ -152,12 +159,14 @@ A Three.js geometric wireframe rendered on a canvas or via `@react-three/fiber`.
 **Text:** A poetic complement to "DESIGNED TO LAST"
 
 Candidate lines (final copy TBD — pick one):
+
 - "Where concrete meets conviction"
 - "Every detail, a promise to the future"
 - "Precision is our poetry"
 - "Built with intention, standing with purpose"
 
 **Style:**
+
 - Font: Josefin Sans
 - Size: `text-body-lg` (18px)
 - Weight: 300 (Light)
@@ -166,11 +175,13 @@ Candidate lines (final copy TBD — pick one):
 - Line-height: 1.7
 
 **Position:**
+
 - `position: absolute`
 - `top: clamp(100px, 12vh, 140px)` (below navbar clearance)
 - `right: clamp(32px, 4vw, 64px)`
 
 **Entrance animation:**
+
 - Fade in: `opacity: 0 → 1`
 - Duration: 600ms
 - Easing: `--ease-entrance`
@@ -201,6 +212,7 @@ See [Section 8 — Arc Motion Technical Specification](#8-arc-motion--technical-
 When the building reaches center (100% of State 2 scroll progress), the atmosphere transforms:
 
 **What changes simultaneously:**
+
 1. **Particles:** Shift from neutral white to warm amber (`#D4A574`)
 2. **Background:** Subtle radial gradient appears behind the building — warm amber glow, very soft, `opacity: 0.15`
 3. **Light rays:** 2–3 soft, angled light ray overlays (CSS or canvas) emanate from behind the building, amber-tinted, `opacity: 0.08`, slowly drifting
@@ -211,13 +223,13 @@ When the building reaches center (100% of State 2 scroll progress), the atmosphe
 
 ### Scroll Progress Breakdown (State 2)
 
-| Progress | What Happens |
-|----------|-------------|
-| 0–15% | Wireframe fades out, State 1 typography exits |
-| 15–80% | Armonia render travels along the arc path from bottom-right to center |
-| 70–100% | Atmosphere shift begins (particles warm, glow appears, light rays fade in) |
-| 90–100% | Project info overlay fades in with staggered timing |
-| 100% | Armonia is locked center, full warm amber atmosphere, info visible |
+| Progress | What Happens                                                               |
+| -------- | -------------------------------------------------------------------------- |
+| 0–15%    | Wireframe fades out, State 1 typography exits                              |
+| 15–80%   | Armonia render travels along the arc path from bottom-right to center      |
+| 70–100%  | Atmosphere shift begins (particles warm, glow appears, light rays fade in) |
+| 90–100%  | Project info overlay fades in with staggered timing                        |
+| 100%     | Armonia is locked center, full warm amber atmosphere, info visible         |
 
 ### Hold
 
@@ -240,23 +252,23 @@ The movements are synchronized — as Armonia moves 30% of its exit arc, Almond 
 
 As the swap progresses, the atmosphere transitions from Armonia's warm amber to Almond's cool teal:
 
-| Swap Progress | Atmosphere |
-|--------------|------------|
-| 0–30% | Armonia amber begins fading |
-| 30–50% | Neutral zone — particles briefly return to white, glow fades |
-| 50–70% | Teal begins emerging |
-| 70–100% | Full Almond teal atmosphere, cool glow, light rays shift to teal |
+| Swap Progress | Atmosphere                                                       |
+| ------------- | ---------------------------------------------------------------- |
+| 0–30%         | Armonia amber begins fading                                      |
+| 30–50%        | Neutral zone — particles briefly return to white, glow fades     |
+| 50–70%        | Teal begins emerging                                             |
+| 70–100%       | Full Almond teal atmosphere, cool glow, light rays shift to teal |
 
 ### Scroll Progress Breakdown (State 3)
 
-| Progress | What Happens |
-|----------|-------------|
-| 0–10% | Armonia's project info fades out |
-| 10–85% | The swap — both buildings in motion simultaneously |
-| 50% | Crossover point — buildings at symmetric positions |
-| 75–100% | Almond's atmosphere shift (particles cool, teal glow, light rays) |
-| 90–100% | Almond's project info overlay fades in |
-| 100% | Almond locked center, full teal atmosphere, info visible |
+| Progress | What Happens                                                      |
+| -------- | ----------------------------------------------------------------- |
+| 0–10%    | Armonia's project info fades out                                  |
+| 10–85%   | The swap — both buildings in motion simultaneously                |
+| 50%      | Crossover point — buildings at symmetric positions                |
+| 75–100%  | Almond's atmosphere shift (particles cool, teal glow, light rays) |
+| 90–100%  | Almond's project info overlay fades in                            |
+| 100%     | Almond locked center, full teal atmosphere, info visible          |
 
 ### Hold
 
@@ -290,6 +302,7 @@ The release should feel like a curtain lifting — the theatrical hero section e
 The building images are **high-quality static renders** (PNG with transparency), not 3D models.
 
 **Why PNGs over Three.js 3D models:**
+
 - Photorealistic quality — the renders were produced in professional architectural visualization software
 - Consistent appearance across all devices and GPUs
 - Far simpler to implement and maintain
@@ -299,6 +312,7 @@ The building images are **high-quality static renders** (PNG with transparency),
 ### Asset Requirements
 
 **Armonia Render:**
+
 - Source: Best exterior render of the Armonia building
 - Background: Transparent (PNG) — the building floats on the particle canvas
 - Resolution: 1200–1600px on the longest edge (optimized for web, not print)
@@ -307,6 +321,7 @@ The building images are **high-quality static renders** (PNG with transparency),
 - Served via `cloudinaryUrl()` with `f_auto, q_auto, w_1400`
 
 **Almond Render:**
+
 - Same specifications as Armonia
 - Stored in Cloudinary: `clients/tdkdb/almond/renders/hero-render`
 - If only CGI renders exist (project under construction), that's perfect — renders are the primary visual
@@ -316,12 +331,14 @@ The building images are **high-quality static renders** (PNG with transparency),
 The renders can be implemented as either:
 
 **Option A — DOM Elements (Recommended):**
+
 - `<img>` elements with `position: absolute` inside the pinned hero container
 - GSAP animates `x`, `y`, `scale`, `opacity`, and `rotation` along a MotionPath
 - Pros: Simple, accessible, Cloudinary `<img>` with responsive `srcset`
 - Cons: Slight overhead of DOM compositing vs canvas
 
 **Option B — Canvas Draws:**
+
 - Preload renders as `Image` objects, draw onto a shared canvas via `drawImage()`
 - GSAP animates position coordinates, canvas redraws on each tick
 - Pros: Single compositing layer, potentially smoother with the particle canvas
@@ -338,6 +355,7 @@ The renders can be implemented as either:
 Each building follows a **quadrant arc** (quarter circle) between its off-screen origin and the viewport center.
 
 **Armonia Entry Arc (State 2):**
+
 ```
 Start:  (viewportWidth + 200, viewportHeight + 200)   — off-screen bottom-right
 End:    (viewportWidth / 2, viewportHeight / 2)         — viewport center
@@ -345,6 +363,7 @@ Path:   Quarter circle, curving up-and-left
 ```
 
 **Armonia Exit Arc (State 3):**
+
 ```
 Start:  (viewportWidth / 2, viewportHeight / 2)         — viewport center
 End:    (-200, viewportHeight + 200)                     — off-screen bottom-left
@@ -352,6 +371,7 @@ Path:   Quarter circle, curving down-and-left (mirror of entry)
 ```
 
 **Almond Entry Arc (State 3):**
+
 ```
 Start:  (viewportWidth + 200, viewportHeight + 200)     — off-screen bottom-right
 End:    (viewportWidth / 2, viewportHeight / 2)           — viewport center
@@ -367,41 +387,42 @@ GSAP's MotionPath plugin is ideal for this. Define the arc as an SVG path or coo
 gsap.to(armoniaEl, {
   motionPath: {
     path: [
-      { x: viewportWidth + 200, y: viewportHeight + 200 },  // start
-      { x: viewportWidth * 0.8, y: viewportHeight * 0.3 },  // control point
-      { x: viewportWidth / 2, y: viewportHeight / 2 }       // end (center)
+      { x: viewportWidth + 200, y: viewportHeight + 200 }, // start
+      { x: viewportWidth * 0.8, y: viewportHeight * 0.3 }, // control point
+      { x: viewportWidth / 2, y: viewportHeight / 2 }, // end (center)
     ],
     curviness: 1.5,
-    autoRotate: false
+    autoRotate: false,
   },
-  scale: 0.6,               // starts smaller
-  scaleEnd: 1,              // grows to full size at center
-  ease: 'power2.inOut',     // smooth acceleration/deceleration
+  scale: 0.6, // starts smaller
+  scaleEnd: 1, // grows to full size at center
+  ease: 'power2.inOut', // smooth acceleration/deceleration
   scrollTrigger: {
     trigger: heroSection,
     start: 'top top',
     end: '+=200%',
     scrub: 1.5,
-    pin: true
-  }
-})
+    pin: true,
+  },
+});
 ```
 
 ### Scale During Motion
 
 The building should subtly scale as it travels:
 
-| Position | Scale | Reason |
-|----------|-------|--------|
-| Off-screen start | 0.6 | Feels like it's arriving from a distance |
-| Mid-arc | 0.8 | Growing as it approaches |
-| Center (locked) | 1.0 | Full presence |
-| Exit start | 1.0 | Begins at full size |
-| Off-screen exit | 0.6 | Shrinks as it departs |
+| Position         | Scale | Reason                                   |
+| ---------------- | ----- | ---------------------------------------- |
+| Off-screen start | 0.6   | Feels like it's arriving from a distance |
+| Mid-arc          | 0.8   | Growing as it approaches                 |
+| Center (locked)  | 1.0   | Full presence                            |
+| Exit start       | 1.0   | Begins at full size                      |
+| Off-screen exit  | 0.6   | Shrinks as it departs                    |
 
 ### Rotation During Motion
 
 A very subtle rotation adds dynamism:
+
 - Entry: `rotate: 5deg → 0deg` (slight tilt that straightens as it lands)
 - Exit: `rotate: 0deg → -5deg` (tilts the opposite way as it departs)
 
@@ -415,23 +436,23 @@ The arc motion uses `--ease-cinematic` (`power1.inOut`) through GSAP's scrub —
 
 ### Armonia Atmosphere (Warm Amber)
 
-| Element | Value | Notes |
-|---------|-------|-------|
-| Particle tint | `#D4A574` at 30% opacity | Warm gold, not orange |
-| Radial glow | `radial-gradient(circle at center, rgba(212,165,116,0.15) 0%, transparent 70%)` | Behind the building |
-| Light rays | 2–3 angled divs, `#D4A574` at 8% opacity, slight blur | Slowly drift: translateY -20px over 15s, infinite |
-| Vignette | `radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%)` | Focuses attention |
-| Background base | Stays `--color-void` (`#0D0D0D`) | The dark base never changes |
+| Element         | Value                                                                           | Notes                                             |
+| --------------- | ------------------------------------------------------------------------------- | ------------------------------------------------- |
+| Particle tint   | `#D4A574` at 30% opacity                                                        | Warm gold, not orange                             |
+| Radial glow     | `radial-gradient(circle at center, rgba(212,165,116,0.15) 0%, transparent 70%)` | Behind the building                               |
+| Light rays      | 2–3 angled divs, `#D4A574` at 8% opacity, slight blur                           | Slowly drift: translateY -20px over 15s, infinite |
+| Vignette        | `radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.4) 100%)`     | Focuses attention                                 |
+| Background base | Stays `--color-void` (`#0D0D0D`)                                                | The dark base never changes                       |
 
 ### Almond Atmosphere (Cool Teal)
 
-| Element | Value | Notes |
-|---------|-------|-------|
-| Particle tint | `#66979f` at 30% opacity | The brand threshold color |
-| Radial glow | `radial-gradient(circle at center, rgba(102,151,159,0.15) 0%, transparent 70%)` | Behind the building |
-| Light rays | 2–3 angled divs, `#66979f` at 8% opacity, slight blur | Same drift behavior |
-| Vignette | Same as Armonia | Consistent framing |
-| Background base | Stays `--color-void` | Unchanged |
+| Element         | Value                                                                           | Notes                     |
+| --------------- | ------------------------------------------------------------------------------- | ------------------------- |
+| Particle tint   | `#66979f` at 30% opacity                                                        | The brand threshold color |
+| Radial glow     | `radial-gradient(circle at center, rgba(102,151,159,0.15) 0%, transparent 70%)` | Behind the building       |
+| Light rays      | 2–3 angled divs, `#66979f` at 8% opacity, slight blur                           | Same drift behavior       |
+| Vignette        | Same as Armonia                                                                 | Consistent framing        |
+| Background base | Stays `--color-void`                                                            | Unchanged                 |
 
 ### Crossfade Mechanics
 
@@ -467,6 +488,7 @@ When a project locks into center, its information appears overlaid on the hero:
 ```
 
 **Project Name:**
+
 - Font: Josefin Sans
 - Size: `text-display-md` → `clamp(36px, 4vw, 64px)`
 - Weight: 300
@@ -474,18 +496,21 @@ When a project locks into center, its information appears overlaid on the hero:
 - Position: bottom-left area, with generous padding from edges
 
 **Location · Year · Type:**
+
 - Font: Josefin Sans
 - Size: `text-label` (11px, uppercase, tracked 0.2em)
 - Color: `--color-stone`
 - Appears directly below the project name
 
 **Status Badge:**
+
 - Armonia: "COMPLETED" — `text-label`, `--color-stone` text, `--color-surface` background
 - Almond: "IN DEVELOPMENT" — `text-label`, `--color-threshold` text, darker background
 - Position: bottom-right area, aligned with project name baseline
 - Zero border-radius (consistent with design system)
 
 **CTA Button:**
+
 - Armonia: "VIEW PROJECT →"
 - Almond: "REGISTER INTEREST →"
 - Style: Outlined button, `--color-paper` border, magnetic hover behavior
@@ -496,12 +521,12 @@ When a project locks into center, its information appears overlaid on the hero:
 
 Info elements enter with staggered timing, all tied to scroll progress:
 
-| Element | Delay from lock-in | Animation |
-|---------|-------------------|-----------|
-| Project name | 0ms | `opacity: 0 → 1`, `translateY: 20px → 0`, 500ms, `--ease-entrance` |
-| Location line | 80ms | Same animation |
-| Status badge | 160ms | Same animation |
-| CTA button | 240ms | `opacity: 0 → 1`, `scale: 0.95 → 1`, 400ms, `--ease-spring` |
+| Element       | Delay from lock-in | Animation                                                          |
+| ------------- | ------------------ | ------------------------------------------------------------------ |
+| Project name  | 0ms                | `opacity: 0 → 1`, `translateY: 20px → 0`, 500ms, `--ease-entrance` |
+| Location line | 80ms               | Same animation                                                     |
+| Status badge  | 160ms              | Same animation                                                     |
+| CTA button    | 240ms              | `opacity: 0 → 1`, `scale: 0.95 → 1`, 400ms, `--ease-spring`        |
 
 Exit: All elements fade out together (`opacity: 1 → 0`, 300ms) as the swap begins or pin releases.
 
@@ -522,7 +547,7 @@ const heroProjects = await sanity.fetch(`
     ctaType,
     "heroRender": heroRenderId  // Cloudinary public ID
   }
-`)
+`);
 ```
 
 **Scalability:** If TDK adds a third project in the future, the hero section can accommodate it by adding another swap state. The arc choreography is repeatable — each new project arcs in while the previous arcs out. This requires a code update (adding another scroll phase), but the content comes from the CMS.
@@ -539,24 +564,24 @@ The entire hero section is a single GSAP ScrollTrigger pin.
 ScrollTrigger.create({
   trigger: '.hero-section',
   start: 'top top',
-  end: '+=500%',          // Total scroll distance for all states
+  end: '+=500%', // Total scroll distance for all states
   pin: true,
   anticipatePin: 1,
-  scrub: 1.5,             // Cinematic lag
-})
+  scrub: 1.5, // Cinematic lag
+});
 ```
 
 ### Scroll Budget
 
-| Segment | Scroll Distance | Cumulative |
-|---------|----------------|------------|
-| State 1 → State 2 transition (wireframe fade, text exit) | 50vh | 0–50vh |
-| State 2 — Armonia arc motion | 120vh | 50–170vh |
-| State 2 — Armonia hold (absorb moment) | 30vh | 170–200vh |
-| State 3 — The Swap (both buildings in motion) | 130vh | 200–330vh |
-| State 3 — Almond hold | 30vh | 330–360vh |
-| State 4 — Release transition | 40vh | 360–400vh |
-| **Total pinned scroll distance** | **~400vh** | |
+| Segment                                                  | Scroll Distance | Cumulative |
+| -------------------------------------------------------- | --------------- | ---------- |
+| State 1 → State 2 transition (wireframe fade, text exit) | 50vh            | 0–50vh     |
+| State 2 — Armonia arc motion                             | 120vh           | 50–170vh   |
+| State 2 — Armonia hold (absorb moment)                   | 30vh            | 170–200vh  |
+| State 3 — The Swap (both buildings in motion)            | 130vh           | 200–330vh  |
+| State 3 — Almond hold                                    | 30vh            | 330–360vh  |
+| State 4 — Release transition                             | 40vh            | 360–400vh  |
+| **Total pinned scroll distance**                         | **~400vh**      |            |
 
 > **Note:** These are starting values. The exact distances should be tuned during development
 > to feel right. The hold zones are especially important — too short and the user misses
@@ -569,13 +594,13 @@ GSAP's ScrollTrigger provides a `progress` value (0–1) across the total pinned
 ```javascript
 // Conceptual progress mapping
 const stateRanges = {
-  transition1:  { start: 0.000, end: 0.125 },  // State 1 → 2 fade
-  armoniaArc:   { start: 0.125, end: 0.425 },  // Armonia enters
-  armoniaHold:  { start: 0.425, end: 0.500 },  // Armonia absorb
-  swap:         { start: 0.500, end: 0.825 },  // The Swap
-  almondHold:   { start: 0.825, end: 0.900 },  // Almond absorb
-  release:      { start: 0.900, end: 1.000 },  // Release
-}
+  transition1: { start: 0.0, end: 0.125 }, // State 1 → 2 fade
+  armoniaArc: { start: 0.125, end: 0.425 }, // Armonia enters
+  armoniaHold: { start: 0.425, end: 0.5 }, // Armonia absorb
+  swap: { start: 0.5, end: 0.825 }, // The Swap
+  almondHold: { start: 0.825, end: 0.9 }, // Almond absorb
+  release: { start: 0.9, end: 1.0 }, // Release
+};
 ```
 
 ---
@@ -585,6 +610,7 @@ const stateRanges = {
 ### The Problem
 
 The arc choreography and pinned scroll are designed for desktop viewports. On mobile:
+
 - Viewport is too narrow for meaningful arc paths
 - Scroll pinning on touch devices can feel janky
 - The particle field and wireframe are GPU-intensive
@@ -594,6 +620,7 @@ The arc choreography and pinned scroll are designed for desktop viewports. On mo
 On mobile (`pointer: coarse` OR viewport width < 1024px):
 
 **Option A — Simplified Vertical Reveal:**
+
 - No pin, no scroll-jacking
 - Projects are presented as full-viewport cards stacked vertically
 - Each card: building render centered, project info below, colored background gradient (amber/teal)
@@ -601,6 +628,7 @@ On mobile (`pointer: coarse` OR viewport width < 1024px):
 - Particles replaced with a subtle CSS gradient animation
 
 **Option B — Autoplay Sequence:**
+
 - A short looping video or CSS animation showing the orbital motion
 - Plays once on load, then reveals projects as static cards
 - More cinematic but higher production effort
@@ -637,11 +665,13 @@ Background: subtle gradient from `--color-void` to the project's color tone (amb
 ### GPU Budget
 
 The hero section runs three GPU-intensive layers simultaneously:
+
 1. Interactive particle field (Three.js / WebGL)
 2. Wireframe mesh in State 1 (Three.js / WebGL — disposed after State 1)
 3. Building render translations (CSS transforms or canvas draws)
 
 **Mitigations:**
+
 - Wireframe mesh Three.js renderer is disposed after its fade-out completes (State 1 → 2), freeing one WebGL context
 - Particle field uses a single shared WebGL context
 - Building renders use CSS transforms (`will-change: transform`) — GPU-accelerated but not WebGL
@@ -649,19 +679,20 @@ The hero section runs three GPU-intensive layers simultaneously:
 
 ### Asset Loading
 
-| Asset | Size Estimate | Loading Strategy |
-|-------|--------------|-----------------|
-| Armonia render (PNG, transparent) | ~200–400KB (Cloudinary optimized) | Preload via `<link rel="preload">` |
-| Almond render (PNG, transparent) | ~200–400KB | Lazy preload (start loading after Armonia is visible) |
-| Particle component JS | ~50–100KB | Code-split, `dynamic(() => import(...), { ssr: false })` |
-| Three.js (wireframe) | Shared with particle bundle | Same code-split |
-| 21st.dev particle component | Bundled size TBD | Evaluate after integration |
+| Asset                             | Size Estimate                     | Loading Strategy                                         |
+| --------------------------------- | --------------------------------- | -------------------------------------------------------- |
+| Armonia render (PNG, transparent) | ~200–400KB (Cloudinary optimized) | Preload via `<link rel="preload">`                       |
+| Almond render (PNG, transparent)  | ~200–400KB                        | Lazy preload (start loading after Armonia is visible)    |
+| Particle component JS             | ~50–100KB                         | Code-split, `dynamic(() => import(...), { ssr: false })` |
+| Three.js (wireframe)              | Shared with particle bundle       | Same code-split                                          |
+| 21st.dev particle component       | Bundled size TBD                  | Evaluate after integration                               |
 
 **Total hero asset budget:** Under 1MB (far lighter than the ~26MB image sequence approach in V1).
 
 ### Lighthouse Impact
 
 The new approach is significantly lighter than V1:
+
 - No image sequences (300+ WebP frames eliminated)
 - No loading screen needed
 - Two Cloudinary-optimized PNGs instead of 26MB of frames
@@ -722,19 +753,19 @@ Expected Lighthouse impact: homepage score should **improve** compared to V1 pro
 
 When implementing this new hero section, the following references in existing documents should be updated:
 
-| Document | Section | Change |
-|----------|---------|--------|
-| `TDK_MASTER_PLAN.md` | 2.1 Frontend | Update "Homepage visual" line to allow Three.js for particles/wireframe |
-| `TDK_MASTER_PLAN.md` | 21.2 Hard Rules | Update rule 1 ("No Three.js") to reflect the new policy |
-| `TDK_HOMEPAGE_EXPERIENCE.md` | Scenes 1–4 | Mark as superseded, reference this document |
-| `TDK_HOMEPAGE_EXPERIENCE.md` | Section 3 (Technical Architecture) | Update file structure to remove sequence files, add particle/wireframe components |
-| `TDK_HOMEPAGE_EXPERIENCE.md` | Section 20 (Performance) | Remove sequence loading strategy, add hero V2 asset strategy |
-| `TDK_CURSOR_BUILD_STRATEGY.md` | Phase 4 prompts | Rewrite homepage scene prompts for new hero architecture |
+| Document                       | Section                            | Change                                                                            |
+| ------------------------------ | ---------------------------------- | --------------------------------------------------------------------------------- |
+| `TDK_MASTER_PLAN.md`           | 2.1 Frontend                       | Update "Homepage visual" line to allow Three.js for particles/wireframe           |
+| `TDK_MASTER_PLAN.md`           | 21.2 Hard Rules                    | Update rule 1 ("No Three.js") to reflect the new policy                           |
+| `TDK_HOMEPAGE_EXPERIENCE.md`   | Scenes 1–4                         | Mark as superseded, reference this document                                       |
+| `TDK_HOMEPAGE_EXPERIENCE.md`   | Section 3 (Technical Architecture) | Update file structure to remove sequence files, add particle/wireframe components |
+| `TDK_HOMEPAGE_EXPERIENCE.md`   | Section 20 (Performance)           | Remove sequence loading strategy, add hero V2 asset strategy                      |
+| `TDK_CURSOR_BUILD_STRATEGY.md` | Phase 4 prompts                    | Rewrite homepage scene prompts for new hero architecture                          |
 
 ---
 
 > **The north star remains unchanged:**
-> *"This is smooth. This is creative. This is amazing."*
+> _"This is smooth. This is creative. This is amazing."_
 >
 > The new hero section achieves the same cinematic ambition with a lighter asset footprint,
 > stronger brand presence, and a choreographic project introduction that no competitor

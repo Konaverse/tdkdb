@@ -2,8 +2,8 @@
 
 > **Status:** Pre-launch  
 > **Domain:** tdkdb.com  
-> **Last updated:** 2026-02-25  
->  
+> **Last updated:** 2026-02-25
+>
 > This is a living document. Update it as items are completed or new items emerge.
 
 ---
@@ -161,6 +161,6 @@ Visit each of these on the live domain and confirm no errors:
 
 _Add any issues discovered during checks here._
 
-| Date | Issue | Status |
-|---|---|---|
-| 2026-02-27 | **Creative idea — transparent door on last approach frame:** Make the door opening in the final approach frame transparent/alpha-cut so the teal bloom gradient shows through it. Would reinforce the threshold metaphor visually. Low priority, deferred post-launch. | Idea |
+| Date       | Issue                                                                                                                                                                                                                                                                  | Status |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 2026-02-27 | **Creative idea — transparent door on last approach frame:** Make the door opening in the final approach frame transparent/alpha-cut so the teal bloom gradient shows through it. Would reinforce the threshold metaphor visually. Low priority, deferred post-launch. | Idea   |

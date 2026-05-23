@@ -97,7 +97,7 @@ export default function HeroMinimal() {
             {/* Empty column to keep grid layout identical */}
             <div className="col-span-12 lg:col-span-8"></div>
 
-            <div className="col-span-12 flex flex-col gap-5 pb-2 lg:col-span-4 lg:pb-3">
+            <div className="col-span-12 flex flex-col gap-5 pb-28 sm:pb-32 lg:col-span-4 lg:pb-3">
               <p
                 ref={paragraphRef}
                 className="text-xs sm:text-sm md:text-base"
