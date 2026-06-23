@@ -39,7 +39,10 @@
       "PowerShell(npx prettier --write src/components/homepage/HomepageReel.tsx src/app/\"[locale]\"/\"\\(site\\)\"/page.tsx 2>&1)",
       "PowerShell(npx next lint --file src/components/homepage/HomepageReel.tsx 2>&1)",
       "PowerShell(npx next lint --file src/components/homepage/SceneBento.tsx 2>&1)",
-      "PowerShell(npx prettier --write src/components/homepage/SceneBento.tsx 2>&1)"
+      "PowerShell(npx prettier --write src/components/homepage/SceneBento.tsx 2>&1)",
+      "Bash(git config *)",
+      "Bash(git credential *)",
+      "Bash(git remote *)"
     ]
   }
 }
