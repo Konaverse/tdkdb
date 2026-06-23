@@ -127,9 +127,7 @@ export default function TheDifference() {
       <div className="mx-auto max-w-[1600px] px-4 py-24 sm:px-6 sm:py-28 md:px-10 md:py-32 lg:px-14 lg:py-40">
         {/* ── Lead ───────────────────────────────────────────────────────── */}
         <div className="max-w-4xl">
-          <p className="mb-7 font-mono text-mono uppercase tracking-[0.3em] text-stone">
-            Why TDK
-          </p>
+          <p className="mb-7 font-mono text-mono uppercase tracking-[0.3em] text-stone">Why TDK</p>
           <h2
             ref={headingRef}
             className="font-sans text-display-md font-[300] leading-[1.04] text-void"
@@ -141,9 +139,9 @@ export default function TheDifference() {
             ))}
           </h2>
           <p className="diff-intro mt-8 max-w-2xl text-body-lg text-[rgba(13,13,13,0.66)]">
-            Most developments pass through a dozen hands before they reach yours. Ours don&apos;t. We
-            design, fund and build every TDK residence ourselves — so the intention you&apos;re shown
-            is the home you receive.
+            Most developments pass through a dozen hands before they reach yours. Ours don&apos;t.
+            We design, fund and build every TDK residence ourselves — so the intention you&apos;re
+            shown is the home you receive.
           </p>
         </div>
 

@@ -73,7 +73,12 @@ export default function FeaturedResidence({ project }: FeaturedResidenceProps) {
           {
             yPercent: 8,
             ease: 'none',
-            scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: true },
+            scrollTrigger: {
+              trigger: section,
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: true,
+            },
           },
         );
       }
@@ -86,7 +91,12 @@ export default function FeaturedResidence({ project }: FeaturedResidenceProps) {
           {
             yPercent: -12,
             ease: 'none',
-            scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: true },
+            scrollTrigger: {
+              trigger: section,
+              start: 'top bottom',
+              end: 'bottom top',
+              scrub: true,
+            },
           },
         );
       }
@@ -225,7 +235,9 @@ export default function FeaturedResidence({ project }: FeaturedResidenceProps) {
 
           {/* Lead line */}
           {lead && (
-            <p className="fr-fade mx-auto mt-6 max-w-xl text-body-lg text-white/75 lg:mx-0">{lead}</p>
+            <p className="fr-fade mx-auto mt-6 max-w-xl text-body-lg text-white/75 lg:mx-0">
+              {lead}
+            </p>
           )}
 
           {/* Facts */}
