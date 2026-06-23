@@ -132,7 +132,9 @@ export default async function ProjectDetailPage({ params }: Props) {
       {mappedUnits.length > 0 && <ProjectUnitsTable units={mappedUnits} />}
 
       {showInterestForm && (
-        <ProjectInterestForm projectSlug={project.slug.current} projectName={project.title} />
+        <div id="register-interest" className="scroll-mt-24">
+          <ProjectInterestForm projectSlug={project.slug.current} projectName={project.title} />
+        </div>
       )}
 
       {project.mapEmbedUrl && <ProjectLocation address={project.mapEmbedUrl || project.location} />}

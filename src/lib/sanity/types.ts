@@ -43,6 +43,12 @@ export interface Project {
   location: string;
   year: number;
   heroImageId: string;
+  // Homepage horizontal reel
+  homepageIntro?: string;
+  homepageParagraphMid?: string;
+  homepageParagraphClose?: string;
+  homepageGridImageId?: string;
+  homepagePortraitImageId?: string;
   rendersGallery?: ProjectGallery;
   photosGallery?: ProjectGallery;
   pullQuote?: string;

@@ -30,7 +30,16 @@
       "Bash(export:*)",
       "Bash(dir C:\\\\Users\\\\konst\\\\Projects\\\\TDK_Design_&_Build\\\\tdkdb\\\\node_modules\\\\@react-three\\\\fiber:*)",
       "Bash(rm \"C:\\\\Users\\\\konst\\\\Projects\\\\TDK_Design_&_Build\\\\tdkdb\\\\src\\\\components\\\\homepage\\\\SceneAnatomy.tsx\")",
-      "Bash(rm \"C:\\\\Users\\\\konst\\\\Projects\\\\TDK_Design_&_Build\\\\tdkdb\\\\src\\\\components\\\\homepage\\\\SceneProcess.tsx\")"
+      "Bash(rm \"C:\\\\Users\\\\konst\\\\Projects\\\\TDK_Design_&_Build\\\\tdkdb\\\\src\\\\components\\\\homepage\\\\SceneProcess.tsx\")",
+      "PowerShell(npx tsc --noEmit -p tsconfig.json 2>&1)",
+      "PowerShell(npx tsc --noEmit 2>&1)",
+      "PowerShell(npx next lint --file src/components/homepage/SceneProjectsHorizontal.tsx --file src/components/homepage/SceneAbout.tsx 2>&1)",
+      "PowerShell(npx prettier --write src/components/homepage/SceneProjectsHorizontal.tsx src/components/homepage/SceneAbout.tsx 2>&1)",
+      "PowerShell(npx next lint --file src/components/homepage/SceneProjectsHorizontal.tsx 2>&1)",
+      "PowerShell(npx prettier --write src/components/homepage/HomepageReel.tsx src/app/\"[locale]\"/\"\\(site\\)\"/page.tsx 2>&1)",
+      "PowerShell(npx next lint --file src/components/homepage/HomepageReel.tsx 2>&1)",
+      "PowerShell(npx next lint --file src/components/homepage/SceneBento.tsx 2>&1)",
+      "PowerShell(npx prettier --write src/components/homepage/SceneBento.tsx 2>&1)"
     ]
   }
 }

@@ -4,6 +4,10 @@ export default defineType({
   name: 'project',
   title: 'Project',
   type: 'document',
+  groups: [
+    { name: 'content', title: 'Content', default: true },
+    { name: 'homepageReel', title: 'Homepage Reel' },
+  ],
   fields: [
     defineField({ name: 'title', title: 'Title', type: 'string' }),
     defineField({ name: 'slug', title: 'Slug', type: 'slug', options: { source: 'title' } }),
@@ -53,6 +57,46 @@ export default defineType({
       type: 'string',
       description:
         'Upload to Cloudinary under clients/tdkdb/. Paste the public ID here.\nExample: clients/tdkdb/almond/renders/hero-exterior',
+    }),
+    // ── Homepage Reel (horizontal Projects section on the homepage) ──────────
+    defineField({
+      name: 'homepageIntro',
+      title: 'Homepage — Intro',
+      type: 'text',
+      rows: 3,
+      group: 'homepageReel',
+      description:
+        'Mini description (2–3 sentences) shown top-left beside the project title in the homepage horizontal reel.',
+    }),
+    defineField({
+      name: 'homepageParagraphMid',
+      title: 'Homepage — Mid Paragraph',
+      type: 'text',
+      rows: 4,
+      group: 'homepageReel',
+      description: 'Paragraph shown to the right of the main image in the homepage reel.',
+    }),
+    defineField({
+      name: 'homepageParagraphClose',
+      title: 'Homepage — Closing Paragraph',
+      type: 'text',
+      rows: 4,
+      group: 'homepageReel',
+      description: 'Closing paragraph shown beside the CTA at the end of the beat.',
+    }),
+    defineField({
+      name: 'homepageGridImageId',
+      title: 'Homepage — Grid Image (Cloudinary ID, landscape)',
+      type: 'string',
+      group: 'homepageReel',
+      description: 'Landscape image for the lower-left cell of the 2×2 grid in the homepage reel.',
+    }),
+    defineField({
+      name: 'homepagePortraitImageId',
+      title: 'Homepage — Portrait Image (Cloudinary ID, portrait)',
+      type: 'string',
+      group: 'homepageReel',
+      description: 'Portrait image for the full-height right cell of the 2×2 grid in the homepage reel.',
     }),
     defineField({
       name: 'rendersGallery',

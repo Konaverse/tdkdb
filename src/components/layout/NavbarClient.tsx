@@ -7,6 +7,7 @@ import { usePathname, useParams } from 'next/navigation';
 import { gsap } from '@/lib/animations/gsap';
 import { getLenis } from '@/lib/animations/lenis';
 import { cn } from '@/lib/utils/cn';
+import { useIntro } from '@/components/homepage/IntroProvider';
 import type { SiteSettings } from '@/lib/sanity/types';
 
 const NAV_LINKS = [
@@ -25,13 +26,17 @@ export default function NavbarClient({ settings }: Props) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const companyName = settings?.companyName || 'TDK';
 
+  const { phase } = useIntro();
+
   const pathname = usePathname();
   const params = useParams();
   const locale = (params?.locale as string) ?? 'en';
 
+  const headerRef = useRef<HTMLElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
   const mobileLinkRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const timelineRef = useRef<gsap.core.Timeline | null>(null);
+  const navFirstRunRef = useRef(true);
 
   // ── Scroll detection ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -39,6 +44,35 @@ export default function NavbarClient({ settings }: Props) {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // ── Intro-gated entrance ──────────────────────────────────────────────────
+  // Hidden through the homepage loader; fades in ~0.9s into the reveal (just
+  // before the lamp finishes). On interior pages / client nav it's instant.
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+
+    if (phase === 'loading') {
+      gsap.set(header, { autoAlpha: 0, y: -12 });
+      navFirstRunRef.current = false;
+      return;
+    }
+
+    if (navFirstRunRef.current && phase === 'done') {
+      gsap.set(header, { autoAlpha: 1, y: 0 });
+      navFirstRunRef.current = false;
+      return;
+    }
+
+    gsap.to(header, {
+      autoAlpha: 1,
+      y: 0,
+      duration: 0.7,
+      delay: phase === 'reveal' ? 0.9 : 0,
+      ease: 'power3.out',
+    });
+    navFirstRunRef.current = false;
+  }, [phase]);
 
   // ── Close menu on route change ────────────────────────────────────────────
   useEffect(() => {
@@ -110,6 +144,7 @@ export default function NavbarClient({ settings }: Props) {
     <>
       {/* ── Header bar ─────────────────────────────────────────────────────── */}
       <header
+        ref={headerRef}
         className={cn(
           'fixed left-0 top-0 z-[100] w-full',
           'transition-[background-color,border-color,backdrop-filter] duration-fast ease-smooth',
@@ -203,7 +238,10 @@ export default function NavbarClient({ settings }: Props) {
       <div
         ref={overlayRef}
         className={cn(
-          'fixed inset-0 z-[200] flex flex-col items-center justify-center bg-void',
+          // `translate-x-full` keeps the overlay off-screen before GSAP hydrates,
+          // so it never flashes open on first paint. GSAP's inline transform takes
+          // over once mounted.
+          'fixed inset-0 z-[200] flex translate-x-full flex-col items-center justify-center bg-void',
           !isMenuOpen && 'pointer-events-none',
         )}
         aria-hidden={!isMenuOpen}
