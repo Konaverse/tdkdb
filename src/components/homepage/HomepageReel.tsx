@@ -6,24 +6,17 @@ import Link from 'next/link';
 import { gsap, ScrollTrigger, gsapInit } from '@/lib/animations/gsap';
 import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
 import type { Project } from '@/lib/sanity/types';
-import { BEATS, IMAGES } from './SceneAbout';
 
 /* ───────────────────────────────────────────────────────────────────────────
-   HomepageReel — About → Projects, one continuous pinned reel.
+   HomepageReel — the Projects reel.
 
-   The whole About→Projects experience lives in ONE pinned stage driven by ONE
-   master timeline, so there is NO seam between them:
+   This used to open with five pinned clip-path "About plates" before handing
+   off to Projects inside the same pin. Those plates were replaced by
+   `AboutGrid`, a flat, un-pinned section that now sits above this one — so all
+   that remains here is the Projects reel itself.
 
-     · About's five clip-path "plate" wipes play first (ported verbatim).
-     · With zero gap, in the same pin, the Projects beats slide in from the
-       right over About's last frame — which drifts left (slower) for parallax.
-     · The fixed `TDKDB` title (z-50) fades out exactly at the boundary, so the
-       whole reel can share one stacking context (the title can't be both below
-       About and above Projects, so we retire it as Projects takes over).
-
-   DESKTOP (lg+): horizontal 300vw-per-project reel inside the pin.
-   MOBILE/TABLET (<lg): About wipes pin, then a vertical Projects stack flows
-   after (no horizontal scroll); md gets a 2-column layout.
+   DESKTOP (lg+): one pinned stage, horizontal 300vw-per-project reel.
+   MOBILE/TABLET (<lg): no pin at all — a plain vertical stack (below).
    ─────────────────────────────────────────────────────────────────────────── */
 
 interface HomepageReelProps {
@@ -33,16 +26,13 @@ interface HomepageReelProps {
 const BEAT_BG = 'var(--color-void)';
 
 // ── Pacing — tune live in `pnpm dev` ───────────────────────────────────────
-const ABOUT_END_VH = 820; // About's scroll budget (preserves its original feel)
 const PROJECT_BEAT_VH = 460; // scroll per project beat — larger = gentler
 const SCRUB = 1.6; // ScrollTrigger smoothing (higher = softer)
-const ABOUT_DRIFT = 0.4; // how far About's last frame drifts left during handoff
 
-// About wipe cadence (ported from SceneAbout, unchanged).
-const REVEAL = 1.15;
-const DWELL = 0.35;
-const STEP = REVEAL + DWELL;
-const DRIFT = STEP + REVEAL;
+// Each project beat is one timeline unit: a third to slide in, two thirds to
+// traverse its own 300vw of content.
+const ENTER = 1 / 3;
+const TRAVERSE = 2 / 3;
 
 const statusLabel = (s: Project['status']) =>
   s === 'completed' ? 'COMPLETED' : s === 'in-progress' ? 'IN DEVELOPMENT' : 'UPCOMING';
@@ -52,13 +42,9 @@ const statusColor = (s: Project['status']) =>
 export default function HomepageReel({ projects }: HomepageReelProps) {
   const count = projects.length;
 
-  // Stage / About refs
+  // Stage refs
   const sectionRef = useRef<HTMLElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
-  const aboutTrackRef = useRef<HTMLDivElement>(null);
-  const aboutWrapRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const aboutImgRefs = useRef<(HTMLImageElement | null)[]>([]);
-  const aboutTxtRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // Projects (desktop) refs
   const beatRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -71,80 +57,28 @@ export default function HomepageReel({ projects }: HomepageReelProps) {
 
   const [reduced, setReduced] = useState(false);
 
-  // Derived pacing — keep About at ABOUT_END_VH, map Projects at the same rate.
-  const aboutDur = (BEATS.length - 1) * STEP + DRIFT;
-  const unitVh = ABOUT_END_VH / aboutDur;
-  const perBeatUnits = count ? PROJECT_BEAT_VH / unitVh : 0;
-  const ENTER = perBeatUnits / 3;
-  const TRAVERSE = (perBeatUnits * 2) / 3;
-  const totalVh = ABOUT_END_VH + count * PROJECT_BEAT_VH;
-  const aboutFraction = ABOUT_END_VH / totalVh;
+  const totalVh = count * PROJECT_BEAT_VH;
 
-  // ── Master timeline (About wipes → Projects horizontal) ───────────────────
+  // ── Master timeline (horizontal Projects reel, desktop only) ──────────────
   useLayoutEffect(() => {
     gsapInit();
-    const section = sectionRef.current;
     const stage = stageRef.current;
-    if (!section || !stage) return;
+    if (!stage || !count) return;
 
     ScrollTrigger.config({ ignoreMobileResize: true });
 
-    // Reduced motion — no pin; About plates flow vertically, Projects stacks.
+    // Reduced motion — no pin, no horizontal reel; the vertical stack below
+    // becomes the only rendering of Projects at every breakpoint.
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setReduced(true);
-      stage.style.height = 'auto';
-      if (aboutTrackRef.current) aboutTrackRef.current.style.position = 'static';
-      aboutWrapRefs.current.forEach((w) => {
-        if (!w) return;
-        w.style.position = 'relative';
-        w.style.height = '100svh';
-        w.style.clipPath = 'none';
-      });
       return;
     }
 
-    // Pull the stage up over the hero's 100vh so the first wipe starts at once.
-    section.style.marginTop = '-100vh';
-
     const W = () => window.innerWidth;
-    const title = document.querySelector<HTMLElement>('#hero-title-layer');
-
     const mm = gsap.matchMedia();
 
-    // Shared: the About plate wipes (identical on every breakpoint).
-    const buildAbout = (tl: gsap.core.Timeline) => {
-      let t = 0;
-      BEATS.forEach((beat, i) => {
-        const wrap = aboutWrapRefs.current[i];
-        const img = aboutImgRefs.current[i];
-        const txt = aboutTxtRefs.current[i];
-        const s = beat.sign;
-        if (wrap) {
-          tl.fromTo(
-            wrap,
-            { clipPath: beat.hidden },
-            { clipPath: 'inset(0% 0% 0% 0%)', ease: 'sine.inOut', duration: REVEAL },
-            t,
-          );
-        }
-        if (img) tl.fromTo(img, { yPercent: 8 * s }, { yPercent: -8 * s, duration: DRIFT }, t);
-        if (txt) {
-          tl.fromTo(
-            txt,
-            { y: () => -window.innerHeight * 0.06 * s },
-            { y: () => window.innerHeight * 0.06 * s, duration: DRIFT },
-            t,
-          );
-        }
-        t += STEP;
-      });
-      return t;
-    };
-
-    // ── DESKTOP: About + horizontal Projects in one pinned timeline ─────────
     mm.add('(min-width: 1024px)', () => {
       if (overlayRef.current) gsap.set(overlayRef.current, { opacity: 0 });
-      if (title) gsap.set(title, { opacity: 1 });
 
       const tl = gsap.timeline({
         defaults: { ease: 'none' },
@@ -158,42 +92,21 @@ export default function HomepageReel({ projects }: HomepageReelProps) {
           invalidateOnRefresh: true,
           onUpdate: (self) => {
             if (!counterRef.current) return;
-            const pp = (self.progress - aboutFraction) / (1 - aboutFraction);
-            const idx = Math.min(count - 1, Math.max(0, Math.floor(pp * count)));
+            const idx = Math.min(count - 1, Math.max(0, Math.floor(self.progress * count)));
             counterRef.current.textContent = String(idx + 1).padStart(2, '0');
           },
         },
       });
 
-      buildAbout(tl);
-
-      // Boundary: the first beat slides in from the right and "wipes" the hero
-      // title away in sync — clip the title's right edge leftward exactly as the
-      // panel covers (so the panel shows through), while it dissolves (opacity).
-      // The title layer is full-viewport, so the clip % tracks the panel edge.
-      if (title) {
-        tl.fromTo(
-          title,
-          { clipPath: 'inset(0% 0% 0% 0%)' },
-          { clipPath: 'inset(0% 100% 0% 0%)', duration: ENTER },
-          aboutDur,
-        );
-        tl.to(title, { opacity: 0, duration: ENTER }, aboutDur);
-      }
-      if (overlayRef.current) {
-        tl.to(overlayRef.current, { opacity: 1, duration: perBeatUnits * 0.4 }, aboutDur);
-      }
-
-      // About's last frame drifts left (slower) as the first beat covers it.
-      if (aboutTrackRef.current) {
-        tl.to(aboutTrackRef.current, { x: () => -ABOUT_DRIFT * W(), duration: ENTER }, aboutDur);
-      }
+      // The "THE WORK" chrome used to fade in at the About→Projects boundary.
+      // With About gone there is no boundary, so it simply arrives with beat 01.
+      if (overlayRef.current) tl.to(overlayRef.current, { opacity: 1, duration: ENTER }, 0);
 
       projects.forEach((_, i) => {
         const beat = beatRefs.current[i];
         const img = mainImgRefs.current[i];
         if (!beat) return;
-        const beatStart = aboutDur + i * perBeatUnits;
+        const beatStart = i;
 
         // Slide in from the right (every beat starts off-screen right).
         tl.fromTo(beat, { x: () => W() }, { x: 0, duration: ENTER }, beatStart);
@@ -211,27 +124,9 @@ export default function HomepageReel({ projects }: HomepageReelProps) {
         tl.to(beat, { x: () => -2 * W(), duration: TRAVERSE }, beatStart + ENTER);
 
         if (img) {
-          tl.fromTo(img, { xPercent: 6 }, { xPercent: -6, duration: perBeatUnits }, beatStart);
+          tl.fromTo(img, { xPercent: 6 }, { xPercent: -6, duration: 1 }, beatStart);
         }
       });
-    });
-
-    // ── MOBILE / TABLET: About wipes pin only, title fades at the end ───────
-    mm.add('(max-width: 1023px)', () => {
-      const tl = gsap.timeline({
-        defaults: { ease: 'none' },
-        scrollTrigger: {
-          trigger: stage,
-          start: 'top top',
-          end: `+=${ABOUT_END_VH}%`,
-          scrub: SCRUB,
-          pin: true,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-        },
-      });
-      const end = buildAbout(tl);
-      if (title) tl.to(title, { opacity: 0, duration: DWELL }, end - REVEAL);
     });
 
     return () => mm.revert();
@@ -286,60 +181,15 @@ export default function HomepageReel({ projects }: HomepageReelProps) {
 
   return (
     <>
-      {/* ════════════════════ PINNED STAGE (z-10, below hero title) ═════════ */}
-      <section ref={sectionRef} className="relative z-10 w-full">
-        <div ref={stageRef} className="relative h-screen w-full overflow-hidden">
-          {/* ── About plates (drift track) ── */}
-          <div ref={aboutTrackRef} className="absolute inset-0">
-            {BEATS.map((beat, i) => (
-              <div
-                key={beat.index}
-                ref={(el) => {
-                  aboutWrapRefs.current[i] = el;
-                }}
-                className="absolute inset-0 overflow-hidden bg-white will-change-[clip-path]"
-                style={{ zIndex: 10 + i, clipPath: beat.hidden }}
-              >
-                <div className={beat.imgWrap}>
-                  <img
-                    ref={(el) => {
-                      aboutImgRefs.current[i] = el;
-                    }}
-                    src={IMAGES[i]}
-                    alt={`TDK — ${beat.name}`}
-                    loading={i === 0 ? 'eager' : 'lazy'}
-                    fetchPriority={i === 0 ? 'high' : 'low'}
-                    className="absolute left-0 top-[-15%] h-[130%] w-full object-cover will-change-transform"
-                  />
-                </div>
-
-                {beat.scrim === 'mobile-top' && (
-                  <div className="pointer-events-none absolute inset-x-0 top-0 h-[42%] bg-gradient-to-b from-white via-white/85 to-transparent lg:hidden" />
-                )}
-                {beat.scrim === 'full' && (
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/55 via-transparent to-black/55" />
-                )}
-                {beat.scrim === 'desktop-bottom' && (
-                  <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-[55%] bg-gradient-to-t from-black/60 via-black/15 to-transparent lg:block" />
-                )}
-
-                <div
-                  ref={(el) => {
-                    aboutTxtRefs.current[i] = el;
-                  }}
-                  className={`${beat.txtWrap} will-change-transform`}
-                >
-                  <div className={beat.textClass}>
-                    <p className="max-w-[42ch] text-base font-normal leading-relaxed xl:text-lg 2xl:text-xl">
-                      {beat.text}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* ── Projects horizontal beats (desktop only) ── */}
+      {/* ════════════════════ PINNED STAGE — desktop only ═══════════════════
+          Below `lg` (and under reduced motion) this renders nothing at all, so
+          it must not occupy a viewport of empty scroll. */}
+      <section
+        ref={sectionRef}
+        className={reduced || !count ? 'hidden' : 'relative z-10 hidden w-full lg:block'}
+      >
+        <div ref={stageRef} className="relative h-screen w-full overflow-hidden bg-void">
+          {/* ── Projects horizontal beats ── */}
           {!reduced &&
             projects.map((p, i) => {
               const main = p.heroImageId;
