@@ -6,10 +6,12 @@ interface CloudinaryOptions {
   quality?: 'auto' | number;
   format?: 'auto' | 'webp' | 'avif';
   crop?: 'fill' | 'fit' | 'scale';
+  /** Raw Cloudinary effect tokens, e.g. `['e_blur:200']`. Applied last. */
+  effects?: string[];
 }
 
 export function cloudinaryUrl(publicId: string, options: CloudinaryOptions = {}): string {
-  const { width, height, quality = 'auto', format = 'auto', crop = 'fill' } = options;
+  const { width, height, quality = 'auto', format = 'auto', crop = 'fill', effects } = options;
 
   const transforms = [
     width && `w_${width}`,
@@ -17,6 +19,7 @@ export function cloudinaryUrl(publicId: string, options: CloudinaryOptions = {})
     `q_${quality}`,
     `f_${format}`,
     (width || height) && `c_${crop}`,
+    ...(effects ?? []),
   ]
     .filter(Boolean)
     .join(',');
@@ -46,6 +49,19 @@ export function teamPhoto(publicId: string): string {
 
 export function ogImage(publicId: string): string {
   return cloudinaryUrl(publicId, { width: 1200, height: 630 });
+}
+
+/**
+ * Full-bleed atmospheric wash sitting behind a composition at low opacity.
+ *
+ * Small and pre-blurred by Cloudinary on purpose: a CSS `filter: blur()` across
+ * a whole viewport is a live GPU pass, and these sit inside a pinned, scrubbed
+ * section where that cost is paid on every frame. Baking it into a ~1100px
+ * asset costs nothing at runtime, and the upscale to full bleed softens it
+ * further for free.
+ */
+export function backdropImage(publicId: string): string {
+  return cloudinaryUrl(publicId, { width: 1400, quality: 60, effects: ['e_blur:100'] });
 }
 
 // cloudinaryUrl test (uncomment to verify):
