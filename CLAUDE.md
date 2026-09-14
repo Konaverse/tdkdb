@@ -46,51 +46,46 @@ All CMS images are **Cloudinary public IDs stored as strings in Sanity** — not
 - **GSAP** (`src/lib/animations/gsap.ts`) — single import point, registers ScrollTrigger once. Always import `{ gsap, ScrollTrigger }` from `@/lib/animations/gsap`, never directly from `gsap`.
 - **Lenis** (`src/lib/animations/lenis.ts`) — smooth scroll singleton, driven by the GSAP ticker. Initialized in `SmoothScrollProvider` which wraps the root layout. `gsap.ticker.lagSmoothing(0)` is required.
 - All GSAP animations go inside `useLayoutEffect` with a `gsap.context()`. Cleanup is always `ctx.revert()` — this is mandatory for React Strict Mode compatibility and route-transition cleanup.
-- GSAP is the animation library for all new work. Three.js is gone from the project entirely.
-  Framer Motion survives in exactly one place — `src/components/ui/lamp.tsx`, used by
-  `HeroMinimal` — and should not spread beyond it.
+- GSAP is the animation library for all new work. Three.js and Framer Motion are gone from
+  the project entirely. `SplitText` is registered in `gsap.ts` alongside ScrollTrigger.
 
 ### Homepage
 
 The homepage (`src/app/[locale]/(site)/page.tsx`) is a small server component that fetches
-two Sanity queries and composes, in order: `HomeLoader` (first-load intro) → `Hero`
-(asymmetric split photograph) → `AboutGrid` (flat architectural grid, no pin) →
-`HomepageReel` → `TheDifference` → `FeaturedResidence` → `SceneContact`.
+three Sanity queries and composes, in order: `HomeLoader` (first-load intro) → `Hero` →
+`ProjectsPinned` → `AboutGrid` → `TheDifference` → `FeaturedResidence` → `SceneContact`.
+The Sept 2026 restructure (boards in `homepage_redesign.zip` at the repo root) has replaced
+the hero and the projects section so far; About, the interlude, contact and the footer are
+next, and everything after the hero is on a WHITE ground with the teal accent.
 
-`HomepageReel.tsx` is the heavy piece — one pinned GSAP timeline, desktop (`lg+`) only:
+`Hero.tsx` — "TDK" behind the building. Two supplied plates, identical 1512 × 1300 frames
+(`public/hero/hero-back.webp`, the street with the building removed; `hero-front.webp`, the
+building with the sky knocked out), stacked in one full-width box at the plate's aspect with
+the letters between them. **Never generate cutouts or composites of these — the user supplies
+the layers.** All desktop copy lives in plate coordinates (`cqw` on the frame, which is a
+container), measured off the board; the section is as tall as the plate, as the board is.
+On load: the back plate wipes in as vertical stripes, T/D/K each slide one slot right into
+their own mask (the slot is the glyph's advance box, the tracking a negative margin between
+slots, so nothing clips), the front plate wipes down behind a soft mask driven by one CSS
+variable, the social rings draw. DESIGN & / BUILD, the paragraphs (SplitText lines wiping
+on left to right) and the CTA reveal on entering the viewport, once, armed after the load
+sequence. Nothing moves on scroll — the user rejected parallax outright.
 
-- It opens on a **title card**: `PROJECTS` tracked out to exactly 80% of the viewport at the
-  bottom left. The tracking is computed in JS (flex `gap`, never `letter-spacing` or
-  `scaleX`) so the word measures 80% at any width. The first project's leading edge then
-  **bulldozes** it — each glyph is displaced by its own overlap with that edge, which stacks
-  every displaced glyph right-aligned against it, and crossfades it from solid to outline.
-  This is imperative geometry via `quickSetter`s inside the scrubbed timeline, NOT tweens:
-  it has to stay frame-locked to the panel, and ScrollTrigger's `onUpdate` reports the raw
-  progress, which runs ahead of a scrubbed timeline.
-- Each project is then **one viewport** laid out on an 8 × 8 grid addressed A1–H8 with row 1
-  at the top: heading A1–C2, CTA A3–C3, description D1–E3, main image A4–D8, secondary image
-  F1–H4, site plan F6–H8. Column E below row 3 and the F–H row 5 band are held open on
-  purpose. Placement is inline `gridColumn` / `gridRow` via the `cell()` helper, so the code
-  reads in the same addressing as the design. There are no drawn gridlines — only a hairline
-  outer frame, which is also what the pushed glyphs stack against.
-- Projects arrive right-to-left over their predecessor, which keeps drifting left at a third
-  of the speed. Arrival composes the sheet (heading masks up, description and CTA follow,
-  ring draws, streets ink, marker drops last); departure shears the typeset material apart
-  at four different rates behind a rising veil.
-- **The two photographic plates have no animation at all** — no entrance, no exit, no
-  parallax. They are on the sheet when it arrives and leave with it. This is deliberate: the
-  composition assembles around two fixed points. Don't "restore" it.
-- Behind each sheet, the main image runs again full-bleed as an atmospheric wash via
-  `backdropImage()`. That preset is pre-blurred by **Cloudinary**, not by a CSS `filter` — a
-  full-viewport blur inside a pinned, scrubbed section is a live GPU pass on every frame.
-  A radial scrim puts the wash's clear point on the open column E and closes it to near-void
-  behind the heading, the description and the site plan's hairline streets.
+`ProjectsPinned.tsx` — "Our Projects", pinned for (N − 1) viewports, one scrubbed transition
+per viewport: the current render fades and eases up, the preview climbs into the main slot
+and grows, the name slides through its mask, paragraph and status cross over, the project
+after next fades into the preview slot. Snaps to a project. The arrow scrolls to the next
+transition; clicking a render opens `ProjectModal` (the six-leaf brochure in
+`src/components/project-modal/`, whose page bodies are still scaffolds). Positions are board
+fractions: x in `cqw`, y in `cqh`, and the two renders sized by HEIGHT so they keep the
+board's share of the screen on wider viewports; the renders sit in a zero-width column at the
+board's centre so their offsets are one unit and tweenable. Below `lg` it is a plain stack.
 
-`ProjectMiniMap.tsx` draws the F6–H8 cell: an abstract rotated street grid generated
-deterministically from the project slug (seeded PRNG — never `Math.random()` at render, it
-must match between server and client). Pass `roads` to override the generator with real
-traced geometry. Project data comes from Sanity; `homepageIntro` is the description. Below
-`lg` the whole thing degrades to a plain vertical stack with no pin.
+Rule for both, and for every section to come: the scrubbed or scroll-driven timeline and
+the one-shot entrance never share a node and a property — where they would, the entrance
+gets its own wrapper. In development the hero's load timeline, the projects scrub and
+`ScrollTrigger` are exposed on `window` (`__heroTl`, `__projectsTl`, `__ST`) for scrubbing
+from the console; an occluded Chrome tab freezes rAF, so verify by scrubbing, not by waiting.
 
 ### Design System
 
@@ -112,7 +107,7 @@ redirects everything to `/en`. Copy is written inline in English.
 ## Hard Rules
 
 1. **No Three.js** — the dependency has been removed. Use GSAP or plain canvas.
-2. **No new Framer Motion** — GSAP for all animation; the one legacy `lamp.tsx` usage is the sole exception.
+2. **No Framer Motion** — GSAP for all animation.
 3. **No Sanity native images** — all images are Cloudinary IDs (strings) in Sanity.
 4. **`SANITY_API_TOKEN` must never have `NEXT_PUBLIC_` prefix** — server-only.
 5. **Email addresses come from env vars** — never hardcoded.

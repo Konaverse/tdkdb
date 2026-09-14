@@ -1,5 +1,5 @@
 import AboutGrid from '@/components/homepage/AboutGrid';
-import HomepageReel from '@/components/homepage/HomepageReel';
+import ProjectsPinned from '@/components/homepage/ProjectsPinned';
 import TheDifference from '@/components/homepage/TheDifference';
 import FeaturedResidence from '@/components/homepage/FeaturedResidence';
 import SceneContact from '@/components/homepage/SceneContact';
@@ -30,11 +30,11 @@ export default async function HomePage() {
 
       <Hero paragraphs={HERO_PARAGRAPHS} socials={settings?.socialLinks ?? []} />
 
+      {/* Projects — one project per screen, pinned. */}
+      <ProjectsPinned projects={projects} />
+
       {/* About — flat architectural grid, ~130vh, no pin. */}
       <AboutGrid />
-
-      {/* Projects reel. */}
-      <HomepageReel projects={projects} />
 
       {/* Remaining scenes. */}
       <div className="relative z-[60] bg-void">
