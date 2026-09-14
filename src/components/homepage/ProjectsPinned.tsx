@@ -30,10 +30,9 @@ import type { Project } from '@/lib/sanity/types';
    and the paragraph's lines slide in through side masks (the hero's move),
    the renders wipe on, the status and the arrow follow.
 
-   The arrow is a hairline ring. On hover the → retracts through its tip, a
-   curl draws and undraws, and a ↗ draws in; the whole thing reverses on
-   leave. Clicking it scrolls to the next transition. Clicking a render opens
-   the brochure modal.
+   The arrow is a hairline ring; on hover the → tilts to point up and to the
+   right, and tilts back on leave. Clicking it scrolls to the next
+   transition. Clicking a render opens the brochure modal.
 
    Positions are board fractions (3024 × 1964, one MacBook viewport): x and
    widths in cqw, y in cqh, the two renders sized by HEIGHT so they keep the
@@ -351,30 +350,16 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
     };
   }, [count, last]);
 
-  // ── The arrow's hover — a timeline played forward on enter, back on leave.
+  // ── The arrow's hover — it tilts to point up and to the right.
   useLayoutEffect(() => {
     const el = arrowRef.current;
     if (!el) return;
     const ctx = gsap.context(() => {
-      const a = el.querySelector('[data-arrow-a]');
-      const curl = el.querySelector('[data-arrow-curl]');
-      const b = el.querySelector('[data-arrow-b]');
       const svg = el.querySelector('svg');
-      gsap.set(a, { strokeDashoffset: 0 });
-      gsap.set([curl, b], { strokeDashoffset: 1 });
       gsap.set(svg, { rotation: 0, transformOrigin: '50% 50%' });
-
-      const tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.inOut' } });
-      // → leaves through its own tip…
-      tl.to(a, { strokeDashoffset: -1, duration: 0.32, ease: 'power2.in' }, 0);
-      // …a curl whips through…
-      tl.to(curl, { strokeDashoffset: 0, duration: 0.3 }, 0.18)
-        .to(curl, { strokeDashoffset: -1, duration: 0.3, ease: 'power2.in' }, 0.42)
-        .to(svg, { rotation: -14, duration: 0.3 }, 0.18)
-        .to(svg, { rotation: 0, duration: 0.45, ease: 'back.out(2)' }, 0.48);
-      // …and ↗ draws in.
-      tl.to(b, { strokeDashoffset: 0, duration: 0.45, ease: 'back.out(1.4)' }, 0.55);
-      hoverTlRef.current = tl;
+      hoverTlRef.current = gsap
+        .timeline({ paused: true })
+        .to(svg, { rotation: -45, duration: 0.5, ease: 'power3.out' });
     }, el);
     return () => {
       hoverTlRef.current = null;
@@ -496,7 +481,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
             </div>
           </div>
 
-          {/* Arrow — a hairline ring; the line inside re-draws itself on hover. */}
+          {/* Arrow — a hairline ring; the line inside tilts on hover. */}
           <button
             ref={arrowRef}
             type="button"
@@ -522,29 +507,9 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
               strokeWidth="1.3"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="h-[46%] w-[46%]"
+              className="h-[46%] w-[46%] will-change-transform"
             >
-              <path
-                data-arrow-a
-                d="M9 24h29M29 15l9 9-9 9"
-                pathLength={1}
-                strokeDasharray="1"
-                strokeDashoffset="0"
-              />
-              <path
-                data-arrow-curl
-                d="M18 30c2-9 12-11 14-4s-8 10-8 2 12-6 10 4"
-                pathLength={1}
-                strokeDasharray="1"
-                strokeDashoffset="1"
-              />
-              <path
-                data-arrow-b
-                d="M14 34L34 14M19 14h15v15"
-                pathLength={1}
-                strokeDasharray="1"
-                strokeDashoffset="1"
-              />
+              <path d="M9 24h29M29 15l9 9-9 9" />
             </svg>
           </button>
 
