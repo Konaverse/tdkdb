@@ -6,7 +6,7 @@ import '@/styles/globals.css';
 
 const josefin = Josefin_Sans({
   subsets: ['latin'],
-  weight: ['300', '400', '600'],
+  weight: ['100', '200', '300', '400', '600'],
   display: 'swap',
   variable: '--font-josefin',
 });

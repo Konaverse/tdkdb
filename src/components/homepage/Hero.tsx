@@ -1,170 +1,177 @@
 'use client';
 
 import { useLayoutEffect, useRef } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
+import type { CSSProperties, MouseEvent } from 'react';
+
 import { gsap, gsapInit } from '@/lib/animations/gsap';
-import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
+import { getLenis } from '@/lib/animations/lenis';
+import type { SocialLink } from '@/lib/sanity/types';
 import { useIntro } from './IntroProvider';
 
 /* ───────────────────────────────────────────────────────────────────────────
-   Hero — asymmetric split
+   Hero — "TDK" behind the building
 
-   A full-height photograph occupies the left ~73% of the viewport; a flat void
-   column holds the right ~27%. The headline is set in two offset lines that
-   cross the seam between them — that crossing is what makes the composition
-   read as designed rather than as type dropped onto a photo.
+   Three plates stacked in one frame, all in the render's own pixel space
+   (1512 × 1300, aspect 1.163):
 
-   The navbar (fixed, h-20, mix-blend-difference) floats over this untouched.
-   Its own entrance is already gated on `useIntro()`, so this timeline keys off
-   the same phase to stay in step rather than racing it.
+     1. `hero-plate`    — the street with the building removed: the render's
+                          own sky interpolated across the footprint, the
+                          inpainted plot below the horizon. Fully seen only
+                          for the first second, before the building arrives.
+     2. the letters     — TDK, DESIGN & BUILD, in container-query units so
+                          they hold their place against the roofline at any
+                          width. Every number is measured off the board.
+     3. `hero-building` — the building alone, cut out along the sky with an
+                          alpha channel, so the roof slab reads in front of the
+                          D and the T's stem stops at the peak.
 
-   On scroll-out the void column widens from 27% to 100%, wiping right-to-left
-   across the image and landing as the flat background the next section sits on.
-   The seam that defines the hero becomes the transition device.
+   The board is the plate at full width, taller than a viewport (the MacBook
+   artboard is 3024 × 2600 against a 1964px screen), with the paragraphs and
+   the CTA in the lower third of the PLATE. So the section is as tall as the
+   plate and all desktop copy lives in plate coordinates too. On wide screens
+   the frame is capped so the letter block still fits the first viewport; the
+   narrow bands either side are covered by a blurred copy of the plate.
 
-   Below `lg` the split collapses: the image goes full-bleed and the column's
-   contents reflow beneath the paragraph.
+   Entrance: the letters are drawn first, then the building is built in front
+   of them. That order is the studio in one move.
 
-   Note on layering: each animated transform property gets its own element.
-   GSAP writes the whole `transform` string from a per-element cache, so two
-   timelines driving different properties on one node clobber each other.
+   Layering discipline (see gsap-transform-pitfalls): every animated
+   transform property has its own node. Scroll `y` wrappers sit outside the
+   entrance nodes; percentage offsets are set by gsap.set(), never by class.
    ─────────────────────────────────────────────────────────────────────────── */
 
-/** Width of the void column, as a % of the viewport. Desktop only. */
-const COLUMN_W = 27;
+const PLATE_W = 1512;
+const PLATE_H = 1300;
+const ASPECT = PLATE_W / PLATE_H;
+const A = ASPECT.toFixed(4);
 
-export interface HeroTicker {
-  title: string;
-  location: string;
-  progressPercent?: number;
-}
+/** Frame maths, on the section so the frame and the section height share it.
+    --hw  frame width: viewport width, capped where the letter block (rows
+          13.7–68.6% of the plate) would no longer fit the viewport height.
+    --hh  frame height, from the plate's aspect.
+    --ht  frame top: 0, or up to 10% of the plate slid off the top so the
+          letters survive a wide crop. */
+const SECTION_VARS: CSSProperties = {
+  ['--hw' as string]: `min(max(100vw, calc(100svh * ${A})), calc(100svh * 1.984))`,
+  ['--hh' as string]: `calc(var(--hw) / ${A})`,
+  ['--ht' as string]: 'clamp(calc(var(--hh) * -0.1), calc(100svh - var(--hh) * 0.69), 0px)',
+  height: 'calc(var(--hh) + var(--ht))',
+  minHeight: '100svh',
+};
 
-interface HeroProps {
-  /** Cloudinary public ID for the full-height photograph. */
-  imageId: string;
-  /** Two-part headline. Line 2 is the indented one that crosses the seam. */
-  headline: [string, string];
-  paragraph: string;
-  /** Live "currently building" readout for the column. Hidden when absent. */
-  ticker?: HeroTicker | null;
+const FRAME_STYLE: CSSProperties = {
+  width: 'var(--hw)',
+  height: 'var(--hh)',
+  left: 'calc((100vw - var(--hw)) / 2)',
+  top: 'var(--ht)',
+  containerType: 'inline-size',
+};
+
+/** Plate-space copy positions, measured off the board as fractions of the
+    plate and expressed in cqw (fractions of height × 85.98). */
+const COPY: CSSProperties = {
+  fontSize: 'clamp(13px, 1.2cqw, 20px)',
+  lineHeight: 1.3,
+};
+
+export interface HeroProps {
+  /** Two short paragraphs — bottom-left and centre-bottom of the plate. */
+  paragraphs: [string, string];
+  socials: SocialLink[];
   ctaLabel?: string;
   ctaHref?: string;
 }
 
 export default function Hero({
-  imageId,
-  headline,
-  paragraph,
-  ticker,
-  ctaLabel = 'View the work',
+  paragraphs,
+  socials,
+  ctaLabel = 'See Our Projects',
   ctaHref = '/en/projects',
 }: HeroProps) {
   const { phase } = useIntro();
 
   const sectionRef = useRef<HTMLElement>(null);
-  const imgEnterRef = useRef<HTMLDivElement>(null); // entrance — scale
-  const imgScrollRef = useRef<HTMLDivElement>(null); // exit     — scale/opacity
-  const imgWrapRef = useRef<HTMLDivElement>(null); // entrance — clipPath
-  const columnRef = useRef<HTMLDivElement>(null);
-  const line1Ref = useRef<HTMLSpanElement>(null); // entrance — yPercent
-  const line2Ref = useRef<HTMLSpanElement>(null);
-  const line1OuterRef = useRef<HTMLDivElement>(null); // exit — y
-  const line2OuterRef = useRef<HTMLDivElement>(null);
-  const paragraphRef = useRef<HTMLParagraphElement>(null);
-  const ctaRef = useRef<HTMLAnchorElement>(null);
-  const ringRef = useRef<SVGCircleElement>(null);
-  const tickerRef = useRef<HTMLDivElement>(null);
-  const barRef = useRef<HTMLSpanElement>(null);
+  const plateScrollRef = useRef<HTMLDivElement>(null); // scroll — y
+  const plateEnterRef = useRef<HTMLDivElement>(null); // entrance — scale
+  const lettersScrollRef = useRef<HTMLDivElement>(null); // scroll — y
+  const buildingScrollRef = useRef<HTMLDivElement>(null); // scroll — y
+  const buildingEnterRef = useRef<HTMLDivElement>(null); // entrance — y / alpha
+  const mobileTitleRef = useRef<HTMLDivElement>(null); // scroll — y
 
   // ── Entrance ──────────────────────────────────────────────────────────────
-  // Gated on the intro phase so it cannot collide with the loader's wipe. On a
-  // homepage hard-load `reveal` fires as the white panel clears; on client
-  // navigation the phase is already `done` and this runs promptly.
   useLayoutEffect(() => {
     if (phase === 'loading') return;
-
     gsapInit();
 
-    const fill = ticker?.progressPercent ? ticker.progressPercent / 100 : 0;
+    const section = sectionRef.current;
+    if (!section) return;
 
     const ctx = gsap.context(() => {
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const revealed = [paragraphRef.current, ctaRef.current, tickerRef.current];
-      const lines = [line1Ref.current, line2Ref.current];
 
-      // The masked start offset MUST be established by GSAP, not by a CSS class.
-      // A CSS `translateY(110%)` computes to a pixel matrix, which GSAP parses
-      // as `y: 111px / yPercent: 0` — so animating `yPercent` to 0 changes
-      // nothing and the offset sticks. Setting it here keeps the percentage in
-      // GSAP's own transform cache, where the tween can actually resolve it.
-      // The lines are `visibility: hidden` in markup until this runs, so the
-      // pre-paint state never flashes.
-      gsap.set(lines, { yPercent: 110, visibility: 'visible' });
+      const glyphs = gsap.utils.toArray<HTMLElement>('[data-glyph]');
+      const subLines = gsap.utils.toArray<HTMLElement>('[data-sub-line]');
+      const chrome = gsap.utils.toArray<HTMLElement>('[data-chrome]');
+      const mobileLines = gsap.utils.toArray<HTMLElement>('[data-mobile-line]');
+
+      // Start states. Percentages MUST be established here, not in CSS — a
+      // class-based translate computes to a pixel matrix that GSAP reads back
+      // as `y`, and the yPercent tween that undoes it silently no-ops.
+      gsap.set(glyphs, { yPercent: 40, y: 0, autoAlpha: 0 });
+      gsap.set(mobileLines, { yPercent: 40, y: 0, autoAlpha: 0 });
+      gsap.set(subLines, { x: 40, autoAlpha: 0 });
+      gsap.set(buildingEnterRef.current, { y: 70, autoAlpha: 0 });
+      gsap.set(plateEnterRef.current, { scale: 1.08 });
+      gsap.set(chrome, { y: 16, autoAlpha: 0 });
 
       if (reduced) {
-        gsap.set(imgWrapRef.current, { clipPath: 'inset(0% 0% 0% 0%)' });
-        gsap.set(imgEnterRef.current, { scale: 1 });
-        gsap.set(lines, { yPercent: 0 });
-        gsap.set(revealed, { autoAlpha: 1, y: 0 });
-        gsap.set(ringRef.current, { strokeDashoffset: 0 });
-        gsap.set(barRef.current, { scaleX: fill });
+        gsap.set([...glyphs, ...mobileLines], { yPercent: 0, autoAlpha: 1 });
+        gsap.set(subLines, { x: 0, autoAlpha: 1 });
+        gsap.set(buildingEnterRef.current, { y: 0, autoAlpha: 1 });
+        gsap.set(plateEnterRef.current, { scale: 1 });
+        gsap.set(chrome, { y: 0, autoAlpha: 1 });
         return;
       }
 
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-      // Image — wipes in left→right, then keeps drifting after the wipe lands so
-      // the frame never settles into a dead JPEG.
+      // 1. The plot. Settles out of a slow over-scale for the whole intro.
+      tl.to(plateEnterRef.current, { scale: 1, duration: 2.8, ease: 'power2.out' }, 0);
+
+      // 2. The drawing — T, D, K rise in one after the other.
+      tl.to(glyphs, { yPercent: 0, autoAlpha: 1, duration: 1.2, stagger: 0.14 }, 0.25);
+      tl.to(mobileLines, { yPercent: 0, autoAlpha: 1, duration: 1.1, stagger: 0.12 }, 0.25);
+      tl.to(subLines, { x: 0, autoAlpha: 1, duration: 0.9, stagger: 0.1 }, 0.85);
+
+      // 3. The build — the building rises in front of the letters.
       tl.to(
-        imgWrapRef.current,
-        { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.2, ease: 'power2.inOut' },
-        0,
-      ).to(imgEnterRef.current, { scale: 1, duration: 2.4 }, 0);
-
-      // Headline — masked reveal. Line 2 trails line 1 by 150ms; that lag is
-      // what pulls the eye diagonally down-and-right across the seam. Plain
-      // `.to()` from the inline start state — a `fromTo` here fights the
-      // scroll-exit timeline over the same transform cache.
-      tl.to(line1Ref.current, { yPercent: 0, duration: 0.95 }, 0.45).to(
-        line2Ref.current,
-        { yPercent: 0, duration: 0.95 },
-        0.6,
+        buildingEnterRef.current,
+        { y: 0, autoAlpha: 1, duration: 1.7, ease: 'power3.out' },
+        1.0,
       );
 
-      // CTA ring draws clockwise, label and arrow follow it in.
-      tl.to(ringRef.current, { strokeDashoffset: 0, duration: 0.8, ease: 'power2.inOut' }, 0.9).to(
-        ctaRef.current,
-        { autoAlpha: 1, duration: 0.6 },
-        0.95,
-      );
-
-      tl.to(paragraphRef.current, { autoAlpha: 1, y: 0, duration: 0.8 }, 1.0).to(
-        tickerRef.current,
-        { autoAlpha: 1, duration: 0.7 },
-        1.15,
-      );
-
-      // Progress rule fills to the real percentage.
-      tl.to(barRef.current, { scaleX: fill, duration: 1.1, ease: 'power2.inOut' }, 1.3);
-    }, sectionRef);
+      // 4. Everything that talks — after the picture is complete.
+      tl.to(chrome, { y: 0, autoAlpha: 1, duration: 0.8, stagger: 0.08 }, 1.7);
+    }, section);
 
     return () => ctx.revert();
-  }, [phase, ticker?.progressPercent]);
+  }, [phase]);
 
   // ── Scroll exit ───────────────────────────────────────────────────────────
-  // The two headline lines leave at different rates so the diagonal stretches
-  // apart on the way out. The void column then widens to full width, wiping
-  // across the image — it becomes the next section's background.
+  // Two depths. The plate and the building travel together — they share a
+  // ground line, and any difference between them would lift the building off
+  // its own fence. The letters, behind both, lag, so the roofline slides up
+  // the D as the section leaves.
   useLayoutEffect(() => {
     gsapInit();
+    const section = sectionRef.current;
+    if (!section) return;
 
     const mm = gsap.matchMedia();
-
     mm.add(
-      {
-        isDesktop: '(min-width: 1024px)',
-        isReduced: '(prefers-reduced-motion: reduce)',
-      },
+      { isDesktop: '(min-width: 1024px)', isReduced: '(prefers-reduced-motion: reduce)' },
       (context) => {
         const { isDesktop, isReduced } = context.conditions as {
           isDesktop: boolean;
@@ -173,32 +180,20 @@ export default function Hero({
         if (isReduced) return;
 
         const tl = gsap.timeline({
-          // `immediateRender: false` throughout — these tweens must not stamp
-          // their start values on creation, or they would overwrite whatever
-          // the entrance timeline is mid-way through setting.
           defaults: { ease: 'none', immediateRender: false },
           scrollTrigger: {
-            trigger: sectionRef.current,
+            trigger: section,
             start: 'top top',
             end: 'bottom top',
-            scrub: 1.1,
+            scrub: 1,
           },
         });
 
-        tl.to(line1OuterRef.current, { y: -140 }, 0)
-          .to(line2OuterRef.current, { y: -80 }, 0)
-          .to(imgScrollRef.current, { scale: 1.12, opacity: 0.35 }, 0)
-          .to([paragraphRef.current, ctaRef.current], { autoAlpha: 0 }, 0)
-          .to(tickerRef.current, { autoAlpha: 0 }, 0.15);
-
-        // Only meaningful on desktop — below `lg` there is no column to widen.
+        tl.to([plateScrollRef.current, buildingScrollRef.current], { y: -140 }, 0);
         if (isDesktop) {
-          tl.fromTo(
-            columnRef.current,
-            { width: `${COLUMN_W}%` },
-            { width: '100%', ease: 'power2.inOut', immediateRender: false },
-            0.25,
-          );
+          tl.to(lettersScrollRef.current, { y: -60 }, 0);
+        } else {
+          tl.to(mobileTitleRef.current, { y: -80 }, 0);
         }
       },
     );
@@ -206,207 +201,283 @@ export default function Hero({
     return () => mm.revert();
   }, []);
 
-  // ── CTA resting state ─────────────────────────────────────────────────────
-  // Same reason as the headline: a CSS `translateX(140%)` resolves to a pixel
-  // matrix that GSAP reads as `x`, not `xPercent`, so the hover tween could
-  // never bring the incoming arrow back. GSAP has to own the offset.
-  useLayoutEffect(() => {
-    const cta = ctaRef.current;
-    if (!cta) return;
-    const ctx = gsap.context(() => {
-      gsap.set(cta.querySelector('[data-arrow-in]'), { xPercent: 140, autoAlpha: 0 });
-      gsap.set(cta.querySelector('[data-fill]'), { scale: 0 });
-    }, cta);
-    return () => ctx.revert();
-  }, []);
-
-  // ── CTA hover ─────────────────────────────────────────────────────────────
-  const hoverCta = (entering: boolean) => {
-    const cta = ctaRef.current;
-    if (!cta) return;
-
-    gsap.to(cta.querySelector('[data-fill]'), {
-      scale: entering ? 1 : 0,
-      duration: entering ? 0.45 : 0.4,
-      ease: entering ? 'power3.out' : 'power3.inOut',
-    });
-    gsap.to(cta.querySelector('[data-arrow-out]'), {
-      xPercent: entering ? 140 : 0,
-      autoAlpha: entering ? 0 : 1,
-      duration: entering ? 0.35 : 0.4,
-      delay: entering ? 0 : 0.05,
-      ease: entering ? 'power2.in' : 'power2.out',
-    });
-    gsap.to(cta.querySelector('[data-arrow-in]'), {
-      xPercent: entering ? 0 : 140,
-      autoAlpha: entering ? 1 : 0,
-      duration: entering ? 0.4 : 0.3,
-      delay: entering ? 0.08 : 0,
-      ease: entering ? 'power2.out' : 'power2.in',
-    });
+  // The CTA scrolls to the projects section when it is on the page, and only
+  // falls through to the projects index when it is not.
+  const onCta = (e: MouseEvent<HTMLAnchorElement>) => {
+    const target = document.getElementById('projects');
+    if (!target) return;
+    e.preventDefault();
+    const lenis = getLenis();
+    if (lenis) lenis.scrollTo(target, { duration: 1.6 });
+    else target.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const progress =
-    typeof ticker?.progressPercent === 'number' ? Math.round(ticker.progressPercent) : null;
+  const cta = (
+    <Link
+      href={ctaHref}
+      onClick={onCta}
+      className="group pointer-events-auto relative inline-block whitespace-nowrap px-[1.1em] py-[0.7em] font-[400] tracking-[0.02em] text-white"
+    >
+      {/* Corner brackets — draw closed on hover. */}
+      <span className="absolute left-0 top-0 h-[0.8em] w-[0.8em] border-l border-t border-white transition-all duration-medium ease-smooth group-hover:h-full group-hover:w-full" />
+      <span className="absolute bottom-0 right-0 h-[0.8em] w-[0.8em] border-b border-r border-white transition-all duration-medium ease-smooth group-hover:h-full group-hover:w-full" />
+      {ctaLabel}
+    </Link>
+  );
 
   return (
-    <section ref={sectionRef} className="relative h-[100svh] w-full overflow-hidden bg-void">
-      {/* ── Photograph ─────────────────────────────────────────────────────── */}
-      <div
-        ref={imgWrapRef}
-        className="absolute inset-y-0 left-0 right-0 overflow-hidden lg:right-[27%]"
-        style={{ clipPath: 'inset(0% 100% 0% 0%)' }}
-      >
-        <div ref={imgScrollRef} className="h-full w-full will-change-transform">
-          <div ref={imgEnterRef} className="h-full w-full will-change-transform">
-            <img
-              src={cloudinaryUrl(imageId, { width: 2400 })}
+    <section
+      ref={sectionRef}
+      className="relative w-full overflow-hidden"
+      style={{ backgroundColor: '#0e141c', ...SECTION_VARS }}
+    >
+      {/* Ambient backdrop — only ever visible in the side bands on very wide
+          viewports, where the frame is capped narrower than the screen. */}
+      <Image
+        src="/hero/hero-plate-blur.webp"
+        alt=""
+        fill
+        unoptimized
+        sizes="100vw"
+        className="object-cover opacity-80"
+        aria-hidden="true"
+      />
+
+      {/* ── Frame — plate coordinates ─────────────────────────────────────── */}
+      <div className="absolute" style={FRAME_STYLE}>
+        {/* 1 · empty plot */}
+        <div ref={plateScrollRef} className="absolute inset-0 will-change-transform">
+          <div ref={plateEnterRef} className="absolute inset-0 will-change-transform">
+            <Image
+              src="/hero/hero-plate.webp"
               alt=""
-              aria-hidden="true"
-              decoding="async"
-              className="h-full w-full object-cover"
+              fill
+              priority
+              unoptimized
+              sizes="100vw"
+              className="object-cover"
             />
           </div>
         </div>
 
-        {/* Scrim. The navbar is difference-blended and looks after itself, but
-            the headline is large light type over a bright daytime exterior — the
-            lower half needs a real floor to sit on while the sky stays clean
-            above it. Outside the scaling layers so it does not move with them. */}
+        {/* 2 · the letters — desktop only; below lg the title is set in the
+               viewport layer instead, where it can scale with the screen. */}
         <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'linear-gradient(to top, rgba(13,13,13,0.94) 0%, rgba(13,13,13,0.78) 22%, rgba(13,13,13,0.42) 48%, rgba(13,13,13,0.10) 72%, rgba(13,13,13,0) 100%)',
-          }}
-        />
-      </div>
-
-      {/* ── Void column ────────────────────────────────────────────────────── */}
-      <div
-        ref={columnRef}
-        className="absolute inset-y-0 right-0 hidden bg-void lg:block"
-        style={{ width: `${COLUMN_W}%` }}
-      />
-
-      {/* ── Composition ────────────────────────────────────────────────────── */}
-      <div className="pointer-events-none absolute inset-0 z-20">
-        {/* Headline — line 2's indent carries it across the seam. */}
-        <div className="absolute bottom-[30%] left-0 w-full px-6 md:px-10 lg:bottom-[34%]">
-          <h1 className="text-display-lg uppercase text-paper">
-            {/* Outer div carries the scroll-exit `y`; the inner span carries the
-                entrance `yPercent`. Separate nodes, separate transform caches. */}
-            <div ref={line1OuterRef} className="will-change-transform">
-              <span className="block overflow-hidden pb-[0.08em]">
-                <span ref={line1Ref} className="block" style={{ visibility: 'hidden' }}>
-                  {headline[0]}
-                </span>
+          ref={lettersScrollRef}
+          className="absolute inset-0 hidden select-none text-white lg:block"
+          style={{ fontFamily: 'var(--font-josefin)' }}
+          aria-hidden="true"
+        >
+          {/* TDK. Measured off the board: cap top at 13.69% of the plate's
+              height, caps 42.0% tall, ink from 26.9% to 98.7% of the width.
+              Josefin at that cap height is ~17% wider than the board's
+              letters, so the block is tracked tight and compressed to land
+              on both edges — that is what puts the T's stem on the roof peak
+              and the D's bowl behind the slab. Offsets below are the font's
+              own metrics (cap 0.719em, T's left bearing 0.047em). */}
+          <div
+            className="absolute flex origin-top-left"
+            style={{
+              left: '24.9cqw',
+              top: '10.2cqw',
+              fontSize: '50.3cqw',
+              fontWeight: 200,
+              lineHeight: 1,
+              letterSpacing: '-0.08em',
+              transform: 'scaleX(0.835)',
+            }}
+          >
+            {['T', 'D', 'K'].map((ch) => (
+              <span
+                key={ch}
+                data-glyph
+                className="block will-change-transform"
+                style={{ visibility: 'hidden' }}
+              >
+                {ch}
               </span>
-            </div>
-            <div ref={line2OuterRef} className="will-change-transform lg:pl-[14vw]">
-              <span className="block overflow-hidden pb-[0.08em]">
-                <span ref={line2Ref} className="block" style={{ visibility: 'hidden' }}>
-                  {headline[1]}
-                </span>
-              </span>
-            </div>
-          </h1>
+            ))}
+          </div>
+
+          {/* DESIGN & / BUILD — right-aligned under the K, each line placed
+              on its own so the measured tops hold (54.3% and 62.3% of H). */}
+          {[
+            { text: 'DESIGN &', top: '46.8cqw' },
+            { text: 'BUILD', top: '53.4cqw' },
+          ].map(({ text, top }) => (
+            <span
+              key={text}
+              data-sub-line
+              className="absolute block whitespace-nowrap will-change-transform"
+              style={{
+                right: '0.84cqw',
+                top,
+                fontSize: '6.4cqw',
+                fontWeight: 300,
+                lineHeight: 1,
+                letterSpacing: '0.02em',
+                visibility: 'hidden',
+              }}
+            >
+              {text}
+            </span>
+          ))}
         </div>
 
-        {/* Paragraph. */}
-        <p
-          ref={paragraphRef}
-          className="absolute bottom-28 left-0 max-w-[34ch] px-6 text-body text-stone opacity-0 md:px-10 lg:bottom-14 lg:max-w-[38ch]"
+        {/* 3 · the building */}
+        <div ref={buildingScrollRef} className="absolute inset-0 will-change-transform">
+          <div
+            ref={buildingEnterRef}
+            className="absolute inset-0 will-change-transform"
+            style={{ visibility: 'hidden' }}
+          >
+            <Image
+              src="/hero/hero-building.webp"
+              alt="Almond Suites, Strovolos — the current TDK project"
+              fill
+              priority
+              unoptimized
+              sizes="100vw"
+              className="object-cover"
+            />
+          </div>
+        </div>
+
+        {/* ── Desktop copy — plate coordinates, as on the board ──────────── */}
+        <div className="pointer-events-none absolute inset-0 z-10 hidden lg:block">
+          {/* Socials — a column at the top-left, under the navbar. */}
+          {socials.length > 0 && (
+            <ul
+              className="absolute flex flex-col"
+              style={{ left: '2cqw', top: '11.9cqw', gap: '0.55cqw' }}
+            >
+              {socials.map((s) => (
+                <li key={s.platform} data-chrome className="will-change-transform">
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={s.platform}
+                    className="pointer-events-auto grid place-items-center rounded-full transition-transform duration-medium ease-smooth hover:scale-110"
+                    style={{ width: '4.2cqw', height: '4.2cqw', backgroundColor: '#e8e8ea' }}
+                  >
+                    <SocialGlyph platform={s.platform} />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* Paragraph 1 — bottom-left, over the fence. */}
+          <p
+            data-chrome
+            className="absolute text-white will-change-transform"
+            style={{ ...COPY, left: '2cqw', top: '60cqw', width: '30.5cqw' }}
+          >
+            {paragraphs[0]}
+          </p>
+
+          {/* Paragraph 2 — centre, on the pavement. */}
+          <p
+            data-chrome
+            className="absolute text-white will-change-transform"
+            style={{ ...COPY, left: '34.5cqw', top: '72.5cqw', width: '30.5cqw' }}
+          >
+            {paragraphs[1]}
+          </p>
+
+          {/* CTA — bracketed label, lower right. */}
+          <div
+            data-chrome
+            className="absolute will-change-transform"
+            style={{ left: '76cqw', top: '79.4cqw', fontSize: 'clamp(12px, 1.05cqw, 17px)' }}
+          >
+            {cta}
+          </div>
+        </div>
+      </div>
+
+      {/* Accessible name for the composition. */}
+      <h1 className="sr-only">TDK Design &amp; Build</h1>
+
+      {/* ── Mobile layer — viewport coordinates, below lg only ────────────── */}
+      <div className="pointer-events-none absolute inset-0 z-10 lg:hidden">
+        <div
+          ref={mobileTitleRef}
+          className="absolute left-5 right-5 top-[13svh] text-white will-change-transform"
+          style={{ fontFamily: 'var(--font-josefin)' }}
+          aria-hidden="true"
         >
-          {paragraph}
+          <span className="block overflow-hidden">
+            <span
+              data-mobile-line
+              className="block text-[34vw] font-[200] leading-[0.9] tracking-[-0.01em]"
+              style={{ visibility: 'hidden' }}
+            >
+              TDK
+            </span>
+          </span>
+          <span className="mt-2 block overflow-hidden text-right">
+            <span
+              data-mobile-line
+              className="block text-[8.5vw] font-[300] leading-[1.2] tracking-[0.07em]"
+              style={{ visibility: 'hidden' }}
+            >
+              DESIGN &amp;
+              <br />
+              BUILD
+            </span>
+          </span>
+        </div>
+
+        <p
+          data-chrome
+          className="absolute bottom-[12svh] left-5 right-5 text-[15px] leading-[1.4] text-white will-change-transform"
+        >
+          {paragraphs[0]}
         </p>
 
-        {/* ── Column stack — CTA sits directly above the build readout, both
-               left-aligned to the column's inner edge. ────────────────────── */}
-        <div className="absolute bottom-10 left-0 right-0 px-6 md:px-10 lg:bottom-12 lg:left-auto lg:w-[27%] lg:px-8">
-          <Link
-            ref={ctaRef}
-            href={ctaHref}
-            onPointerEnter={() => hoverCta(true)}
-            onPointerLeave={() => hoverCta(false)}
-            className="pointer-events-auto mb-10 inline-flex items-center gap-4 opacity-0"
-          >
-            <span className="relative grid h-14 w-14 shrink-0 place-items-center">
-              <svg viewBox="0 0 56 56" className="absolute inset-0 h-full w-full -rotate-90">
-                <circle
-                  ref={ringRef}
-                  cx="28"
-                  cy="28"
-                  r="27"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1"
-                  strokeDasharray="170"
-                  strokeDashoffset="170"
-                  className="text-paper"
-                />
-              </svg>
-              {/* Fill scales up from the centre on hover. Resting transforms are
-                  set by GSAP on mount, not by CSS classes. */}
-              <span
-                data-fill
-                className="absolute inset-0 rounded-full bg-paper will-change-transform"
-              />
-              {/* Two arrows — one leaves right, one enters from the left. Both
-                  difference-blended so they invert as the fill passes beneath. */}
-              <span className="relative block h-4 w-4 overflow-hidden mix-blend-difference">
-                <span data-arrow-out className="absolute inset-0 block text-paper">
-                  <Arrow />
-                </span>
-                <span data-arrow-in className="absolute inset-0 block text-paper">
-                  <Arrow />
-                </span>
-              </span>
-            </span>
-            <span className="whitespace-nowrap text-label text-paper">{ctaLabel}</span>
-          </Link>
-
-          {/* Build readout — a construction gauge rather than a text block. The
-              rule fills to the real `progressPercent` out of Sanity. */}
-          {ticker && (
-            <div ref={tickerRef} className="hidden opacity-0 lg:block">
-              <div className="mb-3 flex items-baseline justify-between gap-4">
-                <span className="text-label text-stone">CURRENTLY BUILDING</span>
-                {progress !== null && (
-                  <span className="text-mono tabular-nums text-threshold">{progress}%</span>
-                )}
-              </div>
-
-              <p className="text-heading leading-none text-paper">{ticker.title}</p>
-              <p className="mt-1 text-mono text-stone">{ticker.location}</p>
-
-              {progress !== null && (
-                <span className="mt-4 block h-px w-full bg-white/15">
-                  <span
-                    ref={barRef}
-                    className="block h-full w-full origin-left bg-threshold"
-                    style={{ transform: 'scaleX(0)' }}
-                  />
-                </span>
-              )}
-            </div>
-          )}
+        <div
+          data-chrome
+          className="absolute bottom-[4svh] right-5 text-[13px] will-change-transform"
+        >
+          {cta}
         </div>
       </div>
     </section>
   );
 }
 
-function Arrow() {
+/* ── Social glyphs — monochrome brand marks on a light disc ─────────────── */
+
+function SocialGlyph({ platform }: { platform: string }) {
+  const key = platform.toLowerCase();
+  const size = { width: '46%', height: '46%' };
+
+  if (key.includes('instagram')) {
+    return (
+      <svg viewBox="0 0 24 24" style={size} fill="none" stroke="#111" strokeWidth="1.8">
+        <rect x="3" y="3" width="18" height="18" rx="5" />
+        <circle cx="12" cy="12" r="4" />
+        <circle cx="17.3" cy="6.7" r="0.9" fill="#111" stroke="none" />
+      </svg>
+    );
+  }
+  if (key.includes('facebook')) {
+    return (
+      <svg viewBox="0 0 24 24" style={size} fill="#1877f2">
+        <path d="M13.5 21v-7.3h2.5l.4-3h-2.9V8.9c0-.9.3-1.5 1.5-1.5h1.5V4.8c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8v2.2H8.1v3h2.5V21h2.9z" />
+      </svg>
+    );
+  }
+  if (key.includes('linkedin')) {
+    return (
+      <svg viewBox="0 0 24 24" style={{ width: '42%', height: '42%' }} fill="#0a66c2">
+        <path d="M6.9 8.7H3.6V20h3.3V8.7zM5.3 3.5a1.9 1.9 0 100 3.8 1.9 1.9 0 000-3.8zM20.4 13.1c0-3.2-1.7-4.7-4-4.7-1.8 0-2.7 1-3.1 1.7V8.7H10V20h3.3v-5.6c0-1.5.3-2.9 2.1-2.9 1.8 0 1.8 1.7 1.8 3V20h3.3v-6.9z" />
+      </svg>
+    );
+  }
   return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.25"
-      className="h-4 w-4"
-    >
-      <path d="M1 8h13M9 3l5 5-5 5" />
-    </svg>
+    <span className="text-[11px] font-[600] uppercase text-[#111]">{platform.slice(0, 2)}</span>
   );
 }

@@ -6,8 +6,9 @@ const defaultLocale = 'en';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Pass static assets directly — do not locale-redirect them
-  if (pathname.startsWith('/sequences/') || pathname.startsWith('/videos/')) {
+  // Pass static assets directly — do not locale-redirect them. Anything with
+  // a file extension is a file out of /public, never a page.
+  if (/\.[A-Za-z0-9]+$/.test(pathname)) {
     return NextResponse.next();
   }
 
@@ -23,7 +24,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/((?!api|studio|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|sequences|videos).*)',
-  ],
+  matcher: ['/((?!api|studio|_next/static|_next/image|.*\.[A-Za-z0-9]+$).*)'],
 };

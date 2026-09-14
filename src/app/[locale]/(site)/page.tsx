@@ -5,20 +5,22 @@ import FeaturedResidence from '@/components/homepage/FeaturedResidence';
 import SceneContact from '@/components/homepage/SceneContact';
 import HomeLoader from '@/components/homepage/HomeLoader';
 import Hero from '@/components/homepage/Hero';
-import { getProjectsForHomepageReel, getFeaturedResidence } from '@/lib/sanity/queries';
+import {
+  getProjectsForHomepageReel,
+  getFeaturedResidence,
+  getSiteSettings,
+} from '@/lib/sanity/queries';
 
-/** Full-height hero photograph. A completed building, not a render. */
-const HERO_IMAGE_ID = 'clients/tdkdb/armonia/exterior/armonia_front_angle_day';
-
-const HERO_HEADLINE: [string, string] = ['We draw it.', 'Then we build it.'];
-
-const HERO_PARAGRAPH =
-  'A fully integrated studio — architects, construction managers and interior designers under one roof. Fewer handoffs. More coherence.';
+const HERO_PARAGRAPHS: [string, string] = [
+  'TDK is a design-and-build studio in Nicosia. The architects who draw a residence are the same people who build it and hand over the keys — one team, accountable from the first sketch to the last fitting.',
+  'We take on a few homes at a time, so each one is detailed as if it were the only one. Almond Suites in Strovolos is the current project: eight residences, now under construction.',
+];
 
 export default async function HomePage() {
-  const [projects, featured] = await Promise.all([
+  const [projects, featured, settings] = await Promise.all([
     getProjectsForHomepageReel(),
     getFeaturedResidence(),
+    getSiteSettings(),
   ]);
 
   return (
@@ -26,20 +28,7 @@ export default async function HomePage() {
       {/* First-load intro overlay (homepage only) */}
       <HomeLoader />
 
-      <Hero
-        imageId={HERO_IMAGE_ID}
-        headline={HERO_HEADLINE}
-        paragraph={HERO_PARAGRAPH}
-        ticker={
-          featured
-            ? {
-                title: featured.title,
-                location: featured.location,
-                progressPercent: featured.progressPercent,
-              }
-            : null
-        }
-      />
+      <Hero paragraphs={HERO_PARAGRAPHS} socials={settings?.socialLinks ?? []} />
 
       {/* About — flat architectural grid, ~130vh, no pin. */}
       <AboutGrid />
