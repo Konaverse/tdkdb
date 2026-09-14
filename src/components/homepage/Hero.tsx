@@ -36,7 +36,7 @@ import { useIntro } from './IntroProvider';
      · the social rings draw, then their marks appear.
    ON REACHING THE VIEWPORT, once each (armed after the load sequence):
      · DESIGN & / BUILD slide in from the left, one line each;
-     · the paragraphs slide in line by line (SplitText, masked lines);
+     · the paragraphs wipe on line by line, left to right (SplitText lines);
      · the CTA's brackets grow from their corners, then the label wipes on.
    Nothing is scrubbed by scroll.
 
@@ -158,16 +158,12 @@ export default function Hero({
           return;
         }
 
-        // Paragraphs are split into masked lines now, while the font is
-        // certain, and revealed later by their own triggers.
+        // Paragraphs are split into lines now, while the font is certain,
+        // and revealed later by their own triggers.
         const lineSets = paras.map((p) => {
-          const split = SplitText.create(p, {
-            type: 'lines',
-            mask: 'lines',
-            linesClass: 'hero-line',
-          });
+          const split = SplitText.create(p, { type: 'lines', linesClass: 'hero-line' });
           splits.push(split);
-          gsap.set(split.lines, { xPercent: -100, x: 0 });
+          gsap.set(split.lines, { clipPath: 'inset(0 100% 0 0)' });
           return { p, split };
         });
 
@@ -187,17 +183,19 @@ export default function Hero({
                 .to(subLines, { xPercent: 0, duration: 0.8, ease: 'power4.out', stagger: 0.15 });
             }
 
-            // Paragraphs — line by line from the left. The split is undone
-            // when the lines are home so the text reflows normally after.
+            // Paragraphs — each line wipes on left to right without moving,
+            // as if written, with a lag between lines so the block reads as
+            // typeset rather than dealt out. The split is undone when the
+            // last line is on so the text reflows normally after.
             lineSets.forEach(({ p, split }) => {
               gsap
                 .timeline(once(p))
                 .set(p, { autoAlpha: 1 })
                 .to(split.lines, {
-                  xPercent: 0,
-                  duration: 0.75,
-                  ease: 'power3.out',
-                  stagger: 0.07,
+                  clipPath: 'inset(0 0% 0 0)',
+                  duration: 0.7,
+                  ease: 'power2.inOut',
+                  stagger: 0.16,
                   onComplete: () => split.revert(),
                 });
             });
