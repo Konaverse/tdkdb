@@ -75,15 +75,6 @@ export interface Project {
   // descriptionEl?: PortableTextBlock[]
 }
 
-// --- Category ---
-
-export interface Category {
-  _id: string;
-  title: string;
-  slug: { current: string };
-  description?: string;
-}
-
 // --- Team Member ---
 
 export interface TeamMember {
@@ -95,57 +86,6 @@ export interface TeamMember {
   email?: string;
   linkedin?: string;
   order?: number;
-}
-
-// --- Insight ---
-
-export interface Insight {
-  _id: string;
-  title: string;
-  slug: { current: string };
-  author?: TeamMember; // Reference populated via query
-  publishDate?: string; // datetime ISO string
-  category?: Category; // Reference populated via query
-  excerpt?: string;
-  heroImageId?: string; // Cloudinary ID
-  body?: PortableTextBlock[]; // portableText
-  seo?: SeoMeta;
-  relatedInsightSlugs?: string[];
-  // Multilingual (future):
-  // titleEl?: string
-  // bodyEl?: PortableTextBlock[]
-}
-
-// --- Service ---
-
-export interface ServiceContentSection {
-  text: PortableTextBlock[];
-  imageId?: string;
-}
-
-export interface ServiceProcessStep {
-  step: number;
-  title: string;
-  description: string;
-}
-
-export interface ServiceFAQItem {
-  question: string;
-  answer: PortableTextBlock[];
-}
-
-export interface Service {
-  _id: string;
-  title: string;
-  slug: { current: string };
-  shortDescription?: string;
-  fullDescription?: PortableTextBlock[];
-  contentSections?: ServiceContentSection[];
-  heroImageId?: string; // Cloudinary ID
-  process?: ServiceProcessStep[];
-  faq?: ServiceFAQItem[];
-  relatedProjectSlugs?: string[];
-  seo?: SeoMeta;
 }
 
 // --- Site Settings ---

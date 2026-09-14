@@ -24,11 +24,15 @@ This is the **TDK Design & Build** website — a real estate developer in Greece
 - Sanity Studio is at `/studio` (excluded from locale middleware).
 - API routes in `src/app/api/`: `contact`, `project-interest`, and `revalidate` (Sanity webhook).
 
+The site is deliberately small. The **only** pages are: homepage, About, Projects index,
+Project detail (`projects/[slug]`), and Contact — plus `privacy-policy` and `terms` stubs.
+There is no Services section and no Insights/blog section; both were removed in Aug 2026
+along with their Sanity schemas. Do not reintroduce them without being asked.
+
 ### Rendering Strategy
 
-- **Homepage** — SSG shell + `dynamic(() => import('HomepageCanvas'), { ssr: false })`. Canvas is client-only.
-- **Project/Insights pages** — ISR with `revalidate: 60` (projects) / `revalidate: 300` (insights).
-- **Static pages** (About, Services, Contact) — ISR with `revalidate: 3600`.
+- **Homepage** — server component; fetches Sanity, composes client scene components.
+- **Project / About pages** — ISR with `revalidate: 60`.
 - **Studio** — fully dynamic SSR (Sanity Studio is a client-side SPA).
 
 ### Data Flow
@@ -42,17 +46,51 @@ All CMS images are **Cloudinary public IDs stored as strings in Sanity** — not
 - **GSAP** (`src/lib/animations/gsap.ts`) — single import point, registers ScrollTrigger once. Always import `{ gsap, ScrollTrigger }` from `@/lib/animations/gsap`, never directly from `gsap`.
 - **Lenis** (`src/lib/animations/lenis.ts`) — smooth scroll singleton, driven by the GSAP ticker. Initialized in `SmoothScrollProvider` which wraps the root layout. `gsap.ticker.lagSmoothing(0)` is required.
 - All GSAP animations go inside `useLayoutEffect` with a `gsap.context()`. Cleanup is always `ctx.revert()` — this is mandatory for React Strict Mode compatibility and route-transition cleanup.
-- Never use Framer Motion. Never use Three.js.
+- GSAP is the animation library for all new work. Three.js is gone from the project entirely.
+  Framer Motion survives in exactly one place — `src/components/ui/lamp.tsx`, used by
+  `HeroMinimal` — and should not spread beyond it.
 
-### Homepage Canvas
+### Homepage
 
-The homepage uses an HTML5 `<canvas>` for a scroll-driven image sequence experience:
+The homepage (`src/app/[locale]/(site)/page.tsx`) is a small server component that fetches
+two Sanity queries and composes, in order: `HomeLoader` (first-load intro) → `Hero`
+(asymmetric split photograph) → `AboutGrid` (flat architectural grid, no pin) →
+`HomepageReel` → `TheDifference` → `FeaturedResidence` → `SceneContact`.
 
-- **Assembly sequence**: ~120 WebP frames in `/public/sequences/assembly/`
-- **Approach sequence**: ~180 WebP frames in `/public/sequences/approach/`
-- Mobile / slow connections get an MP4 fallback at `/public/videos/approach-mobile.mp4` — detected client-side via `pointer: coarse` or `window.innerWidth < 1024`.
-- After Scene 4, `teardownCanvas()` frees ~26MB RAM and ~8MB GPU memory (canvas resized to 1×1, arrays nulled).
-- Homepage state machine (`idle → loading → assembling → hero → scrolling → post-canvas`) lives in a `useReducer` in `page.tsx`.
+`HomepageReel.tsx` is the heavy piece — one pinned GSAP timeline, desktop (`lg+`) only:
+
+- It opens on a **title card**: `PROJECTS` tracked out to exactly 80% of the viewport at the
+  bottom left. The tracking is computed in JS (flex `gap`, never `letter-spacing` or
+  `scaleX`) so the word measures 80% at any width. The first project's leading edge then
+  **bulldozes** it — each glyph is displaced by its own overlap with that edge, which stacks
+  every displaced glyph right-aligned against it, and crossfades it from solid to outline.
+  This is imperative geometry via `quickSetter`s inside the scrubbed timeline, NOT tweens:
+  it has to stay frame-locked to the panel, and ScrollTrigger's `onUpdate` reports the raw
+  progress, which runs ahead of a scrubbed timeline.
+- Each project is then **one viewport** laid out on an 8 × 8 grid addressed A1–H8 with row 1
+  at the top: heading A1–C2, CTA A3–C3, description D1–E3, main image A4–D8, secondary image
+  F1–H4, site plan F6–H8. Column E below row 3 and the F–H row 5 band are held open on
+  purpose. Placement is inline `gridColumn` / `gridRow` via the `cell()` helper, so the code
+  reads in the same addressing as the design. There are no drawn gridlines — only a hairline
+  outer frame, which is also what the pushed glyphs stack against.
+- Projects arrive right-to-left over their predecessor, which keeps drifting left at a third
+  of the speed. Arrival composes the sheet (heading masks up, description and CTA follow,
+  ring draws, streets ink, marker drops last); departure shears the typeset material apart
+  at four different rates behind a rising veil.
+- **The two photographic plates have no animation at all** — no entrance, no exit, no
+  parallax. They are on the sheet when it arrives and leave with it. This is deliberate: the
+  composition assembles around two fixed points. Don't "restore" it.
+- Behind each sheet, the main image runs again full-bleed as an atmospheric wash via
+  `backdropImage()`. That preset is pre-blurred by **Cloudinary**, not by a CSS `filter` — a
+  full-viewport blur inside a pinned, scrubbed section is a live GPU pass on every frame.
+  A radial scrim puts the wash's clear point on the open column E and closes it to near-void
+  behind the heading, the description and the site plan's hairline streets.
+
+`ProjectMiniMap.tsx` draws the F6–H8 cell: an abstract rotated street grid generated
+deterministically from the project slug (seeded PRNG — never `Math.random()` at render, it
+must match between server and client). Pass `roads` to override the generator with real
+traced geometry. Project data comes from Sanity; `homepageIntro` is the description. Below
+`lg` the whole thing degrades to a plain vertical stack with no pin.
 
 ### Design System
 
@@ -67,12 +105,14 @@ CSS custom properties are defined in `src/styles/globals.css`. Tailwind config (
 
 ### i18n
 
-Simple manual i18n — no `next-intl` or similar library. Config in `src/lib/i18n/config.ts`. Translation strings in `src/lib/i18n/translations.ts`. Greek content is scaffolded but not yet translated.
+There is no i18n library and no translation layer — the unused `src/lib/i18n/` scaffolding was
+deleted. `[locale]` is a routing segment only; `src/middleware.ts` holds the locale list and
+redirects everything to `/en`. Copy is written inline in English.
 
 ## Hard Rules
 
-1. **No Three.js in canvas scenes (Scenes 1–4)** — the image-sequence canvas uses HTML5 canvas only. **Exception:** Three.js (`@react-three/fiber`, `@react-three/drei`) is permitted for post-canvas HTML scenes (Scene 5 onward) when a WebGL effect is explicitly required. Components must be `dynamic(() => import(...), { ssr: false })` and must not interfere with Lenis scroll.
-2. **No Framer Motion** — GSAP only for all animation.
+1. **No Three.js** — the dependency has been removed. Use GSAP or plain canvas.
+2. **No new Framer Motion** — GSAP for all animation; the one legacy `lamp.tsx` usage is the sole exception.
 3. **No Sanity native images** — all images are Cloudinary IDs (strings) in Sanity.
 4. **`SANITY_API_TOKEN` must never have `NEXT_PUBLIC_` prefix** — server-only.
 5. **Email addresses come from env vars** — never hardcoded.
@@ -91,9 +131,11 @@ Copy `.env.example` to `.env.local`. Required vars:
 
 ## Key Planning Documents
 
-Full spec documents live in the project root — read these for context before building any new feature:
+Spec documents live in the project root. **Treat them as historical, not current** — they
+describe an earlier, much larger version of the site (canvas image sequences, a Services
+section, an Insights blog) that no longer exists. Verify against the code before acting on them.
 
-- `TDK_MASTER_PLAN.md` — complete PRD
-- `TDK_HOMEPAGE_EXPERIENCE.md` — homepage scene-by-scene spec
-- `TDK_CURSOR_BUILD_STRATEGY.md` — sequential build prompts (current progress tracked in `HANDOFF.md`)
+- `TDK_MASTER_PLAN.md` — original PRD
+- `TDK_CURSOR_BUILD_STRATEGY.md` — sequential build prompts (progress tracked in `HANDOFF.md`)
+- `TDK_HERO_SECTION_V2.md` — superseded hero spec
 - `docs/ADR.md` — 11 architecture decision records

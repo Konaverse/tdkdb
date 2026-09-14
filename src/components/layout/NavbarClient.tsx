@@ -12,9 +12,7 @@ import type { SiteSettings } from '@/lib/sanity/types';
 
 const NAV_LINKS = [
   { label: 'About', path: 'about' },
-  { label: 'Services', path: 'services' },
   { label: 'Projects', path: 'projects' },
-  { label: 'Insights', path: 'insights' },
 ];
 
 interface Props {

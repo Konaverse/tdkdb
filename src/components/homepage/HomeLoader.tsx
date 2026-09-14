@@ -26,6 +26,7 @@ export default function HomeLoader() {
   const overlayRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
   const numRef = useRef<HTMLSpanElement>(null);
+  const titleRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
     // Only the homepage hard-load drives the loader.
@@ -67,11 +68,18 @@ export default function HomeLoader() {
             onComplete: () => {
               document.body.style.overflow = '';
               getLenis()?.start();
-              setPhase('reveal'); // hero shows its (identical) TDKDB + fires the lamp
-              setMounted(false); // unmount the loader on the same commit → seamless swap
+              setPhase('reveal'); // fires the hero's entrance timeline
+              setMounted(false);
             },
           })
-          .to(bg, { yPercent: -100, duration: reduced ? 0.4 : 1, ease: 'power3.inOut' }, 0);
+          .to(bg, { yPercent: -100, duration: reduced ? 0.4 : 1, ease: 'power3.inOut' }, 0)
+          // The hero no longer carries a matching TDKDB underneath, so the mark
+          // dissolves with the panel and hands off to the hero headline instead.
+          .to(
+            titleRef.current,
+            { autoAlpha: 0, duration: reduced ? 0.3 : 0.55, ease: 'power2.inOut' },
+            reduced ? 0.1 : 0.25,
+          );
       };
 
       const complete = () => {
@@ -88,9 +96,18 @@ export default function HomeLoader() {
       };
 
       // Poll until the window has loaded, then snap to 100 and continue.
+      // `window.load` waits on *every* image on the page — including everything
+      // below the fold — so it is capped: past MAX_WAIT the intro proceeds and
+      // the rest streams in behind the hero.
+      const MAX_WAIT = reduced ? 1 : 4;
+      let waited = 0;
+
       const waitForLoad = () => {
-        if (loaded) complete();
-        else gsap.delayedCall(0.15, waitForLoad);
+        if (loaded || waited >= MAX_WAIT) complete();
+        else {
+          waited += 0.15;
+          gsap.delayedCall(0.15, waitForLoad);
+        }
       };
       waitForLoad();
     }, overlayRef);
@@ -104,7 +121,10 @@ export default function HomeLoader() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!mounted || phase === 'done') return null;
+  // Only ever paint while the intro is actually running. The effect above bails
+  // when `phase !== 'loading'`, so rendering in any other phase would leave an
+  // opaque panel on screen with nothing left to animate it away.
+  if (!mounted || phase !== 'loading') return null;
 
   return (
     <div
@@ -134,8 +154,10 @@ export default function HomeLoader() {
       </div>
 
       {/* TDKDB — independent of the wiping panel; difference-blended so it reads
-          dark on the white panel and flips to light as the panel clears. */}
+          dark on the white panel and flips to light as the panel clears. Fades
+          out with the wipe, handing off to the hero headline. */}
       <div
+        ref={titleRef}
         className="pointer-events-none fixed inset-0 h-screen w-full overflow-hidden"
         style={{ mixBlendMode: 'difference' }}
       >

@@ -39,13 +39,9 @@ export async function POST(req: NextRequest) {
     } else if (_type === 'project') {
       revalidatePath('/en/projects');
       if (slug) revalidatePath(`/en/projects/${slug}`);
-      revalidatePath('/en'); // HP SceneProjects
-    } else if (_type === 'insight') {
-      revalidatePath('/en/insights');
-      if (slug) revalidatePath(`/en/insights/${slug}`);
-    } else if (_type === 'service') {
-      revalidatePath('/en/services');
-      if (slug) revalidatePath(`/en/services/${slug}`);
+      revalidatePath('/en'); // homepage reel + featured residence
+    } else if (_type === 'teamMember') {
+      revalidatePath('/en/about');
     }
 
     // Since we also support Greek in the future, if you want it to apply site-wide,

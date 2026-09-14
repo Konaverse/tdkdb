@@ -1,5 +1,0 @@
-﻿src/app/[locale]/(site)/services/[slug]/page.tsx(79,31): error TS2322: Type 'PortableTextBlock[]' is not assignable to type 'PortableTextBlock<PortableTextMarkDefinition, ArbitraryTypedObject | PortableTextSpan, PortableTextBlockStyle, PortableTextListItemType>[]'.
-  Type 'PortableTextBlock' is not assignable to type 'PortableTextBlock<PortableTextMarkDefinition, ArbitraryTypedObject | PortableTextSpan, PortableTextBlockStyle, PortableTextListItemType>'.
-    Types of property 'children' are incompatible.
-      Type 'unknown[] | undefined' is not assignable to type '(ArbitraryTypedObject | PortableTextSpan)[]'.
-        Type 'undefined' is not assignable to type '(ArbitraryTypedObject | PortableTextSpan)[]'.

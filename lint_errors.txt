@@ -1,5 +1,0 @@
-﻿
-> tdkdb@0.1.0 lint C:\Users\konst\Projects\TDK_Design_&_Build\tdkdb
-> next lint
-
-ΓÇëELIFECYCLEΓÇë Command failed with exit code 1.

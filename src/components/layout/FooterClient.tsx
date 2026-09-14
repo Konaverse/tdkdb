@@ -9,9 +9,7 @@ import type { SiteSettings } from '@/lib/sanity/types';
 const EXPLORE_LINKS = [
   { label: 'Home', path: '' },
   { label: 'About', path: 'about' },
-  { label: 'Services', path: 'services' },
   { label: 'Projects', path: 'projects' },
-  { label: 'Insights', path: 'insights' },
   { label: 'Contact', path: 'contact' },
 ];
 
