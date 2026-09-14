@@ -204,30 +204,6 @@ export default function Hero({
               </span>
             ))}
           </div>
-
-          {/* DESIGN & / BUILD — right-aligned under the K, each line placed
-              on its own so the measured tops hold (54.3% and 62.3% of H). */}
-          {[
-            { text: 'DESIGN &', top: '46.8cqw' },
-            { text: 'BUILD', top: '53.4cqw' },
-          ].map(({ text, top }) => (
-            <span
-              key={text}
-              data-sub-line
-              className="absolute block whitespace-nowrap will-change-transform"
-              style={{
-                right: '0.84cqw',
-                top,
-                fontSize: '6.4cqw',
-                fontWeight: 300,
-                lineHeight: 1,
-                letterSpacing: '0.02em',
-                visibility: 'hidden',
-              }}
-            >
-              {text}
-            </span>
-          ))}
         </div>
 
         {/* 3 · front plate — the same render with the sky knocked out */}
@@ -244,7 +220,10 @@ export default function Hero({
         </div>
 
         {/* ── Desktop copy — plate coordinates, as on the board ──────────── */}
-        <div className="pointer-events-none absolute inset-0 z-10 hidden lg:block">
+        <div
+          className="pointer-events-none absolute inset-0 z-10 hidden text-white lg:block"
+          style={{ fontFamily: 'var(--font-josefin)' }}
+        >
           {/* Socials — a column at the top-left, under the navbar. */}
           {socials.length > 0 && (
             <ul
@@ -277,23 +256,53 @@ export default function Hero({
             {paragraphs[0]}
           </p>
 
-          {/* Paragraph 2 — centre, on the pavement. */}
-          <p
-            data-chrome
-            className="absolute text-white will-change-transform"
-            style={{ ...COPY, left: '34.5cqw', top: '72.5cqw', width: '30.5cqw' }}
-          >
-            {paragraphs[1]}
-          </p>
-
-          {/* CTA — bracketed label, lower right. */}
+          {/* Paragraph 2 and the CTA share a row: the CTA's bottom edge sits on
+              the paragraph's, and its right edge on the headline's right ink
+              edge (98.65% of the plate). */}
           <div
-            data-chrome
-            className="absolute will-change-transform"
-            style={{ left: '76cqw', top: '79.4cqw', fontSize: 'clamp(12px, 1.05cqw, 17px)' }}
+            className="absolute flex items-end justify-between"
+            style={{ left: '34.5cqw', right: '1.35cqw', top: '72.5cqw' }}
           >
-            {cta}
+            <p
+              data-chrome
+              className="text-white will-change-transform"
+              style={{ ...COPY, width: '30.5cqw' }}
+            >
+              {paragraphs[1]}
+            </p>
+            <div
+              data-chrome
+              className="will-change-transform"
+              style={{ fontSize: 'clamp(12px, 1.05cqw, 17px)' }}
+            >
+              {cta}
+            </div>
           </div>
+
+          {/* DESIGN & / BUILD — right-aligned under the K, in front of the front
+              plate (the board has them clear of the tree). Each line is placed
+              on its own; the block sits a hair below the K's baseline (47.9cqw). */}
+          {[
+            { text: 'DESIGN &', top: '49.0cqw' },
+            { text: 'BUILD', top: '55.6cqw' },
+          ].map(({ text, top }) => (
+            <span
+              key={text}
+              data-sub-line
+              className="absolute block select-none whitespace-nowrap will-change-transform"
+              style={{
+                right: '0.84cqw',
+                top,
+                fontSize: '6.4cqw',
+                fontWeight: 300,
+                lineHeight: 1,
+                letterSpacing: '0.02em',
+                visibility: 'hidden',
+              }}
+            >
+              {text}
+            </span>
+          ))}
         </div>
       </div>
 
