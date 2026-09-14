@@ -13,59 +13,38 @@ import { useIntro } from './IntroProvider';
 /* ───────────────────────────────────────────────────────────────────────────
    Hero — "TDK" behind the building
 
-   Three plates stacked in one frame, all in the render's own pixel space
-   (1512 × 1300, aspect 1.163):
+   Two supplied plates, identical 1512 × 1300 frames, stacked in one box with
+   the letters between them:
 
-     1. `hero-plate`    — the street with the building removed: the render's
-                          own sky interpolated across the footprint, the
-                          inpainted plot below the horizon. Fully seen only
-                          for the first second, before the building arrives.
-     2. the letters     — TDK, DESIGN & BUILD, in container-query units so
-                          they hold their place against the roofline at any
-                          width. Every number is measured off the board.
-     3. `hero-building` — the building alone, cut out along the sky with an
-                          alpha channel, so the roof slab reads in front of the
-                          D and the T's stem stops at the peak.
+     1. `hero-back`   — the full render, sky included.
+     2. the letters   — TDK, DESIGN & BUILD, in container-query units so they
+                        hold their place against the roofline at any width.
+                        Every number is measured off the board.
+     3. `hero-front`  — the same render with the sky knocked out, so the roof
+                        slab reads in front of the D and the T's stem stops at
+                        the peak.
 
-   The board is the plate at full width, taller than a viewport (the MacBook
-   artboard is 3024 × 2600 against a 1964px screen), with the paragraphs and
-   the CTA in the lower third of the PLATE. So the section is as tall as the
-   plate and all desktop copy lives in plate coordinates too. On wide screens
-   the frame is capped so the letter block still fits the first viewport; the
-   narrow bands either side are covered by a blurred copy of the plate.
+   The box is full-bleed: viewport width, the plate's own aspect, nothing
+   cropped and nothing scaled. Like the board (3024 × 2600 against a 1964px
+   screen) it is taller than a viewport, and the paragraphs and CTA sit in
+   the lower third of the PLATE, so all desktop copy is in plate coordinates.
 
-   Entrance: the letters are drawn first, then the building is built in front
-   of them. That order is the studio in one move.
+   Entrance: the letters are drawn first, then the front plate fades in over
+   them. Nothing moves on scroll.
 
    Layering discipline (see gsap-transform-pitfalls): every animated
-   transform property has its own node. Scroll `y` wrappers sit outside the
-   entrance nodes; percentage offsets are set by gsap.set(), never by class.
+   transform property has its own node, and percentage offsets are set by
+   gsap.set(), never by class.
    ─────────────────────────────────────────────────────────────────────────── */
-
 const PLATE_W = 1512;
 const PLATE_H = 1300;
-const ASPECT = PLATE_W / PLATE_H;
-const A = ASPECT.toFixed(4);
 
-/** Frame maths, on the section so the frame and the section height share it.
-    --hw  frame width: viewport width, capped where the letter block (rows
-          13.7–68.6% of the plate) would no longer fit the viewport height.
-    --hh  frame height, from the plate's aspect.
-    --ht  frame top: 0, or up to 10% of the plate slid off the top so the
-          letters survive a wide crop. */
-const SECTION_VARS: CSSProperties = {
-  ['--hw' as string]: `min(max(100vw, calc(100svh * ${A})), calc(100svh * 1.984))`,
-  ['--hh' as string]: `calc(var(--hw) / ${A})`,
-  ['--ht' as string]: 'clamp(calc(var(--hh) * -0.1), calc(100svh - var(--hh) * 0.69), 0px)',
-  height: 'calc(var(--hh) + var(--ht))',
-  minHeight: '100svh',
-};
-
+/** The frame is a normal block: full width at the plate's aspect, so the
+    section is exactly as tall as the plate and nothing is cropped or scaled.
+    Below `lg` (portrait screens) it is at least a viewport tall and the two
+    plates cover it — still the same box, so they stay aligned. */
 const FRAME_STYLE: CSSProperties = {
-  width: 'var(--hw)',
-  height: 'var(--hh)',
-  left: 'calc((100vw - var(--hw)) / 2)',
-  top: 'var(--ht)',
+  aspectRatio: `${PLATE_W} / ${PLATE_H}`,
   containerType: 'inline-size',
 };
 
@@ -93,12 +72,7 @@ export default function Hero({
   const { phase } = useIntro();
 
   const sectionRef = useRef<HTMLElement>(null);
-  const plateScrollRef = useRef<HTMLDivElement>(null); // scroll — y
-  const plateEnterRef = useRef<HTMLDivElement>(null); // entrance — scale
-  const lettersScrollRef = useRef<HTMLDivElement>(null); // scroll — y
-  const buildingScrollRef = useRef<HTMLDivElement>(null); // scroll — y
-  const buildingEnterRef = useRef<HTMLDivElement>(null); // entrance — y / alpha
-  const mobileTitleRef = useRef<HTMLDivElement>(null); // scroll — y
+  const frontRef = useRef<HTMLDivElement>(null); // entrance — alpha
 
   // ── Entrance ──────────────────────────────────────────────────────────────
   useLayoutEffect(() => {
@@ -122,84 +96,33 @@ export default function Hero({
       gsap.set(glyphs, { yPercent: 40, y: 0, autoAlpha: 0 });
       gsap.set(mobileLines, { yPercent: 40, y: 0, autoAlpha: 0 });
       gsap.set(subLines, { x: 40, autoAlpha: 0 });
-      gsap.set(buildingEnterRef.current, { y: 70, autoAlpha: 0 });
-      gsap.set(plateEnterRef.current, { scale: 1.08 });
+      gsap.set(frontRef.current, { autoAlpha: 0 });
       gsap.set(chrome, { y: 16, autoAlpha: 0 });
 
       if (reduced) {
         gsap.set([...glyphs, ...mobileLines], { yPercent: 0, autoAlpha: 1 });
         gsap.set(subLines, { x: 0, autoAlpha: 1 });
-        gsap.set(buildingEnterRef.current, { y: 0, autoAlpha: 1 });
-        gsap.set(plateEnterRef.current, { scale: 1 });
+        gsap.set(frontRef.current, { autoAlpha: 1 });
         gsap.set(chrome, { y: 0, autoAlpha: 1 });
         return;
       }
 
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-      // 1. The plot. Settles out of a slow over-scale for the whole intro.
-      tl.to(plateEnterRef.current, { scale: 1, duration: 2.8, ease: 'power2.out' }, 0);
-
-      // 2. The drawing — T, D, K rise in one after the other.
+      // 1. The drawing — T, D, K rise in one after the other.
       tl.to(glyphs, { yPercent: 0, autoAlpha: 1, duration: 1.2, stagger: 0.14 }, 0.25);
       tl.to(mobileLines, { yPercent: 0, autoAlpha: 1, duration: 1.1, stagger: 0.12 }, 0.25);
       tl.to(subLines, { x: 0, autoAlpha: 1, duration: 0.9, stagger: 0.1 }, 0.85);
 
-      // 3. The build — the building rises in front of the letters.
-      tl.to(
-        buildingEnterRef.current,
-        { y: 0, autoAlpha: 1, duration: 1.7, ease: 'power3.out' },
-        1.0,
-      );
+      // 2. The build — the front plate fades in over the letters.
+      tl.to(frontRef.current, { autoAlpha: 1, duration: 1.6, ease: 'power2.inOut' }, 1.0);
 
-      // 4. Everything that talks — after the picture is complete.
+      // 3. Everything that talks — after the picture is complete.
       tl.to(chrome, { y: 0, autoAlpha: 1, duration: 0.8, stagger: 0.08 }, 1.7);
     }, section);
 
     return () => ctx.revert();
   }, [phase]);
-
-  // ── Scroll exit ───────────────────────────────────────────────────────────
-  // Two depths. The plate and the building travel together — they share a
-  // ground line, and any difference between them would lift the building off
-  // its own fence. The letters, behind both, lag, so the roofline slides up
-  // the D as the section leaves.
-  useLayoutEffect(() => {
-    gsapInit();
-    const section = sectionRef.current;
-    if (!section) return;
-
-    const mm = gsap.matchMedia();
-    mm.add(
-      { isDesktop: '(min-width: 1024px)', isReduced: '(prefers-reduced-motion: reduce)' },
-      (context) => {
-        const { isDesktop, isReduced } = context.conditions as {
-          isDesktop: boolean;
-          isReduced: boolean;
-        };
-        if (isReduced) return;
-
-        const tl = gsap.timeline({
-          defaults: { ease: 'none', immediateRender: false },
-          scrollTrigger: {
-            trigger: section,
-            start: 'top top',
-            end: 'bottom top',
-            scrub: 1,
-          },
-        });
-
-        tl.to([plateScrollRef.current, buildingScrollRef.current], { y: -140 }, 0);
-        if (isDesktop) {
-          tl.to(lettersScrollRef.current, { y: -60 }, 0);
-        } else {
-          tl.to(mobileTitleRef.current, { y: -80 }, 0);
-        }
-      },
-    );
-
-    return () => mm.revert();
-  }, []);
 
   // The CTA scrolls to the projects section when it is on the page, and only
   // falls through to the projects index when it is not.
@@ -229,41 +152,24 @@ export default function Hero({
     <section
       ref={sectionRef}
       className="relative w-full overflow-hidden"
-      style={{ backgroundColor: '#0e141c', ...SECTION_VARS }}
+      style={{ backgroundColor: '#0e141c' }}
     >
-      {/* Ambient backdrop — only ever visible in the side bands on very wide
-          viewports, where the frame is capped narrower than the screen. */}
-      <Image
-        src="/hero/hero-plate-blur.webp"
-        alt=""
-        fill
-        unoptimized
-        sizes="100vw"
-        className="object-cover opacity-80"
-        aria-hidden="true"
-      />
-
       {/* ── Frame — plate coordinates ─────────────────────────────────────── */}
-      <div className="absolute" style={FRAME_STYLE}>
-        {/* 1 · empty plot */}
-        <div ref={plateScrollRef} className="absolute inset-0 will-change-transform">
-          <div ref={plateEnterRef} className="absolute inset-0 will-change-transform">
-            <Image
-              src="/hero/hero-plate.webp"
-              alt=""
-              fill
-              priority
-              unoptimized
-              sizes="100vw"
-              className="object-cover"
-            />
-          </div>
-        </div>
+      <div className="relative min-h-[100svh] w-full lg:min-h-0" style={FRAME_STYLE}>
+        {/* 1 · back plate — the full render */}
+        <Image
+          src="/hero/hero-back.webp"
+          alt=""
+          fill
+          priority
+          unoptimized
+          sizes="100vw"
+          className="object-cover"
+        />
 
         {/* 2 · the letters — desktop only; below lg the title is set in the
                viewport layer instead, where it can scale with the screen. */}
         <div
-          ref={lettersScrollRef}
           className="absolute inset-0 hidden select-none text-white lg:block"
           style={{ fontFamily: 'var(--font-josefin)' }}
           aria-hidden="true"
@@ -324,23 +230,17 @@ export default function Hero({
           ))}
         </div>
 
-        {/* 3 · the building */}
-        <div ref={buildingScrollRef} className="absolute inset-0 will-change-transform">
-          <div
-            ref={buildingEnterRef}
-            className="absolute inset-0 will-change-transform"
-            style={{ visibility: 'hidden' }}
-          >
-            <Image
-              src="/hero/hero-building.webp"
-              alt="Almond Suites, Strovolos — the current TDK project"
-              fill
-              priority
-              unoptimized
-              sizes="100vw"
-              className="object-cover"
-            />
-          </div>
+        {/* 3 · front plate — the same render with the sky knocked out */}
+        <div ref={frontRef} className="absolute inset-0" style={{ visibility: 'hidden' }}>
+          <Image
+            src="/hero/hero-front.webp"
+            alt="Almond Suites, Strovolos — the current TDK project"
+            fill
+            priority
+            unoptimized
+            sizes="100vw"
+            className="object-cover"
+          />
         </div>
 
         {/* ── Desktop copy — plate coordinates, as on the board ──────────── */}
@@ -403,8 +303,7 @@ export default function Hero({
       {/* ── Mobile layer — viewport coordinates, below lg only ────────────── */}
       <div className="pointer-events-none absolute inset-0 z-10 lg:hidden">
         <div
-          ref={mobileTitleRef}
-          className="absolute left-5 right-5 top-[13svh] text-white will-change-transform"
+          className="absolute left-5 right-5 top-[13svh] text-white"
           style={{ fontFamily: 'var(--font-josefin)' }}
           aria-hidden="true"
         >
