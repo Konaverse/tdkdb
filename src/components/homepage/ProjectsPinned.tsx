@@ -1,73 +1,74 @@
 'use client';
 
 import { useLayoutEffect, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
 
-import { gsap, gsapInit, ScrollTrigger, SplitText } from '@/lib/animations/gsap';
+import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { getLenis } from '@/lib/animations/lenis';
 import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
 import ProjectModal from '@/components/project-modal/ProjectModal';
 import type { Project } from '@/lib/sanity/types';
 
 /* ───────────────────────────────────────────────────────────────────────────
-   ProjectsPinned — the projects, one per screen
+   ProjectsPinned — the projects as a passage
 
-   One project fills the screen: its render in the middle, its name set large
-   at the left crossing the render's edge, a paragraph and its status at the
-   right, and the NEXT project's render sitting small beneath as a preview.
-   Two hairline rings sit behind, centred on the render, with a teal marker on
-   the inner one — a dial that turns as the projects change.
+   A port of "Passage" (magnificent_sections · work/realestate/passage),
+   which is the motion and design the user asked for, verbatim where it can
+   be and adapted only where TDK differs.
 
-   The section pins for (N − 1) viewports. Each viewport of scroll is one
-   transition, scrubbed, and the renders SCROLL: the current one travels up
-   and off the top, the preview travels up into the main slot and grows to
-   fill it, the project after next rises from below into the preview slot.
-   Every piece of text changes by ROLLING: letter by letter, left to right,
-   the old letter rolls up and out of its line while the new one rolls in
-   from below. The rings turn 360/N degrees per transition.
+   THE IDEA
+   A white, editorial ledger where the portfolio drifts through the viewport
+   as a vertical filmstrip: the current render centred, the previous one's
+   lower edge still leaving at the top, the next one's upper edge already
+   arriving below. The project's name stands large on the left, overlapping
+   the photograph; when the strip moves on, the old name loses focus (blur +
+   fade, a lens pull, never a slide) and the new one sharpens in. A stacked
+   project index lower left and a circular next button lower right both jump
+   the scroll, snapped to whole projects. Inside each frame the photograph
+   pans slowly against the travel.
 
-   Entrance, once, as the section arrives: the rings sweep round, the name
-   and the paragraph's lines slide in through side masks (the hero's move),
-   the renders wipe on, the status and the arrow follow.
+   THE GEOMETRY
+   The strip is a normal flex column: frames of --col-w width and 3:2 ratio
+   with --gap between, padded top by calc(50svh − frame/2) so the FIRST
+   frame rests centred with zero JS. One render(p) is the single writer:
+   strip translateY = −p × step, per-frame pan offsets, name focus states,
+   index states — all from the pinned scrub's one number.
 
-   The arrow is a hairline ring; on hover the → tilts to point up and to the
-   right, and tilts back on leave. Clicking it scrolls to the next
-   transition. Clicking a render opens the brochure modal.
+   TDK ADAPTATIONS
+   · Josefin, light, for the names; the site's label style for the index.
+   · No wordmark and no menu circle — the site's navbar already holds the
+     corners.
+   · Clicking a frame or a name opens the brochure modal.
+   · Lenis, when present, glides the index and next-button jumps.
 
-   Positions are board fractions (3024 × 1964, one MacBook viewport): x and
-   widths in cqw, y in cqh, the two renders sized by HEIGHT so they keep the
-   board's share of the screen on wider viewports. The renders live in one
-   zero-width column at the board's centre so their offsets are a single
-   unit and can be tweened.
-
-   Layering discipline (see gsap-transform-pitfalls): the scrub and the
-   entrance never share a node and a property. Lines slide (entrance),
-   letters roll (scrub), and each has its own element.
+   RULES (from the source's contract)
+   · render(p) is the single writer of the strip translate, the pans, the
+     name focus states and the index states. Never add a CSS transition or a
+     tween to any of them.
+   · The strip's paddingTop calc(50svh − var(--col-w) / 3) IS the no-JS
+     centring; it derives from the locked 3:2 ratio.
+   · Names change by opacity + blur ONLY. No transforms, no slides.
+   · The pan is written on [data-pan] (inner), the travel on [data-strip]
+     (outer). Never merge them.
+   · The images carry 16% vertical overscan that the pan spends.
+   · Snap is 1/(N − 1) — whole projects.
+   · ScrollTrigger.refresh() runs after the last image decodes.
    ─────────────────────────────────────────────────────────────────────────── */
 
 interface ProjectsPinnedProps {
   projects: Project[];
 }
 
-/** Renders: the main slot and the preview slot, in the shared centre column. */
-const MAIN_RECT = { left: '-38.8cqh', top: '20.2cqh', width: '77.6cqh', height: '43.9cqh' };
-const PREVIEW_RECT = { left: '-22cqh', top: '67.4cqh', width: '44cqh', height: '25.4cqh' };
-/** Where a render waits below the stage, and where it ends above it. */
-const BELOW = '106cqh';
-const ABOVE = '-48cqh';
-
-/** Rings, centred on the main render. */
-const RING_CX = '49.4cqw';
-const RING_CY = '42.2cqh';
-const RINGS = [
-  { r: '47cqh', marker: true },
-  { r: '61cqh', marker: false },
-];
-
-const STAGE: CSSProperties = { containerType: 'size' };
-
+const PAPER = '#ffffff';
 const INK = '#111111';
-const TEAL = '#66979f';
+
+/** Frame column width. Height, centring and step all derive from it. */
+const COLUMN_WIDTH = 'clamp(300px, 44vw, 900px)';
+/** Vertical gap between frames, in svh. */
+const GAP = 10;
+/** Viewport-heights of scroll per project. */
+const STEP = 1.1;
+/** The slow pan inside each frame, yPercent across the whole travel. */
+const PAN = 7;
 
 /** Homepage display names where the CMS title is shorter than the one the
     board carries. Rename the title in Sanity to retire an entry. */
@@ -79,536 +80,319 @@ function displayTitle(p: Project): string {
   return DISPLAY_TITLES[p.slug.current] ?? p.title;
 }
 
-function statusLabel(p: Project): string {
-  if (p.status === 'completed') return 'Completed';
-  if (p.status === 'in-progress') return 'In progress';
-  return 'Upcoming';
+/** One line per word: "Almond Suites" → ["Almond", "Suites"]. */
+function titleLines(p: Project): string[] {
+  return displayTitle(p).split(' ');
+}
+
+/** The index label: the first word. */
+function shortName(p: Project): string {
+  return displayTitle(p).split(' ')[0];
 }
 
 export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
-  const sectionRef = useRef<HTMLElement>(null);
-  const arrowRef = useRef<HTMLButtonElement>(null);
-  const hoverTlRef = useRef<gsap.core.Timeline | null>(null);
-  const stRef = useRef<ScrollTrigger | null>(null);
-  const [current, setCurrent] = useState(0);
+  const rootRef = useRef<HTMLElement>(null);
+  const pinRef = useRef<HTMLDivElement>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState<Project | null>(null);
 
-  const count = projects.length;
-  const last = count - 1;
+  const N = projects.length;
 
-  // ── Scrub + entrance ──────────────────────────────────────────────────────
   useLayoutEffect(() => {
     gsapInit();
-    const section = sectionRef.current;
-    if (!section || count === 0) return;
+    const scope = rootRef.current;
+    const pinEl = pinRef.current;
+    const strip = stripRef.current;
+    if (!scope || !pinEl || !strip || N < 2) return;
 
-    const mm = gsap.matchMedia();
-    const splits: SplitText[] = [];
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    mm.add(
-      { isDesktop: '(min-width: 1024px)', isReduced: '(prefers-reduced-motion: reduce)' },
-      (context) => {
-        const { isDesktop, isReduced } = context.conditions as {
-          isDesktop: boolean;
-          isReduced: boolean;
-        };
-        if (!isDesktop) return;
+    const frames = gsap.utils.toArray<HTMLElement>('[data-frame]', scope);
+    const pans = gsap.utils.toArray<HTMLElement>('[data-pan]', scope);
+    const names = gsap.utils.toArray<HTMLElement>('[data-name]', scope);
+    const indexBtns = gsap.utils.toArray<HTMLElement>('[data-index]', scope);
 
-        const q = gsap.utils.selector(section);
-        const cards = q<HTMLElement>('[data-card]');
-        const clips = q<HTMLElement>('[data-card-clip]');
-        const nameEnter = q<HTMLElement>('[data-name-enter]')[0];
-        const names = q<HTMLElement>('[data-name]');
-        const paras = q<HTMLElement>('[data-para]');
-        const statusEnter = q<HTMLElement>('[data-status-enter]')[0];
-        const statuses = q<HTMLElement>('[data-status]');
-        const bar = q<HTMLElement>('[data-bar]')[0];
-        const barEnter = q<HTMLElement>('[data-bar-enter]')[0];
-        const rings = q<HTMLElement>('[data-ring]');
-        const ringSpins = q<HTMLElement>('[data-ring-spin]');
-        const marker = q<HTMLElement>('[data-marker]')[0];
-        const arrow = q<HTMLElement>('[data-arrow]')[0];
-
-        // ── Render resting places. Cards beyond the preview wait below.
-        cards.forEach((card, i) => {
-          if (i === 0) gsap.set(card, MAIN_RECT);
-          else if (i === 1) gsap.set(card, PREVIEW_RECT);
-          else gsap.set(card, { ...PREVIEW_RECT, top: BELOW });
-          gsap.set(card, { visibility: 'visible' });
-        });
-        gsap.set(bar, { scaleX: 1 });
-        gsap.set(ringSpins, { rotation: 0 });
-
-        // ── Entrance start states (own nodes).
-        gsap.set(rings, { '--a': '0deg' });
-        gsap.set(clips.slice(0, 2), { clipPath: 'inset(0 100% 0 0)' });
-        gsap.set(nameEnter, { xPercent: -100, x: 0 });
-        gsap.set(statusEnter, { xPercent: -100, x: 0 });
-        gsap.set(barEnter, { scaleX: 0 });
-        gsap.set(arrow, { scale: 0 });
-        gsap.set(marker, { autoAlpha: 0 });
-
-        // Everything textual is split after the font is certain: lines carry
-        // the entrance slide and mask the roll; letters carry the roll.
-        document.fonts.ready.then(() => {
-          context.add(() => {
-            const splitAll = (els: HTMLElement[]) =>
-              els.map((el) => {
-                const s = SplitText.create(el, {
-                  type: 'lines,words,chars',
-                  mask: 'lines',
-                  linesClass: 'proj-line',
-                  charsClass: 'proj-char',
-                });
-                splits.push(s);
-                return s;
-              });
-            const nameSplits = splitAll(names);
-            const paraSplits = splitAll(paras);
-            const statusSplits = splitAll(statuses);
-            const groups = [nameSplits, paraSplits, statusSplits];
-
-            // Letters of every project but the first wait below their line.
-            groups.forEach((g) =>
-              g.forEach((s, i) => {
-                gsap.set(s.chars, { yPercent: i === 0 ? 0 : 100, y: 0 });
-              }),
-            );
-            // The first project's lines start off to the left, inside their masks.
-            gsap.set([...nameSplits[0].lines, ...paraSplits[0].lines, ...statusSplits[0].lines], {
-              xPercent: -100,
-              x: 0,
-            });
-            gsap.set([...names, ...paras, ...statuses], { visibility: 'visible' });
-
-            const finishEntrance = () => {
-              gsap.set(rings, { '--a': '360deg' });
-              gsap.set(clips, { clipPath: 'inset(0 0% 0 0)' });
-              gsap.set([nameEnter, statusEnter], { xPercent: 0 });
-              gsap.set([...nameSplits[0].lines, ...paraSplits[0].lines, ...statusSplits[0].lines], {
-                xPercent: 0,
-              });
-              gsap.set(barEnter, { scaleX: 1 });
-              gsap.set(arrow, { scale: 1 });
-              gsap.set(marker, { autoAlpha: 1 });
-            };
-
-            if (isReduced) {
-              finishEntrance();
-            } else {
-              // ── Entrance — once, as the section arrives.
-              const tl = gsap.timeline({
-                defaults: { ease: 'power3.out' },
-                scrollTrigger: { trigger: section, start: 'top 70%', once: true },
-              });
-              tl.to(
-                rings,
-                { '--a': '360deg', duration: 1.4, ease: 'power2.inOut', stagger: 0.2 },
-                0,
-              );
-              tl.to(marker, { autoAlpha: 1, duration: 0.4 }, 1.2);
-              tl.to(
-                clips[0],
-                { clipPath: 'inset(0 0% 0 0)', duration: 1.0, ease: 'power3.inOut' },
-                0.2,
-              );
-              tl.set(nameEnter, { xPercent: 0 }, 0.5);
-              tl.to(nameSplits[0].lines, { xPercent: 0, duration: 0.9, ease: 'power4.out' }, 0.5);
-              tl.to(
-                paraSplits[0].lines,
-                { xPercent: 0, duration: 0.8, ease: 'power4.out', stagger: 0.08 },
-                0.7,
-              );
-              tl.set(statusEnter, { xPercent: 0 }, 1.1);
-              tl.to(statusSplits[0].lines, { xPercent: 0, duration: 0.7, ease: 'power4.out' }, 1.1);
-              tl.to(barEnter, { scaleX: 1, duration: 0.6, ease: 'power3.inOut' }, 1.25);
-              if (clips[1]) {
-                tl.to(
-                  clips[1],
-                  { clipPath: 'inset(0 0% 0 0)', duration: 0.9, ease: 'power3.inOut' },
-                  1.0,
-                );
-              }
-              tl.to(arrow, { scale: 1, duration: 0.6, ease: 'back.out(1.6)' }, 1.4);
-            }
-
-            if (count < 2) return;
-
-            // ── The scrub — one unit of time per transition.
-            const scrub = gsap.timeline({
-              defaults: { ease: 'none' },
-              scrollTrigger: {
-                trigger: section,
-                start: 'top top',
-                end: `+=${last * 100}%`,
-                pin: true,
-                scrub: 0.8,
-                snap: {
-                  snapTo: 1 / last,
-                  duration: { min: 0.25, max: 0.6 },
-                  ease: 'power1.inOut',
-                },
-                onUpdate: (self) => {
-                  const idx = Math.round(self.progress * last);
-                  setCurrent((c) => (c === idx ? c : idx));
-                },
-              },
-            });
-            stRef.current = scrub.scrollTrigger ?? null;
-            if (process.env.NODE_ENV !== 'production') {
-              (window as unknown as { __projectsTl?: gsap.core.Timeline }).__projectsTl = scrub;
-            }
-
-            /** Roll one block of text from project `cur` to `nxt`: letter by
-                letter, left to right, the old up and out, the new in from
-                below. Both run on the same clock so letter i of each moves
-                together whatever the two lengths. */
-            const roll = (
-              g: SplitText[],
-              cur: number,
-              nxt: number,
-              at: number,
-              span: number,
-              each: number,
-            ) => {
-              const out = g[cur].chars;
-              const inn = g[nxt].chars;
-              const n = Math.max(out.length, inn.length, 1);
-              const step = span / n;
-              out.forEach((ch, i) =>
-                scrub.to(ch, { yPercent: -100, duration: each, ease: 'power2.in' }, at + i * step),
-              );
-              inn.forEach((ch, i) =>
-                scrub.to(
-                  ch,
-                  { yPercent: 0, duration: each, ease: 'power2.out' },
-                  at + i * step + each * 0.5,
-                ),
-              );
-            };
-
-            for (let t = 0; t < last; t++) {
-              const cur = t;
-              const nxt = t + 1;
-              const after = t + 2;
-
-              // Renders scroll: the current one off the top, the preview up
-              // into the main slot, the one after next up from below.
-              scrub.to(cards[cur], { top: ABOVE, duration: 0.85, ease: 'power1.inOut' }, t);
-              scrub.to(cards[nxt], { ...MAIN_RECT, duration: 0.85, ease: 'power1.inOut' }, t);
-              if (after < count) {
-                scrub.to(
-                  cards[after],
-                  { top: PREVIEW_RECT.top, duration: 0.7, ease: 'power1.inOut' },
-                  t + 0.25,
-                );
-              }
-
-              // Text rolls, letter by letter, left to right.
-              roll(nameSplits, cur, nxt, t + 0.1, 0.45, 0.2);
-              roll(paraSplits, cur, nxt, t + 0.15, 0.6, 0.14);
-              roll(statusSplits, cur, nxt, t + 0.4, 0.25, 0.2);
-
-              // The bar redraws under the new status.
-              scrub
-                .to(bar, { scaleX: 0, duration: 0.25, ease: 'power2.in' }, t + 0.35)
-                .to(bar, { scaleX: 1, duration: 0.35, ease: 'power3.out' }, t + 0.6);
-
-              // The dial turns — absolute angles, so the rest position never
-              // depends on when the timeline first rendered.
-              const inner = 360 / count;
-              const outer = -180 / count;
-              scrub.fromTo(
-                ringSpins[0],
-                { rotation: t * inner },
-                { rotation: (t + 1) * inner, duration: 1, immediateRender: false },
-                t,
-              );
-              if (ringSpins[1]) {
-                scrub.fromTo(
-                  ringSpins[1],
-                  { rotation: t * outer },
-                  { rotation: (t + 1) * outer, duration: 1, immediateRender: false },
-                  t,
-                );
-              }
-            }
-
-            ScrollTrigger.refresh();
-          });
-        });
-
-        return () => {
-          stRef.current = null;
-        };
-      },
-    );
-
-    return () => {
-      splits.forEach((s) => s.revert());
-      mm.revert();
+    let stepPx = 1;
+    const measure = () => {
+      const h = frames[0]?.getBoundingClientRect().height ?? 1;
+      stepPx = h + (window.innerHeight * GAP) / 100;
     };
-  }, [count, last]);
+    measure();
 
-  // ── The arrow's hover — it tilts to point up and to the right.
-  useLayoutEffect(() => {
-    const el = arrowRef.current;
-    if (!el) return;
+    /* ──────────────────────────────────────────────────── the one writer */
+
+    let lastP = 0;
+    const render = (p: number) => {
+      lastP = p;
+      strip.style.transform = `translate3d(0, ${(-p * stepPx).toFixed(2)}px, 0)`;
+
+      const vh = window.innerHeight;
+      frames.forEach((frame, j) => {
+        const panEl = pans[j];
+        if (!panEl || reduced) return;
+        // Slow pan: the picture drifts against the travel while its frame
+        // crosses the viewport.
+        const r = frame.getBoundingClientRect();
+        const rel = (r.top + r.height / 2 - vh / 2) / vh; // −~1 .. ~1
+        panEl.style.transform = `translate3d(0, ${(Math.max(-1, Math.min(1, rel)) * PAN).toFixed(3)}%, 0)`;
+      });
+
+      const active = Math.round(Math.min(N - 1, Math.max(0, p)));
+      names.forEach((t, j) => {
+        if (reduced) {
+          t.style.opacity = j === active ? '1' : '0';
+          t.style.visibility = j === active ? 'visible' : 'hidden';
+          t.style.filter = '';
+          return;
+        }
+        const a = Math.abs(p - j);
+        const FADE = 0.42;
+        const vis = a >= FADE ? 0 : 1 - a / FADE;
+        t.style.opacity = String(vis);
+        t.style.visibility = vis > 0.02 ? 'visible' : 'hidden';
+        // The focus pull: out of focus is blurred, in focus is sharp.
+        t.style.filter = vis >= 0.999 ? '' : `blur(${((1 - vis) * 7).toFixed(2)}px)`;
+      });
+
+      indexBtns.forEach((b, j) => {
+        b.style.opacity = j === active ? '1' : '0.38';
+      });
+    };
+
+    /* ──────────────────────────────────────────────────────── behaviours */
+
+    let trigger: ScrollTrigger | null = null;
+
+    const scrollToProject = (j: number) => {
+      if (!trigger) return;
+      const t = trigger.start + (j / (N - 1)) * (trigger.end - trigger.start);
+      const lenis = getLenis();
+      if (lenis && !reduced) lenis.scrollTo(t, { duration: 1.1 });
+      else window.scrollTo({ top: t, behavior: reduced ? 'auto' : 'smooth' });
+    };
+    const onIndexClick = (e: Event) => {
+      const j = Number((e.currentTarget as HTMLElement).dataset.index);
+      if (!Number.isNaN(j)) scrollToProject(j);
+    };
+    const onNext = () => scrollToProject(Math.min(N - 1, Math.round(lastP) + 1));
+
+    indexBtns.forEach((b) => b.addEventListener('click', onIndexClick));
+    const nextBtn = scope.querySelector<HTMLElement>('[data-next]');
+    nextBtn?.addEventListener('click', onNext);
+
+    // Late image decodes shift layout; refresh the pin once the last lands.
+    const loaders = Array.from(scope.querySelectorAll<HTMLImageElement>('[data-pan] img'));
+    let pending = loaders.length;
+    loaders.forEach((img) => {
+      const done = () => {
+        if (--pending === 0) {
+          measure();
+          ScrollTrigger.refresh();
+        }
+      };
+      if (img.complete) done();
+      else {
+        img.addEventListener('load', done, { once: true });
+        img.addEventListener('error', done, { once: true });
+      }
+    });
+
+    let resizeTimer: ReturnType<typeof setTimeout> | undefined;
+    const ro = new ResizeObserver(() => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        measure();
+        render(lastP);
+      }, 150);
+    });
+    ro.observe(pinEl);
+
+    /* ────────────────────────────────────────────────────────── timeline */
+
     const ctx = gsap.context(() => {
-      const svg = el.querySelector('svg');
-      gsap.set(svg, { rotation: 0, transformOrigin: '50% 50%' });
-      hoverTlRef.current = gsap
-        .timeline({ paused: true })
-        .to(svg, { rotation: -45, duration: 0.5, ease: 'power3.out' });
-    }, el);
+      trigger = ScrollTrigger.create({
+        trigger: scope,
+        start: 'top top',
+        end: () => `+=${(N - 1) * window.innerHeight * STEP}`,
+        pin: pinEl,
+        pinSpacing: true,
+        anticipatePin: 1,
+        scrub: reduced ? true : 0.8,
+        snap: reduced
+          ? undefined
+          : {
+              snapTo: 1 / (N - 1),
+              duration: { min: 0.25, max: 0.6 },
+              ease: 'power2.inOut',
+            },
+        invalidateOnRefresh: true,
+        onRefresh: () => {
+          measure();
+          render(lastP);
+        },
+        onUpdate: (self) => render(self.progress * (N - 1)),
+      });
+      if (process.env.NODE_ENV !== 'production') {
+        (window as unknown as { __projectsSt?: ScrollTrigger }).__projectsSt = trigger;
+      }
+
+      if (reduced) {
+        render(0);
+        return;
+      }
+
+      // Focus-pull entrance: everything arrives by sharpening, nothing
+      // slides. Photographic, and honest to the section's one transition.
+      const tl = gsap.timeline({
+        scrollTrigger: { trigger: scope, start: 'top 75%', once: true },
+      });
+      tl.from('[data-frame]', {
+        autoAlpha: 0,
+        filter: 'blur(9px)',
+        duration: 0.9,
+        ease: 'power2.out',
+        stagger: 0.12,
+      });
+      tl.from(
+        '[data-name-wrap]',
+        { autoAlpha: 0, filter: 'blur(7px)', duration: 0.8, ease: 'power2.out' },
+        0.35,
+      );
+      tl.from(
+        '[data-quiet]',
+        { autoAlpha: 0, duration: 0.7, stagger: 0.08, ease: 'power1.out' },
+        0.55,
+      );
+
+      render(0);
+    }, scope);
+
     return () => {
-      hoverTlRef.current = null;
       ctx.revert();
+      ro.disconnect();
+      clearTimeout(resizeTimer);
+      indexBtns.forEach((b) => b.removeEventListener('click', onIndexClick));
+      nextBtn?.removeEventListener('click', onNext);
     };
-  }, []);
+  }, [N, projects]);
 
-  // ── The arrow — scroll to the next transition ─────────────────────────────
-  const goNext = () => {
-    const st = stRef.current;
-    if (!st || current >= last) return;
-    const target = st.start + ((current + 1) / last) * (st.end - st.start);
-    const lenis = getLenis();
-    if (lenis) lenis.scrollTo(target, { duration: 1.2 });
-    else window.scrollTo({ top: target, behavior: 'smooth' });
-  };
-
-  if (count === 0) return null;
+  if (N === 0) return null;
 
   return (
     <>
       <section
         id="projects"
-        ref={sectionRef}
-        className="relative w-full overflow-hidden bg-white"
-        style={{ color: INK }}
+        ref={rootRef}
+        aria-label="Selected projects"
+        className="relative w-full"
+        style={{
+          background: PAPER,
+          color: INK,
+          ['--col-w' as string]: COLUMN_WIDTH,
+          fontFamily: 'var(--font-josefin)',
+        }}
       >
-        {/* ── Desktop stage — one viewport, board coordinates ────────────── */}
-        <div
-          className="relative hidden h-[100svh] w-full select-none lg:block"
-          style={{ ...STAGE, fontFamily: 'var(--font-josefin)' }}
-        >
-          {/* Rings — centred on the render. The outer node is revealed by a
-              conic sweep on entrance; the inner node turns with the scrub and
-              carries the marker. */}
-          {RINGS.map((ring, i) => (
+        <div ref={pinRef} className="relative h-svh w-full overflow-hidden">
+          {/* The filmstrip. First frame rests centred by construction. */}
+          <div className="absolute inset-x-0 top-0 flex justify-center">
             <div
-              key={i}
-              data-ring
-              aria-hidden="true"
-              className="pointer-events-none absolute"
+              ref={stripRef}
+              data-strip
+              className="flex flex-col items-center will-change-transform"
               style={{
-                left: `calc(${RING_CX} - ${ring.r})`,
-                top: `calc(${RING_CY} - ${ring.r})`,
-                width: `calc(${ring.r} * 2)`,
-                height: `calc(${ring.r} * 2)`,
-                ['--a' as string]: '0deg',
-                maskImage: 'conic-gradient(from 0deg, #000 var(--a), transparent var(--a))',
-                WebkitMaskImage: 'conic-gradient(from 0deg, #000 var(--a), transparent var(--a))',
+                width: 'var(--col-w)',
+                rowGap: `${GAP}svh`,
+                paddingTop: 'calc(50svh - var(--col-w) / 3)',
               }}
             >
-              <div
-                data-ring-spin
-                className="relative h-full w-full rounded-full border will-change-transform"
-                style={{ borderColor: i === 0 ? '#b9b9b9' : '#d4d4d4' }}
-              >
-                {ring.marker && (
-                  <span
-                    data-marker
-                    className="absolute left-1/2 top-0 block -translate-x-1/2 -translate-y-1/2 rounded-full"
-                    style={{ width: '1.1cqh', height: '1.1cqh', backgroundColor: TEAL }}
-                  />
-                )}
-              </div>
-            </div>
-          ))}
-
-          {/* The renders — a zero-width column at the board's centre, so each
-              card's offset is one unit and the scrub can tween it. */}
-          <div className="absolute top-0 h-full w-0" style={{ left: RING_CX }}>
-            {projects.map((p, i) => (
-              <button
-                key={p._id}
-                type="button"
-                data-card
-                onClick={() => setOpen(p)}
-                aria-label={`Open ${displayTitle(p)}`}
-                className="absolute block overflow-hidden"
-                style={{ ...(i === 0 ? MAIN_RECT : PREVIEW_RECT), visibility: 'hidden' }}
-              >
-                <div data-card-clip className="h-full w-full">
-                  <img
-                    src={cloudinaryUrl(p.heroImageId, { width: 1600 })}
-                    alt={displayTitle(p)}
-                    loading={i === 0 ? 'eager' : 'lazy'}
-                    decoding="async"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {/* Name — large, left, crossing the render's edge. The first project
-              sits in flow and sizes the box; the others stack over it. */}
-          <div
-            className="absolute text-white mix-blend-difference"
-            style={{
-              left: '0.75cqw',
-              top: '38.9cqh',
-              padding: '0 0.06em',
-              fontSize: '5.2cqw',
-              fontWeight: 300,
-              lineHeight: 1.15,
-              letterSpacing: '0.01em',
-            }}
-          >
-            <div data-name-enter className="will-change-transform">
-              {projects.map((p, i) => (
-                <h3
+              {projects.map((p, j) => (
+                <button
                   key={p._id}
-                  data-name
-                  className={`whitespace-nowrap ${i === 0 ? 'relative' : 'absolute left-0 top-0'}`}
-                  style={{ visibility: 'hidden' }}
+                  type="button"
+                  data-frame
+                  onClick={() => setOpen(p)}
+                  aria-label={`Open ${displayTitle(p)}`}
+                  className="block w-full cursor-pointer overflow-hidden"
+                  style={{ aspectRatio: '3 / 2' }}
                 >
-                  {displayTitle(p)}
-                </h3>
+                  <div data-pan className="h-full w-full will-change-transform">
+                    <img
+                      src={cloudinaryUrl(p.heroImageId, { width: 1600 })}
+                      alt={displayTitle(p)}
+                      loading={j === 0 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      className="h-[116%] w-full -translate-y-[7%] object-cover"
+                    />
+                  </div>
+                </button>
               ))}
             </div>
           </div>
 
-          {/* Arrow — a hairline ring; the line inside tilts on hover. */}
-          <button
-            ref={arrowRef}
-            type="button"
-            data-arrow
-            onClick={goNext}
-            onPointerEnter={() => hoverTlRef.current?.play()}
-            onPointerLeave={() => hoverTlRef.current?.reverse()}
-            aria-label="Next project"
-            disabled={current >= last}
-            className="absolute grid place-items-center rounded-full border border-solid transition-opacity duration-medium ease-smooth disabled:opacity-30"
-            style={{
-              left: '0.4cqw',
-              top: '52.7cqh',
-              width: '7.25cqw',
-              height: '7.25cqw',
-              borderColor: INK,
-            }}
-          >
-            <svg
-              viewBox="0 0 48 48"
-              fill="none"
-              stroke={INK}
-              strokeWidth="1.3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="h-[46%] w-[46%] will-change-transform"
-            >
-              <path d="M9 24h29M29 15l9 9-9 9" />
-            </svg>
-          </button>
-
-          {/* Paragraph — right column, centred. The first project sits in flow
-              and sizes the box; the others stack over it. */}
+          {/* The names, standing over the film. Focus pull only. */}
           <div
-            className="absolute"
-            style={{
-              left: '76.25cqw',
-              width: '22cqw',
-              top: '22cqh',
-              padding: '0 0.1em',
-              fontSize: 'clamp(12px, 1.3cqw, 20px)',
-              lineHeight: 1.3,
-              color: '#222',
-            }}
+            data-name-wrap
+            className="pointer-events-none absolute left-[5.5vw] top-1/2 z-10 -translate-y-1/2"
           >
-            {projects.map((p, i) => (
-              <p
+            {projects.map((p, j) => (
+              <h3
                 key={p._id}
-                data-para
-                className={`w-full text-center ${i === 0 ? 'relative' : 'absolute left-0 top-0'}`}
-                style={{ visibility: 'hidden' }}
+                data-name
+                className={`text-[clamp(1.9rem,3.4vw,4.2rem)] font-[300] leading-[1.14] tracking-[0.01em] ${
+                  j === 0 ? 'relative' : 'absolute left-0 top-0'
+                }`}
+                style={{ opacity: j === 0 ? 1 : 0, visibility: j === 0 ? 'visible' : 'hidden' }}
               >
-                {p.homepageIntro ?? p.pullQuote ?? ''}
-              </p>
-            ))}
-          </div>
-
-          {/* Status — label and the teal bar. */}
-          <div
-            className="absolute flex items-center"
-            style={{ left: '76.25cqw', top: '59.9cqh', width: '23.3cqw', height: '3.8cqh' }}
-          >
-            <div className="relative flex h-full flex-1 items-center overflow-hidden">
-              <div
-                data-status-enter
-                className="relative will-change-transform"
-                style={{
-                  padding: '0 0.08em',
-                  fontSize: '2.1cqw',
-                  fontWeight: 300,
-                  lineHeight: 1.15,
-                }}
-              >
-                {projects.map((p, i) => (
-                  <span
-                    key={p._id}
-                    data-status
-                    className={`block whitespace-nowrap ${i === 0 ? 'relative' : 'absolute left-0 top-0'}`}
-                    style={{ visibility: 'hidden' }}
-                  >
-                    {statusLabel(p)}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <div data-bar-enter className="h-full origin-left" style={{ width: '11cqw' }}>
-              <div
-                data-bar
-                className="h-full w-full origin-left"
-                style={{ backgroundColor: TEAL }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* ── Mobile — a plain stack, no pin ──────────────────────────────── */}
-        <div className="px-5 py-16 lg:hidden" style={{ fontFamily: 'var(--font-josefin)' }}>
-          <ul className="flex flex-col gap-14">
-            {projects.map((p) => (
-              <li key={p._id}>
                 <button
                   type="button"
                   onClick={() => setOpen(p)}
-                  className="block w-full overflow-hidden"
-                  aria-label={`Open ${displayTitle(p)}`}
+                  className="pointer-events-auto block cursor-pointer text-left"
                 >
-                  <img
-                    src={cloudinaryUrl(p.heroImageId, { width: 1000 })}
-                    alt={displayTitle(p)}
-                    loading="lazy"
-                    decoding="async"
-                    className="aspect-video w-full object-cover"
-                  />
+                  {titleLines(p).map((line, i) => (
+                    <span key={i} className="block">
+                      {line}
+                    </span>
+                  ))}
                 </button>
-                <h3 className="mt-5 text-[8vw] font-[300] leading-none">{displayTitle(p)}</h3>
-                {(p.homepageIntro ?? p.pullQuote) && (
-                  <p className="mt-4 text-[15px] leading-[1.4]" style={{ color: '#222' }}>
-                    {p.homepageIntro ?? p.pullQuote}
-                  </p>
-                )}
-                <div className="mt-5 flex items-center gap-4">
-                  <span className="text-[5vw] font-[300] leading-none">{statusLabel(p)}</span>
-                  <span className="h-[14px] flex-1" style={{ backgroundColor: TEAL }} />
-                </div>
-              </li>
+              </h3>
             ))}
-          </ul>
+          </div>
+
+          {/* Chrome: index, next. */}
+          <nav
+            data-quiet
+            aria-label="Projects"
+            className="absolute bottom-10 left-[5.5vw] z-10 flex flex-col items-start gap-2.5"
+          >
+            {projects.map((p, j) => (
+              <button
+                key={p._id}
+                type="button"
+                data-index={j}
+                className="cursor-pointer text-label transition-colors duration-200"
+                style={{ opacity: j === 0 ? 1 : 0.38, letterSpacing: '0.3em' }}
+              >
+                {shortName(p)}
+              </button>
+            ))}
+          </nav>
+
+          <button
+            data-quiet
+            data-next
+            type="button"
+            aria-label="Next project"
+            className="group absolute bottom-10 right-[3.5vw] z-10 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-solid transition-colors duration-300 hover:bg-[#111111]"
+            style={{ borderColor: 'rgba(17, 17, 17, 0.7)' }}
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 10 12"
+              className="h-3 w-3 fill-current transition-colors duration-300 group-hover:fill-white"
+            >
+              <path d="M0 0 L10 6 L0 12 Z" />
+            </svg>
+          </button>
         </div>
       </section>
 

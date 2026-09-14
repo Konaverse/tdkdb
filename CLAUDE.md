@@ -71,21 +71,26 @@ variable, the social rings draw. DESIGN & / BUILD, the paragraphs (SplitText lin
 on left to right) and the CTA reveal on entering the viewport, once, armed after the load
 sequence. Nothing moves on scroll — the user rejected parallax outright.
 
-`ProjectsPinned.tsx` — "Our Projects", pinned for (N − 1) viewports, one scrubbed transition
-per viewport: the current render fades and eases up, the preview climbs into the main slot
-and grows, the name slides through its mask, paragraph and status cross over, the project
-after next fades into the preview slot. Snaps to a project. The arrow scrolls to the next
-transition; clicking a render opens `ProjectModal` (the six-leaf brochure in
-`src/components/project-modal/`, whose page bodies are still scaffolds). Positions are board
-fractions: x in `cqw`, y in `cqh`, and the two renders sized by HEIGHT so they keep the
-board's share of the screen on wider viewports; the renders sit in a zero-width column at the
-board's centre so their offsets are one unit and tweenable. Below `lg` it is a plain stack.
+`ProjectsPinned.tsx` — a port of **Passage** from the user's own library
+(`C:/Users/konst/Projects/magnificent_sections/src/sections/work/realestate/passage/`), which
+is the motion and design they asked for. A white editorial ledger: the renders travel through
+the viewport as a centred vertical filmstrip of 3:2 frames (44vw column, 10svh gaps, the
+first frame centred by pure CSS padding), the previous frame still leaving above and the next
+arriving below; the project's name stands large on the left over the photograph and changes
+by a FOCUS PULL (opacity + blur, never a slide); each photograph pans slowly against the
+travel; a stacked index lower left and a circle button lower right jump the scroll, snapped
+to whole projects; the entrance sharpens everything in from blur. `render(p)` is the single
+writer of the strip translate, the pans, the name focus states and the index states — never
+add a tween or CSS transition to any of them. TDK adaptations: Josefin, no wordmark/menu (the
+navbar holds the corners), clicks open `ProjectModal`, Lenis glides the jumps. Read the
+source folder's `meta.ts` and `README.md` before changing it.
 
 Rule for both, and for every section to come: the scrubbed or scroll-driven timeline and
 the one-shot entrance never share a node and a property — where they would, the entrance
-gets its own wrapper. In development the hero's load timeline, the projects scrub and
-`ScrollTrigger` are exposed on `window` (`__heroTl`, `__projectsTl`, `__ST`) for scrubbing
-from the console; an occluded Chrome tab freezes rAF, so verify by scrubbing, not by waiting.
+gets its own wrapper. In development the hero's load timeline, the projects ScrollTrigger
+and `ScrollTrigger` itself are exposed on `window` (`__heroTl`, `__projectsSt`, `__ST`) for
+scrubbing from the console; an occluded Chrome tab freezes rAF, so verify by scrubbing, not
+by waiting.
 
 ### Design System
 
