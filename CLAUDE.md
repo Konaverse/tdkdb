@@ -138,6 +138,20 @@ still moment. `ProjectHero` claims the run at first render, renders the exact UR
 smooth frames, then removes the layer and the hero's copy and the navbar enter. The hero image must
 stay 100% × 100svh object-cover with no transform/filter/dimming on arrival, or the handoff shows.
 
+### Project page
+
+`projects/[slug]/page.tsx` (Sept 2026 redesign) is, in order: `ProjectHero` (full bleed, settled)
+→ `ProjectScenes` → `ProjectAvailability` → `ProjectStory` → `ProjectRegister`, white ground,
+Josefin light, NO eyebrows and no decorative hairlines (user's request). Everything is scroll:
+no galleries, lightboxes, tabs or draggable strips. `ProjectScenes` is four 100svh editorial
+spreads fed exactly five images by `sceneImages()` (galleries de-duplicated, hero only as a
+fallback, then cycled): A aperture (framed plate scales up as it rises), B side note (portrait
+crop + pull quote + features written on), C diptych (two plates drifting at different speeds),
+D panorama (band whose image pans sideways with scroll). Below lg the scenes stack and the
+motion is smaller. Availability is a rule-less banded table with three counting figures; Story is
+the description lead + percentage/bar + specs; Register is the one teal section and posts to the
+unchanged `/api/project-interest`.
+
 Rule for both, and for every section to come: the scrubbed or scroll-driven timeline and
 the one-shot entrance never share a node and a property — where they would, the entrance
 gets its own wrapper. In development the hero's load timeline, the projects ScrollTrigger

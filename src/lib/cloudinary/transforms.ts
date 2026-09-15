@@ -57,6 +57,14 @@ export function projectHeroWidthFor(devicePx: number): number {
   );
 }
 
+/** A width-only srcset, for images whose rendered size depends on the viewport. */
+export function responsiveSrcSet(
+  publicId: string,
+  widths: readonly number[] = [800, 1200, 1600, 2000, 2400, 2800],
+): string {
+  return widths.map((w) => `${cloudinaryUrl(publicId, { width: w })} ${w}w`).join(', ');
+}
+
 export function projectCard(publicId: string): string {
   return cloudinaryUrl(publicId, { width: 800, height: 600 });
 }

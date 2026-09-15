@@ -1,17 +1,13 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+
 import ProjectHero from '@/components/sections/project/ProjectHero';
-import ProjectRendersGallery from '@/components/sections/project/ProjectRendersGallery';
-import ProjectPhotosGallery from '@/components/sections/project/ProjectPhotosGallery';
-import ProjectDescription from '@/components/sections/project/ProjectDescription';
-import ProjectSpecs from '@/components/sections/project/ProjectSpecs';
-import ProjectProgress from '@/components/sections/project/ProjectProgress';
-import ProjectUnitsTable from '@/components/sections/project/ProjectUnitsTable';
-import ProjectInterestForm from '@/components/sections/project/ProjectInterestForm';
-import ProjectLocation from '@/components/sections/project/ProjectLocation';
-import ProjectRelated from '@/components/sections/project/ProjectRelated';
-import ProjectCTA from '@/components/sections/project/ProjectCTA';
+import ProjectScenes from '@/components/sections/project/ProjectScenes';
+import ProjectAvailability from '@/components/sections/project/ProjectAvailability';
+import ProjectStory from '@/components/sections/project/ProjectStory';
+import ProjectRegister from '@/components/sections/project/ProjectRegister';
 import { getProjectBySlug, getAllProjects } from '@/lib/sanity/queries';
+import { bedroomsLabel, displayTitle, sceneImages } from '@/lib/projects/display';
 import type { PortableTextBlock } from '@/lib/sanity/types';
 
 export const revalidate = 60;
@@ -36,94 +32,78 @@ export async function generateStaticParams() {
   return projects.map((p) => ({ slug: p.slug.current }));
 }
 
+/** Plain paragraphs out of Portable Text blocks. */
+function paragraphsOf(blocks: PortableTextBlock[] = []): string[] {
+  return blocks
+    .filter((b) => b._type === 'block' && Array.isArray(b.children))
+    .map((b) => (b.children as { text?: string }[]).map((c) => c.text ?? '').join(''))
+    .map((t) => t.trim())
+    .filter(Boolean);
+}
+
+/* The page, in the order the reader needs it: the building, the pictures,
+   what is available, what it is and how far along, and the form. */
 export default async function ProjectDetailPage({ params }: Props) {
   const { slug } = await params;
   const project = await getProjectBySlug(slug);
-
   if (!project) notFound();
 
-  const showProgress =
-    project.ctaType !== 'showcase' &&
-    project.status !== 'completed' &&
-    project.progressPercent !== undefined;
+  const title = displayTitle(project);
+  const images = sceneImages(project, 5);
+  const units = project.units ?? [];
+  const soldOut = units.length > 0 && units.every((u) => u.status === 'sold');
 
-  const showInterestForm = project.ctaType === 'register-interest';
+  const preferences = Array.from(
+    new Set(units.filter((u) => u.status === 'available').map((u) => bedroomsLabel(u.unitType))),
+  );
 
-  // Helper to extract text from PortableText blocks purely for the fallback description body
-  const extractText = (blocks: PortableTextBlock[]) => {
-    return blocks
-      .filter((block) => block._type === 'block' && block.children)
-      .map((block) =>
-        ((block.children as { text: string }[]) || []).map((child) => child.text).join(''),
-      );
-  };
-
-  const descriptionBody = project.description ? extractText(project.description) : [];
-
-  // Map units to the exact component props manually to ensure types always align
-  const mappedUnits =
-    project.units?.map((u) => ({
-      floor: u.floor,
-      type: u.unitType,
-      area: `${u.sizeM2} m²`,
-      price: '—', // Hardcoded for now based on previous UI mock
-      status: u.status,
-    })) || [];
-
-  // Map related projects
-  const relatedProjects = (project.relatedProjectSlugs || []).map((relatedSlug) => ({
-    // Note: To display full rich related cards, we'd need GROQ projection for this nested data.
-    // For now, based on prompt 6.3 specs, we map to strings.
-    // Ideally this query would be expanded in queries.ts, but let's just pass minimal shape.
-    slug: relatedSlug,
-    title: relatedSlug.toUpperCase(),
-    location: '',
-    imageId: '',
-  }));
+  const heading =
+    project.interestFormHeading?.trim() ||
+    (soldOut ? 'Looking for a home like this?' : 'Register your interest');
+  const intro =
+    project.interestFormSubtext?.trim() ||
+    (soldOut
+      ? `Every residence at ${title} is sold. Tell us what you are looking for and we will write when the next one opens.`
+      : `Leave your details and we will send you plans, prices and availability for ${title}.`);
 
   return (
-    <main className="bg-void text-paper">
+    <main style={{ background: '#ffffff', color: '#111111' }}>
       {/* Full bleed. Arriving from the homepage, this is where the project's
           photograph lands (see ProjectTransition). */}
       <ProjectHero project={project} />
 
-      <ProjectDescription title={project.pullQuote || 'OVERVIEW'} body={descriptionBody} />
-
-      {project.rendersGallery && project.rendersGallery.images?.length > 0 && (
-        <ProjectRendersGallery
-          heading={project.rendersGallery.heading}
-          images={project.rendersGallery.images}
+      {images.length > 0 && (
+        <ProjectScenes
+          title={title}
+          images={images}
+          quote={project.pullQuote}
+          features={project.features}
         />
       )}
 
-      {showProgress && project.progressPercent !== undefined && (
-        <ProjectProgress percent={project.progressPercent} label={project.progressLabel ?? ''} />
-      )}
+      {units.length > 0 && <ProjectAvailability units={units} note={project.unitsNote} />}
 
-      {project.photosGallery && project.photosGallery.images?.length > 0 && (
-        <ProjectPhotosGallery
-          heading={project.photosGallery.heading}
-          images={project.photosGallery.images}
-        />
-      )}
+      <ProjectStory
+        paragraphs={paragraphsOf(project.description)}
+        progress={
+          typeof project.progressPercent === 'number'
+            ? { percent: project.progressPercent, label: project.progressLabel }
+            : undefined
+        }
+        milestone={{
+          label: project.status === 'completed' ? 'Completed' : 'Delivery',
+          value: String(project.year),
+        }}
+        specs={project.specs ?? []}
+      />
 
-      {(project.specs?.length ?? 0) > 0 && (
-        <ProjectSpecs specs={project.specs?.map((s) => ({ label: s.key, value: s.value })) || []} />
-      )}
-
-      {mappedUnits.length > 0 && <ProjectUnitsTable units={mappedUnits} />}
-
-      {showInterestForm && (
-        <div id="register-interest" className="scroll-mt-24">
-          <ProjectInterestForm projectSlug={project.slug.current} projectName={project.title} />
-        </div>
-      )}
-
-      {project.mapEmbedUrl && <ProjectLocation address={project.mapEmbedUrl || project.location} />}
-
-      {relatedProjects.length > 0 && <ProjectRelated projects={relatedProjects} />}
-
-      <ProjectCTA ctaType={project.ctaType} />
+      <ProjectRegister
+        projectSlug={project.slug.current}
+        projectName={project.title}
+        heading={heading}
+        intro={intro}
+        preferences={preferences}
+      />
     </main>
   );
 }
