@@ -62,11 +62,15 @@ WHITE ground with the teal accent.
 `ProjectsPinned` scrolls under Lenis, so it uses `scrub: true` and snaps by retargeting Lenis
 once input stops — never ScrollTrigger's own `snap`, which fights Lenis at the pin's ends.
 
-`Interlude.tsx` — one pinned, scrubbed timeline (4.6 viewport heights): three beat titles slide
-sideways over the dimmed Armonia kitchen with their paragraphs cross-fading, then the render
-shrinks (scale + clip, so the frame keeps the whole composition) to a centred frame over a giant
-teal "TDK DESIGN", and "We House Your Dream" rises in. The photograph has its own parallax
-trigger on an inner node. The user asked for this parallax explicitly; the hero stays parallax-free.
+`Interlude.tsx` — one pinned, scrubbed timeline whose pin is exactly its duration in viewport
+heights (~7.3). Entrance, once on arrival: title words slide sideways into masks and the first
+beat's lines wipe on (the hero's reveals, on their own nodes). Beats: the title row glides with a
+long power3.inOut, the incoming title trailing and settling; paragraph lines are wiped off and
+written on left to right (SplitText lines in masks, rebuilt on width change). Then the render
+shrinks (scale + clip, camera pulling back inside) to a frame over a teal "TDK DESIGN" whose
+letters converge, and "We House / Your Dream" slides in, allowed to overlap the frame's top
+edge so it never clips. The photograph has its own parallax trigger; the user asked for it
+explicitly here, the hero stays parallax-free. Scrub is `true` (never numeric under Lenis).
 
 `Hero.tsx` — "TDK" behind the building. Two supplied plates, identical 1512 × 1300 frames
 (`public/hero/hero-back.webp`, the street with the building removed; `hero-front.webp`, the
