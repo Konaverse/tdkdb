@@ -82,9 +82,9 @@ full-height render (armonia/interior/6) on the right. Entrance only, once; nothi
 `FooterClient.tsx` (site-wide, every page) — the room behind the page. It stays in the flow;
 its contents ([data-drift]) start 42% up behind its own top edge and scrub to 0, so the section
 above leaves at full speed and the footer is uncovered moving slower, a veil lifting off it.
-Dimmed armonia/interior/2 full bleed, "Stay in contact" top left, a frosted panel anchored low
-on the 47vw line, and "TDK DESIGN & BUILD" on one tightly tracked line along the foot, sized
-by fit() to span the margins and sunk 0.14em so the bottom edge just cuts its feet. The letters and the panel are painted with aligned copies of the render
+Dimmed armonia/interior/2 full bleed; ONE frosted container across the width holding "Stay in
+contact" + its line, Index, Studio, socials, email and legal (content-height footer); and "TDK DESIGN & BUILD" on one tightly tracked line along the foot, sized
+by fit() to span the margins and sunk 0.26em so the bottom edge clips it. The letters and the panel are painted with aligned copies of the render
 (brightened for the letters, Cloudinary-blurred for the glass) by paint(): NEVER backdrop-filter
 or a clip-path wipe there, both re-rasterise on every frame of the reveal. Data from siteSettings.
 

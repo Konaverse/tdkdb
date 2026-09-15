@@ -15,14 +15,17 @@ import type { SiteSettings } from '@/lib/sanity/types';
    From the Sept 2026 board "footer.png", taken apart and rebuilt: a dimmed
    living-room render full bleed; "Stay in contact" top left; a frosted glass
    panel holding the index, the studio, the socials, the email and the legal
-   line; and a giant wordmark along the foot, "TDK DESIGN & BUILD" on one
+   line, all in ONE frosted container across the width ("Stay in contact" on
+   its wide left field); and a giant wordmark along the foot, "TDK DESIGN & BUILD" on one
    tightly tracked line that spans the footer, its feet cut by the bottom edge.
 
    THE ASYMMETRY
-   One vertical line organises everything: the glass panel's left edge
-   (47vw). The panel stands on it to the right, low, and "Stay in contact"
-   owns the field to its left. The wordmark runs under both, margin to
-   margin, and the panel's foot overlaps the top of its letters.
+   Inside the glass, a 12-column grid: the lead ("Stay in contact", its line)
+   takes six columns, a column is left empty, then Index, Studio and the
+   socials. Below a hairline, the email sits under the lead and the legal line
+   answers it at the far right. Margins are the hero's and the navbar's (2vw
+   left, 1.35vw right). The footer is only as tall as that content, and the
+   wordmark sinks 0.26em past its bottom edge.
 
    THE REVEAL — the page lifts off the footer
    The footer keeps its place in the flow, so nothing about page height or
@@ -73,7 +76,7 @@ const FROSTED = cloudinaryUrl(IMAGE_ID, { width: 1200, quality: 60, effects: ['e
 
 /** How far (em) the wordmark sinks below the footer's bottom edge: its feet
     are cut, just a little. */
-const WORDMARK_SINK = 0.14;
+const WORDMARK_SINK = 0.26;
 
 const PAPER = '#f4f2ee';
 const PAPER_SOFT = 'rgba(244, 242, 238, 0.78)';
@@ -285,14 +288,10 @@ export default function FooterClient({ settings }: Props) {
     <footer
       data-nav="dark"
       ref={footerRef}
-      className="relative overflow-hidden [--wm:8vw] lg:h-[max(100svh,720px)]"
+      className="relative overflow-hidden [--wm:8vw]"
       style={{ background: '#0b0b0b', color: PAPER, fontFamily: 'var(--font-josefin)' }}
     >
-      <div
-        ref={driftRef}
-        data-drift
-        className="relative will-change-transform lg:absolute lg:inset-0"
-      >
+      <div ref={driftRef} data-drift className="relative will-change-transform">
         {/* ── The room ── */}
         <img
           src={BACKDROP}
@@ -311,74 +310,74 @@ export default function FooterClient({ settings }: Props) {
           }}
         />
 
-        {/* ── Stay in contact ── */}
-        <div className="relative px-5 pt-20 lg:absolute lg:left-[5.5vw] lg:top-[14svh] lg:w-[36vw] lg:px-0 lg:pt-0">
-          <h2 className="text-[clamp(44px,5.4vw,104px)] font-[300] leading-[1.02] tracking-[0.005em]">
-            {['Stay in', 'contact'].map((w) => (
-              <span key={w} className="block overflow-hidden pb-[0.12em]">
-                <span data-word className="block will-change-transform">
-                  {w}
-                </span>
-              </span>
-            ))}
-          </h2>
-          <p
-            className="mt-6 max-w-[34ch] text-[clamp(15px,1.1vw,19px)] font-[300] leading-[1.5]"
-            style={{ color: PAPER_SOFT }}
-          >
-            <Slide>Tell us about the home you have in mind.</Slide>
-            <Slide>We answer every message ourselves.</Slide>
-          </p>
-        </div>
+        {/* ── The glass: everything above the wordmark, in one container ── */}
+        <div className="relative z-10 pl-[max(16px,2vw)] pr-[max(16px,1.35vw)] pt-[max(80px,9svh)]">
+          <div data-panel className="relative">
+            {/* Drawn first, along the top edge; the glass fades up under it. */}
+            <span
+              data-panel-rule
+              aria-hidden="true"
+              className="absolute inset-x-0 top-0 z-10 block h-px origin-left"
+              style={{ background: 'rgba(244,242,238,0.55)' }}
+            />
+            {/* Frosted copy of the room, aligned with it. */}
+            <div
+              data-panel-fade
+              data-window
+              aria-hidden="true"
+              className="absolute inset-0 will-change-[opacity]"
+              style={{ backgroundImage: `url(${FROSTED})`, opacity: 0.94 }}
+            />
+            <div
+              data-panel-fade
+              aria-hidden="true"
+              className="absolute inset-0 will-change-[opacity]"
+              style={{
+                background:
+                  'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(20,20,20,0.30) 45%, rgba(10,10,10,0.42) 100%)',
+                boxShadow: `inset 0 0 0 1px ${HAIRLINE}, inset 0 1px 0 rgba(255,255,255,0.28)`,
+              }}
+            />
 
-        {/* ── The glass ── */}
-        <div
-          data-panel
-          className="relative z-10 mx-5 mt-12 lg:absolute lg:bottom-[calc(var(--wm)*0.98)] lg:left-[47vw] lg:right-[3.2vw] lg:mx-0 lg:mt-0"
-        >
-          {/* Drawn first, along the top edge; the glass fades up under it. */}
-          <span
-            data-panel-rule
-            aria-hidden="true"
-            className="absolute inset-x-0 top-0 z-10 block h-px origin-left"
-            style={{ background: 'rgba(244,242,238,0.55)' }}
-          />
-          {/* Frosted copy of the room, aligned with it. */}
-          <div
-            data-panel-fade
-            data-window
-            aria-hidden="true"
-            className="absolute inset-0 will-change-[opacity]"
-            style={{ backgroundImage: `url(${FROSTED})`, opacity: 0.94 }}
-          />
-          <div
-            data-panel-fade
-            aria-hidden="true"
-            className="absolute inset-0 will-change-[opacity]"
-            style={{
-              background:
-                'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(20,20,20,0.30) 45%, rgba(10,10,10,0.42) 100%)',
-              boxShadow: `inset 0 0 0 1px ${HAIRLINE}, inset 0 1px 0 rgba(255,255,255,0.28)`,
-            }}
-          />
+            <div
+              data-panel-fade
+              className="relative grid grid-cols-2 gap-x-8 gap-y-10 p-6 will-change-[opacity] sm:p-8 lg:grid-cols-12 lg:gap-x-[2vw] lg:gap-y-0 lg:p-[2.6vw]"
+            >
+              {/* Stay in contact — the lead, on the glass's wide left field. */}
+              <div className="col-span-2 lg:col-span-6">
+                <h2 className="text-[clamp(40px,4.4vw,84px)] font-[300] leading-[1.05] tracking-[0.005em]">
+                  {['Stay', 'in', 'contact'].map((w, i) => (
+                    <span key={w}>
+                      {i > 0 && ' '}
+                      <span className="-mb-[0.12em] inline-block overflow-hidden pb-[0.12em] align-top">
+                        <span data-word className="inline-block will-change-transform">
+                          {w}
+                        </span>
+                      </span>
+                    </span>
+                  ))}
+                </h2>
+                <p
+                  className="mt-5 max-w-[40ch] text-[clamp(15px,1.1vw,19px)] font-[300] leading-[1.5]"
+                  style={{ color: PAPER_SOFT }}
+                >
+                  <Slide>Tell us about the home you have in mind.</Slide>
+                  <Slide>We answer every message ourselves.</Slide>
+                </p>
+              </div>
 
-          <div
-            data-panel-fade
-            className="relative flex flex-col p-6 will-change-[opacity] sm:p-8 lg:p-[2.6vw]"
-          >
-            {/* Index · Studio · Socials */}
-            <div className="grid grid-cols-2 gap-8 sm:grid-cols-[1fr_1fr_auto]">
-              <nav aria-label="Footer">
+              {/* Index */}
+              <nav aria-label="Footer" className="lg:col-span-2 lg:col-start-8">
                 <p className={label} style={{ color: PAPER_FAINT }}>
                   <Slide>Index</Slide>
                 </p>
-                <ul className="flex flex-col gap-2">
+                <ul className="flex flex-col gap-1.5">
                   {INDEX.map((l) => (
                     <li key={l.label}>
                       <Slide>
                         <Link
                           href={href(l.path)}
-                          className={`text-[clamp(18px,1.45vw,26px)] font-[300] leading-[1.25] ${underline}`}
+                          className={`text-[clamp(17px,1.3vw,24px)] font-[300] leading-[1.25] ${underline}`}
                         >
                           {l.label}
                         </Link>
@@ -388,8 +387,9 @@ export default function FooterClient({ settings }: Props) {
                 </ul>
               </nav>
 
+              {/* Studio */}
               {(address.length > 0 || phone) && (
-                <div>
+                <div className="lg:col-span-2">
                   <p className={label} style={{ color: PAPER_FAINT }}>
                     <Slide>Studio</Slide>
                   </p>
@@ -411,8 +411,9 @@ export default function FooterClient({ settings }: Props) {
                 </div>
               )}
 
+              {/* Socials */}
               {socials.length > 0 && (
-                <ul className="col-span-2 flex gap-3 sm:col-span-1 sm:flex-col">
+                <ul className="col-span-2 flex gap-3 lg:col-span-1 lg:flex-col lg:items-end">
                   {socials.map((s) => (
                     <li key={s.url}>
                       <a
@@ -431,64 +432,62 @@ export default function FooterClient({ settings }: Props) {
                   ))}
                 </ul>
               )}
-            </div>
 
-            {/* The email, large */}
-            {email && (
-              <div className="mt-12 lg:mt-[6svh]">
+              {/* The email, and the legal line opposite it */}
+              <div className="col-span-2 lg:col-span-12 lg:mt-[4.5svh]">
                 <div className="h-px w-full" style={{ background: HAIRLINE }} />
-                <p className={`${label} mt-6`} style={{ color: PAPER_FAINT }}>
-                  <Slide>Write to us</Slide>
-                </p>
-                <Slide>
-                  <a
-                    href={`mailto:${email}`}
-                    className="group inline-flex items-baseline gap-[0.4em] text-[clamp(28px,3.3vw,62px)] font-[300] leading-[1.05]"
+                <div className="mt-6 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+                  {email && (
+                    <div>
+                      <p className={label} style={{ color: PAPER_FAINT }}>
+                        <Slide>Write to us</Slide>
+                      </p>
+                      <Slide>
+                        <a
+                          href={`mailto:${email}`}
+                          className="group inline-flex items-baseline gap-[0.4em] text-[clamp(26px,2.7vw,52px)] font-[300] leading-[1.05]"
+                        >
+                          <span className={underline}>{email}</span>
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 16 16"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1"
+                            className="h-[0.5em] w-[0.5em] transition-transform duration-500 ease-smooth group-hover:-translate-y-[0.08em] group-hover:translate-x-[0.08em]"
+                          >
+                            <path d="M3 13L13 3M5 3h8v8" />
+                          </svg>
+                        </a>
+                      </Slide>
+                    </div>
+                  )}
+                  <div
+                    className="flex flex-wrap items-center gap-x-8 gap-y-3 text-[12px] font-[400] tracking-[0.04em] lg:justify-end"
+                    style={{ color: PAPER_FAINT }}
                   >
-                    <span className={underline}>{email}</span>
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 16 16"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1"
-                      className="h-[0.5em] w-[0.5em] transition-transform duration-500 ease-smooth group-hover:-translate-y-[0.08em] group-hover:translate-x-[0.08em]"
+                    <Link
+                      href={href('privacy-policy')}
+                      className={`hover:text-[#f4f2ee] ${underline}`}
                     >
-                      <path d="M3 13L13 3M5 3h8v8" />
-                    </svg>
-                  </a>
-                </Slide>
-              </div>
-            )}
-
-            {/* Legal */}
-            <div className="mt-10 lg:mt-[5svh]">
-              <div className="h-px w-full" style={{ background: HAIRLINE }} />
-              <div
-                className="mt-5 flex flex-wrap items-center justify-between gap-x-8 gap-y-3 text-[12px] font-[400] tracking-[0.04em]"
-                style={{ color: PAPER_FAINT }}
-              >
-                <div className="flex gap-6">
-                  <Link
-                    href={href('privacy-policy')}
-                    className={`hover:text-[#f4f2ee] ${underline}`}
-                  >
-                    Privacy Policy
-                  </Link>
-                  <Link href={href('terms')} className={`hover:text-[#f4f2ee] ${underline}`}>
-                    Terms and Conditions
-                  </Link>
+                      Privacy Policy
+                    </Link>
+                    <Link href={href('terms')} className={`hover:text-[#f4f2ee] ${underline}`}>
+                      Terms and Conditions
+                    </Link>
+                    <span>© {new Date().getFullYear()} TDK Design &amp; Build</span>
+                  </div>
                 </div>
-                <span>© {new Date().getFullYear()} TDK Design &amp; Build</span>
               </div>
             </div>
           </div>
         </div>
+
         {/* ── The wordmark: one line of windows into the lit room, sized by
-            fit() to span the footer, its feet cut by the bottom edge. ── */}
+            fit() to span the margins, sunk so the bottom edge cuts it. ── */}
         <div
           aria-hidden="true"
-          className="pointer-events-none relative z-0 select-none px-5 pt-16 font-[600] uppercase leading-none lg:absolute lg:inset-x-0 lg:bottom-0 lg:px-[3.2vw] lg:pt-0"
+          className="pointer-events-none relative z-0 mt-[5svh] select-none pl-[max(16px,2vw)] pr-[max(16px,1.35vw)] font-[600] uppercase leading-none"
           style={{ fontSize: 'var(--wm)', marginBottom: `-${WORDMARK_SINK}em` }}
         >
           <div data-wm className="w-max whitespace-nowrap tracking-[-0.045em]">
