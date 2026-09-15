@@ -15,14 +15,14 @@ import type { SiteSettings } from '@/lib/sanity/types';
    From the Sept 2026 board "footer.png", taken apart and rebuilt: a dimmed
    living-room render full bleed; "Stay in contact" top left; a frosted glass
    panel holding the index, the studio, the socials, the email and the legal
-   line; and a giant wordmark at the foot — "TDK DESIGN" on one line, cut
-   through its lower half, "& BUILD" stepped down and right.
+   line; and a giant wordmark along the foot, "TDK DESIGN & BUILD" on one
+   tightly tracked line that spans the footer, its feet cut by the bottom edge.
 
    THE ASYMMETRY
    One vertical line organises everything: the glass panel's left edge
-   (47vw). "& BUILD" starts on it, the panel stands on it to the right, low, and
-   "Stay in contact" owns the field to its left. "TDK DESIGN" crosses that
-   line from the left margin, and the panel's foot overlaps the top of it.
+   (47vw). The panel stands on it to the right, low, and "Stay in contact"
+   owns the field to its left. The wordmark runs under both, margin to
+   margin, and the panel's foot overlaps the top of its letters.
 
    THE REVEAL — the page lifts off the footer
    The footer keeps its place in the flow, so nothing about page height or
@@ -47,8 +47,9 @@ import type { SiteSettings } from '@/lib/sanity/types';
    · Scroll (scrubbed): drift y and veil opacity only.
    · Once, as the footer is mostly uncovered: "Stay in contact" words slide
      sideways into their masks; a hairline draws along the panel's top edge
-     as the glass fades up and its lines slide in; "TDK DESIGN" travels in from the left and "& BUILD"
-     from the right, crossing on the panel's line.
+     as the glass fades up and its lines slide in; along the foot "TDK DESIGN"
+     travels in from the left and "& BUILD" from the right, meeting on the
+     one line.
 
    LAYERS — one node, one property
      [data-drift]      y            scrub
@@ -69,6 +70,10 @@ const IMAGE_ASPECT = 16 / 9;
 const BACKDROP = cloudinaryUrl(IMAGE_ID, { width: 2400 });
 const LIT = cloudinaryUrl(IMAGE_ID, { width: 2400, effects: ['e_brightness:60'] });
 const FROSTED = cloudinaryUrl(IMAGE_ID, { width: 1200, quality: 60, effects: ['e_blur:1400'] });
+
+/** How far (em) the wordmark sinks below the footer's bottom edge: its feet
+    are cut, just a little. */
+const WORDMARK_SINK = 0.14;
 
 const PAPER = '#f4f2ee';
 const PAPER_SOFT = 'rgba(244, 242, 238, 0.78)';
@@ -107,7 +112,28 @@ export default function FooterClient({ settings }: Props) {
     const box = driftRef.current;
     if (!box) return;
 
+    const footer = footerRef.current;
+    const wm = box.querySelector<HTMLElement>('[data-wm]');
+
+    /** Size the wordmark so the whole line spans the footer between its
+        margins. Measured at 100px and scaled: the width is linear in size. */
+    const fit = () => {
+      if (!footer || !wm) return;
+      const holder = wm.parentElement as HTMLElement;
+      const cs = getComputedStyle(holder);
+      const avail = holder.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      footer.style.setProperty('--wm', '100px');
+      // offsetWidth, not scrollWidth: the entrance offsets the halves with
+      // transforms, which scrollWidth would count. Trailing tracking (negative
+      // here) is not ink either.
+      const natural = wm.offsetWidth + 100 * 0.045;
+      if (natural > 0 && avail > 0) {
+        footer.style.setProperty('--wm', `${((avail / natural) * 100).toFixed(2)}px`);
+      }
+    };
+
     const paint = () => {
+      fit();
       const W = box.clientWidth;
       const H = box.clientHeight;
       if (!W || !H) return;
@@ -217,8 +243,8 @@ export default function FooterClient({ settings }: Props) {
       // drawn pays for its first paint mid-entrance, as a dropped frame.
       gsap.set(panel, { opacity: 0.01 });
       gsap.set(panelRule, { scaleX: 0 });
-      gsap.set(lineA, { xPercent: -60, x: 0, autoAlpha: 0 });
-      gsap.set(lineB, { xPercent: 60, x: 0, autoAlpha: 0 });
+      gsap.set(lineA, { xPercent: -45, x: 0, autoAlpha: 0 });
+      gsap.set(lineB, { xPercent: 70, x: 0, autoAlpha: 0 });
 
       gsap
         .timeline({ scrollTrigger: { trigger: footer, start: 'top 45%', once: true } })
@@ -258,7 +284,7 @@ export default function FooterClient({ settings }: Props) {
   return (
     <footer
       ref={footerRef}
-      className="relative overflow-hidden [--wm:13vw] lg:h-[max(100svh,720px)] lg:[--wm:11.3vw]"
+      className="relative overflow-hidden [--wm:8vw] lg:h-[max(100svh,720px)]"
       style={{ background: '#0b0b0b', color: PAPER, fontFamily: 'var(--font-josefin)' }}
     >
       <div
@@ -307,7 +333,7 @@ export default function FooterClient({ settings }: Props) {
         {/* ── The glass ── */}
         <div
           data-panel
-          className="relative z-10 mx-5 mt-12 lg:absolute lg:bottom-[calc(var(--wm)*1.02)] lg:left-[47vw] lg:right-[3.2vw] lg:mx-0 lg:mt-0"
+          className="relative z-10 mx-5 mt-12 lg:absolute lg:bottom-[calc(var(--wm)*0.98)] lg:left-[47vw] lg:right-[3.2vw] lg:mx-0 lg:mt-0"
         >
           {/* Drawn first, along the top edge; the glass fades up under it. */}
           <span
@@ -457,47 +483,32 @@ export default function FooterClient({ settings }: Props) {
             </div>
           </div>
         </div>
-        {/* ── The wordmark: two windows into the lit room ── */}
+        {/* ── The wordmark: one line of windows into the lit room, sized by
+            fit() to span the footer, its feet cut by the bottom edge. ── */}
         <div
           aria-hidden="true"
-          className="pointer-events-none relative z-0 select-none px-5 pb-2 pt-16 font-[600] uppercase leading-none lg:absolute lg:inset-x-0 lg:bottom-0 lg:px-[3.2vw] lg:pt-0"
-          style={{ fontSize: 'var(--wm)' }}
+          className="pointer-events-none relative z-0 select-none px-5 pt-16 font-[600] uppercase leading-none lg:absolute lg:inset-x-0 lg:bottom-0 lg:px-[3.2vw] lg:pt-0"
+          style={{ fontSize: 'var(--wm)', marginBottom: `-${WORDMARK_SINK}em` }}
         >
-          {/* TDK DESIGN — cut through its lower half by its own band. */}
-          <div className="overflow-hidden" style={{ height: '0.5em' }}>
-            <div
-              data-wm-line
-              data-window="washed"
-              className="w-max whitespace-nowrap tracking-[-0.01em] will-change-transform"
-              style={{
-                backgroundImage: `linear-gradient(rgba(244,242,238,0.34), rgba(244,242,238,0.34)), url(${LIT})`,
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                color: 'transparent',
-                marginTop: '0.02em',
-              }}
-            >
-              TDK DESIGN
-            </div>
-          </div>
-          {/* & BUILD — stepped down onto the panel's line, sitting on the floor. */}
-          <div
-            className="ml-[28vw] overflow-hidden lg:ml-[43.8vw]"
-            style={{ height: '0.74em', marginTop: '0.02em' }}
-          >
-            <div
-              data-wm-line
-              data-window="washed"
-              className="w-max whitespace-nowrap tracking-[-0.01em] will-change-transform"
-              style={{
-                backgroundImage: `linear-gradient(rgba(244,242,238,0.34), rgba(244,242,238,0.34)), url(${LIT})`,
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                color: 'transparent',
-              }}
-            >
-              &amp; BUILD
-            </div>
+          <div data-wm className="w-max whitespace-nowrap tracking-[-0.045em]">
+            {['TDK DESIGN', '& BUILD'].map((part, i) => (
+              <span key={part}>
+                {i > 0 && ' '}
+                <span
+                  data-wm-line
+                  data-window="washed"
+                  className="inline-block will-change-transform"
+                  style={{
+                    backgroundImage: `linear-gradient(rgba(244,242,238,0.34), rgba(244,242,238,0.34)), url(${LIT})`,
+                    WebkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                    color: 'transparent',
+                  }}
+                >
+                  {part}
+                </span>
+              </span>
+            ))}
           </div>
         </div>
       </div>
