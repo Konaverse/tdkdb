@@ -2,13 +2,14 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
 import { SplitText } from 'gsap/SplitText';
+import { CustomEase } from 'gsap/CustomEase';
 
 let isInitialized = false;
 
 export function gsapInit(): void {
   if (isInitialized || typeof window === 'undefined') return;
 
-  gsap.registerPlugin(ScrollTrigger, MotionPathPlugin, SplitText);
+  gsap.registerPlugin(ScrollTrigger, MotionPathPlugin, SplitText, CustomEase);
 
   gsap.defaults({
     ease: 'power3.out',
@@ -23,4 +24,4 @@ export function killAllScrollTriggers(): void {
   ScrollTrigger.clearMatchMedia();
 }
 
-export { gsap, ScrollTrigger, MotionPathPlugin, SplitText };
+export { gsap, ScrollTrigger, MotionPathPlugin, SplitText, CustomEase };

@@ -314,7 +314,11 @@ export default function NavbarClient({ settings }: Props) {
   return (
     <>
       {/* ── The bar ── */}
-      <header ref={headerRef} className="pointer-events-none fixed left-0 top-0 z-[100] w-full">
+      <header
+        ref={headerRef}
+        data-site-header
+        className="pointer-events-none fixed left-0 top-0 z-[100] w-full"
+      >
         <nav className="flex h-20 items-center justify-between pl-[max(16px,2vw)] pr-[max(16px,1.35vw)]">
           <Link
             ref={leftRef}

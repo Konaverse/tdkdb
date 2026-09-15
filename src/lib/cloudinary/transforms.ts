@@ -31,6 +31,32 @@ export function heroImage(publicId: string): string {
   return cloudinaryUrl(publicId, { width: 1920 });
 }
 
+/**
+ * The project page's full-bleed hero, in a fixed ladder of widths.
+ *
+ * A ladder rather than an exact width so the homepage → project transition and
+ * the hero it lands on ask for the SAME URL: the overlay decodes it during the
+ * expansion, and the hero finds it already in the cache. Width only, so every
+ * rung keeps the source's aspect ratio.
+ */
+export const PROJECT_HERO_WIDTHS = [1200, 1600, 2000, 2400, 2800] as const;
+
+export function projectHeroUrl(publicId: string, width: number): string {
+  return cloudinaryUrl(publicId, { width });
+}
+
+export function projectHeroSrcSet(publicId: string): string {
+  return PROJECT_HERO_WIDTHS.map((w) => `${projectHeroUrl(publicId, w)} ${w}w`).join(', ');
+}
+
+/** The smallest rung that covers `devicePx`, or the largest. */
+export function projectHeroWidthFor(devicePx: number): number {
+  return (
+    PROJECT_HERO_WIDTHS.find((w) => w >= devicePx) ??
+    PROJECT_HERO_WIDTHS[PROJECT_HERO_WIDTHS.length - 1]
+  );
+}
+
 export function projectCard(publicId: string): string {
   return cloudinaryUrl(publicId, { width: 800, height: 600 });
 }

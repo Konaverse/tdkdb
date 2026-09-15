@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import ProjectHero from '@/components/sections/project/ProjectHero';
-import ProjectOverviewBar from '@/components/sections/project/ProjectOverviewBar';
 import ProjectRendersGallery from '@/components/sections/project/ProjectRendersGallery';
 import ProjectPhotosGallery from '@/components/sections/project/ProjectPhotosGallery';
 import ProjectDescription from '@/components/sections/project/ProjectDescription';
@@ -50,17 +49,6 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   const showInterestForm = project.ctaType === 'register-interest';
 
-  // Format overview items dynamically from project fields
-  const overviewItems = [
-    { label: 'TYPE', value: project.type.charAt(0).toUpperCase() + project.type.slice(1) },
-    { label: 'LOCATION', value: project.location },
-    {
-      label: project.status === 'completed' ? 'COMPLETED' : 'DELIVERY',
-      value: String(project.year),
-    },
-    { label: 'STATUS', value: project.status },
-  ];
-
   // Helper to extract text from PortableText blocks purely for the fallback description body
   const extractText = (blocks: PortableTextBlock[]) => {
     return blocks
@@ -95,15 +83,9 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   return (
     <main className="bg-void text-paper">
-      <ProjectHero
-        title={project.title}
-        location={project.location}
-        status={project.status}
-        year={project.year}
-        heroImageId={project.heroImageId}
-      />
-
-      <ProjectOverviewBar items={overviewItems} />
+      {/* Full bleed. Arriving from the homepage, this is where the project's
+          photograph lands (see ProjectTransition). */}
+      <ProjectHero project={project} />
 
       <ProjectDescription title={project.pullQuote || 'OVERVIEW'} body={descriptionBody} />
 

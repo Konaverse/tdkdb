@@ -123,8 +123,20 @@ travel; a stacked index lower left and a circle button lower right jump the scro
 to whole projects; the entrance sharpens everything in from blur. `render(p)` is the single
 writer of the strip translate, the pans, the name focus states and the index states — never
 add a tween or CSS transition to any of them. TDK adaptations: Josefin, no wordmark/menu (the
-navbar holds the corners), clicks open `ProjectModal`, Lenis glides the jumps. Read the
+navbar holds the corners), frames and names are links that open the project page through
+`ProjectTransition`, Lenis glides the jumps. The brochure `ProjectModal` was removed (Sept 2026). Read the
 source folder's `meta.ts` and `README.md` before changing it.
+
+`ProjectTransition.tsx` (`src/components/transition/`, mounted in the (site) layout so it survives
+navigation) — clicking a project on the homepage lifts its render onto a fixed layer, a white veil
+rises over the page, and the render opens to full bleed (window = clip box translated/scaled from
+the frame rect; picture = natural-aspect box lerped from the thumbnail's cover box to the
+viewport's, same eased t, so it always covers; CustomEase `projectExpand`). The route is pushed
+ONLY after the expansion (a mid-flight commit is a visible jump), with the scroll reset in the same
+still moment. `ProjectHero` claims the run at first render, renders the exact URL the layer decoded
+(`projectHeroUrl` ladder), and calls `handoff()`; the provider refreshes ScrollTrigger, waits for
+smooth frames, then removes the layer and the hero's copy and the navbar enter. The hero image must
+stay 100% × 100svh object-cover with no transform/filter/dimming on arrival, or the handoff shows.
 
 Rule for both, and for every section to come: the scrubbed or scroll-driven timeline and
 the one-shot entrance never share a node and a property — where they would, the entrance

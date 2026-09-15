@@ -1,11 +1,15 @@
 'use client';
 
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef } from 'react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
+import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
 
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { getLenis } from '@/lib/animations/lenis';
 import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
-import ProjectModal from '@/components/project-modal/ProjectModal';
+import { displayTitle, projectHref, STATUS_LABEL } from '@/lib/projects/display';
+import { useProjectTransition } from '@/components/transition/ProjectTransition';
 import type { Project } from '@/lib/sanity/types';
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -41,7 +45,9 @@ import type { Project } from '@/lib/sanity/types';
      below. They focus-pull with the name as one block.
    · A hairline track beside the index with a teal marker that travels with
      the scroll — the section's one touch of the accent.
-   · Clicking a frame or a name opens the brochure modal.
+   · Clicking a frame or a name opens the project's page through
+     ProjectTransition: the photograph lifts out of its frame and becomes the
+     page's hero. Both are real links, so modified clicks open a tab.
    · Lenis carries the scroll, so the snap goes THROUGH Lenis (see "snap"
      below), never through ScrollTrigger's own snap.
 
@@ -99,22 +105,6 @@ const SNAP_IDLE = 140;
     carries on to the next one instead of settling back. */
 const SNAP_COMMIT = 0.12;
 
-/** Homepage display names where the CMS title is shorter than the one the
-    board carries. Rename the title in Sanity to retire an entry. */
-const DISPLAY_TITLES: Record<string, string> = {
-  armonia: 'Armonia Apartments',
-};
-
-const STATUS_LABEL: Record<Project['status'], string> = {
-  upcoming: 'Upcoming',
-  'in-progress': 'Under construction',
-  completed: 'Completed',
-};
-
-function displayTitle(p: Project): string {
-  return DISPLAY_TITLES[p.slug.current] ?? p.title;
-}
-
 /** One line per word: "Almond Suites" → ["Almond", "Suites"]. */
 function titleLines(p: Project): string[] {
   return displayTitle(p).split(' ');
@@ -138,9 +128,28 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
   const pinRef = useRef<HTMLDivElement>(null);
   const stripRef = useRef<HTMLDivElement>(null);
   const markerRef = useRef<HTMLSpanElement>(null);
-  const [open, setOpen] = useState<Project | null>(null);
+
+  const router = useRouter();
+  const params = useParams();
+  const locale = (params?.locale as string) ?? 'en';
+  const transition = useProjectTransition();
 
   const N = projects.length;
+
+  /** Plain clicks go through the transition; modified ones stay links. */
+  const openProject = (e: ReactMouseEvent<HTMLAnchorElement>, j: number) => {
+    if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    e.preventDefault();
+    const p = projects[j];
+    const href = projectHref(locale, p.slug.current);
+    const frame = rootRef.current?.querySelectorAll<HTMLElement>('[data-frame]')[j];
+    const image = frame?.querySelector<HTMLImageElement>('[data-pan] img:not([data-soft])');
+    const handled =
+      !!frame &&
+      !!image &&
+      transition.start({ href, slug: p.slug.current, imageId: p.heroImageId, frame, image });
+    if (!handled) router.push(href);
+  };
 
   useLayoutEffect(() => {
     gsapInit();
@@ -397,12 +406,12 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
                 paddingTop: 'calc(50svh - var(--col-w) / 3)',
               }}
             >
-              {projects.map((p) => (
-                <button
+              {projects.map((p, j) => (
+                <Link
                   key={p._id}
-                  type="button"
+                  href={projectHref(locale, p.slug.current)}
                   data-frame
-                  onClick={() => setOpen(p)}
+                  onClick={(e) => openProject(e, j)}
                   aria-label={`Open ${displayTitle(p)}`}
                   className="block w-full cursor-pointer overflow-hidden"
                   style={{ aspectRatio: '3 / 2' }}
@@ -431,7 +440,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
                       style={{ opacity: 0 }}
                     />
                   </div>
-                </button>
+                </Link>
               ))}
             </div>
           </div>
@@ -459,9 +468,9 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
                 </p>
 
                 <h3 className="text-[clamp(1.9rem,3.4vw,4.2rem)] font-[300] leading-[1.14] tracking-[0.01em]">
-                  <button
-                    type="button"
-                    onClick={() => setOpen(p)}
+                  <Link
+                    href={projectHref(locale, p.slug.current)}
+                    onClick={(e) => openProject(e, j)}
                     className="pointer-events-auto block cursor-pointer text-left"
                   >
                     {titleLines(p).map((line, i) => (
@@ -469,7 +478,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
                         {line}
                       </span>
                     ))}
-                  </button>
+                  </Link>
                 </h3>
 
                 <div className="mt-6 flex items-start gap-3">
@@ -542,8 +551,6 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
           </button>
         </div>
       </section>
-
-      <ProjectModal project={open} onClose={() => setOpen(null)} />
     </>
   );
 }
