@@ -2,7 +2,7 @@ import AboutGrid from '@/components/homepage/AboutGrid';
 import ProjectsPinned from '@/components/homepage/ProjectsPinned';
 import Interlude from '@/components/homepage/Interlude';
 import FeaturedResidence from '@/components/homepage/FeaturedResidence';
-import SceneContact from '@/components/homepage/SceneContact';
+import ContactSection from '@/components/homepage/ContactSection';
 import HomeLoader from '@/components/homepage/HomeLoader';
 import Hero from '@/components/homepage/Hero';
 import {
@@ -43,8 +43,10 @@ export default async function HomePage() {
       {/* Remaining scenes. */}
       <div className="relative z-[60] bg-void">
         {featured && <FeaturedResidence project={featured} />}
-        <SceneContact />
       </div>
+
+      {/* Contact — the board's layout: CONTACT, intro, details, tall render. */}
+      <ContactSection settings={settings} />
     </main>
   );
 }

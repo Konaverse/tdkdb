@@ -53,10 +53,11 @@ All CMS images are **Cloudinary public IDs stored as strings in Sanity** — not
 
 The homepage (`src/app/[locale]/(site)/page.tsx`) is a small server component that fetches
 three Sanity queries and composes, in order: `HomeLoader` (first-load intro) → `Hero` →
-`ProjectsPinned` → `AboutGrid` → `Interlude` → `FeaturedResidence` → `SceneContact`.
+`ProjectsPinned` → `AboutGrid` → `Interlude` → `FeaturedResidence` → `ContactSection`.
 The Sept 2026 restructure (boards in `homepage_redesign.zip` at the repo root) has replaced
-the hero, the projects section and the interlude, and repainted About light (same grid and
-motion, teal stat cells); contact and the footer are next, and everything after the hero is on a
+the hero, the projects section, the interlude and contact, and repainted About light (same
+grid and motion, teal stat cells); the footer is next (`FeaturedResidence` is still the old dark
+section and appears on no board), and everything after the hero is on a
 WHITE ground with the teal accent.
 
 `ProjectsPinned` scrolls under Lenis, so it uses `scrub: true` and snaps by retargeting Lenis
@@ -71,6 +72,11 @@ shrinks (scale + clip, camera pulling back inside) to a frame over a teal "TDK D
 letters converge, and "We House / Your Dream" slides in, allowed to overlap the frame's top
 edge so it never clips. The photograph has its own parallax trigger; the user asked for it
 explicitly here, the hero stays parallax-free. Scrub is `true` (never numeric under Lenis).
+
+`ContactSection.tsx` — the board's Norm-Architects layout: CONTACT (Josefin light, letters
+sliding into masks), an intro with one "Write to us" link to /en/contact, a drawn 2×2 grid of
+details from Sanity siteSettings (email, phone, address, socials; never hardcode them), and a
+full-height render (armonia/interior/6) on the right. Entrance only, once; nothing on scroll.
 
 `Hero.tsx` — "TDK" behind the building. Two supplied plates, identical 1512 × 1300 frames
 (`public/hero/hero-back.webp`, the street with the building removed; `hero-front.webp`, the
