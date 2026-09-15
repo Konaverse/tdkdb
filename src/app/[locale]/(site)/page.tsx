@@ -1,6 +1,6 @@
 import AboutGrid from '@/components/homepage/AboutGrid';
 import ProjectsPinned from '@/components/homepage/ProjectsPinned';
-import TheDifference from '@/components/homepage/TheDifference';
+import Interlude from '@/components/homepage/Interlude';
 import FeaturedResidence from '@/components/homepage/FeaturedResidence';
 import SceneContact from '@/components/homepage/SceneContact';
 import HomeLoader from '@/components/homepage/HomeLoader';
@@ -36,9 +36,12 @@ export default async function HomePage() {
       {/* About — flat architectural grid, ~130vh, no pin. */}
       <AboutGrid />
 
+      {/* Interlude — pinned: three beats over the kitchen, then the render
+          shrinks to a frame under "We House Your Dream". */}
+      <Interlude />
+
       {/* Remaining scenes. */}
       <div className="relative z-[60] bg-void">
-        <TheDifference />
         {featured && <FeaturedResidence project={featured} />}
         <SceneContact />
       </div>

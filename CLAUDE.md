@@ -53,14 +53,20 @@ All CMS images are **Cloudinary public IDs stored as strings in Sanity** — not
 
 The homepage (`src/app/[locale]/(site)/page.tsx`) is a small server component that fetches
 three Sanity queries and composes, in order: `HomeLoader` (first-load intro) → `Hero` →
-`ProjectsPinned` → `AboutGrid` → `TheDifference` → `FeaturedResidence` → `SceneContact`.
+`ProjectsPinned` → `AboutGrid` → `Interlude` → `FeaturedResidence` → `SceneContact`.
 The Sept 2026 restructure (boards in `homepage_redesign.zip` at the repo root) has replaced
-the hero and the projects section and repainted About light (same grid and motion, teal stat
-cells); the interlude, contact and the footer are next, and everything after the hero is on a
+the hero, the projects section and the interlude, and repainted About light (same grid and
+motion, teal stat cells); contact and the footer are next, and everything after the hero is on a
 WHITE ground with the teal accent.
 
 `ProjectsPinned` scrolls under Lenis, so it uses `scrub: true` and snaps by retargeting Lenis
 once input stops — never ScrollTrigger's own `snap`, which fights Lenis at the pin's ends.
+
+`Interlude.tsx` — one pinned, scrubbed timeline (4.6 viewport heights): three beat titles slide
+sideways over the dimmed Armonia kitchen with their paragraphs cross-fading, then the render
+shrinks (scale + clip, so the frame keeps the whole composition) to a centred frame over a giant
+teal "TDK DESIGN", and "We House Your Dream" rises in. The photograph has its own parallax
+trigger on an inner node. The user asked for this parallax explicitly; the hero stays parallax-free.
 
 `Hero.tsx` — "TDK" behind the building. Two supplied plates, identical 1512 × 1300 frames
 (`public/hero/hero-back.webp`, the street with the building removed; `hero-front.webp`, the
