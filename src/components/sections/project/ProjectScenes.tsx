@@ -24,8 +24,9 @@ import { cloudinaryUrl, responsiveSrcSet } from '@/lib/cloudinary/transforms';
    C · DIPTYCH    A wide plate over eight columns and a tall one over four,
                   one row, the same height. Their renders drift at different
                   rates, so the pair has depth without breaking the grid.
-   D · PANORAMA   A low, wide band across the content width. The camera pans
-                  along it as the page moves down.
+   D · PLATE      One square plate, centred over columns 4–9, the white even
+                  on both sides: the sequence closes quietly, on a single
+                  picture. The render drifts inside its frame.
 
    ENTRANCE — every picture uses <RevealFrame> (stripReveal), the site's one
    image entrance. Only the text entrances and the scroll motion live here.
@@ -33,7 +34,6 @@ import { cloudinaryUrl, responsiveSrcSet } from '@/lib/cloudinary/transforms';
    LAYERS — one node, one property
      RevealFrame settle (scale, entrance) > [data-a-zoom] scale (scrub)
                                           > [data-pan] yPercent (scrub)
-                                          > [data-d-pan] xPercent (scrub)
    Scrubs use scrub: true — Lenis already smooths the scroll.
    ─────────────────────────────────────────────────────────────────────────── */
 
@@ -133,21 +133,6 @@ export default function ProjectScenes({ title, images, quote, features = [] }: P
             { yPercent: range, ease: 'none', scrollTrigger: passage(el.parentElement!) },
           );
         });
-        const pano = q('[data-d-pan]')[0];
-        if (pano) {
-          gsap.fromTo(
-            pano,
-            { xPercent: 0, x: 0 },
-            {
-              // 128% wide: travel exactly the overscan.
-              xPercent: -(28 / 128) * 100,
-              x: 0,
-              ease: 'none',
-              scrollTrigger: passage(pano.parentElement!),
-            },
-          );
-        }
-
         /* the side note's words */
         const quoteEl = q('[data-b-quote]')[0];
         if (quoteEl) {
@@ -291,17 +276,20 @@ export default function ProjectScenes({ title, images, quote, features = [] }: P
         </section>
       )}
 
-      {/* ── D · Panorama ─────────────────────────────────────────────────── */}
+      {/* ── D · Plate ────────────────────────────────────────────────────── */}
       {imgD && (
-        <section aria-label={`${title}, panorama`}>
-          <RevealFrame nav="dark" className="h-[48svh] w-full lg:h-[72svh]">
-            <div data-d-pan className="absolute inset-y-0 left-0 w-[128%]">
+        <section
+          aria-label={`${title}, a closer view`}
+          className="lg:gap-x-gutter grid grid-cols-1 lg:grid-cols-12"
+        >
+          <RevealFrame nav="dark" className="aspect-square w-full lg:col-span-6 lg:col-start-4">
+            <Drift range={7}>
               <Render
                 id={imgD}
-                alt={`${title}, panorama`}
-                sizes="(min-width: 1024px) 128vw, 200vw"
+                alt={`${title}, a closer view`}
+                sizes="(min-width: 1024px) 85vw, 160vw"
               />
-            </div>
+            </Drift>
           </RevealFrame>
         </section>
       )}
