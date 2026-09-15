@@ -57,7 +57,7 @@ export default function ProjectRegister({
       gsap.set(words, { xPercent: -104, x: 0 });
       gsap.set(rise, { autoAlpha: 0, y: 24 });
       gsap
-        .timeline({ scrollTrigger: { trigger: root, start: 'top 60%', once: true } })
+        .timeline({ scrollTrigger: { trigger: root, start: 'top 80%', once: true } })
         .to(words, { xPercent: 0, x: 0, duration: 1.3, ease: 'power4.out', stagger: 0.09 }, 0)
         .to(rise, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'power3.out', stagger: 0.07 }, 0.35);
     }, root);
@@ -114,7 +114,7 @@ export default function ProjectRegister({
       id="register-interest"
       data-nav="dark"
       aria-labelledby="register-heading"
-      className="relative grid min-h-svh gap-16 px-[max(20px,5.5vw)] pb-[14svh] pt-[16svh] text-white lg:grid-cols-12 lg:gap-x-[2vw]"
+      className="relative grid min-h-svh gap-16 px-page pb-[14svh] pt-[16svh] text-white lg:grid-cols-12 lg:gap-x-gutter"
       style={{ background: TEAL, fontFamily: 'var(--font-josefin)' }}
     >
       <div className="lg:col-span-5">

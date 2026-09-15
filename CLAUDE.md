@@ -120,7 +120,7 @@ first frame centred by pure CSS padding), the previous frame still leaving above
 arriving below; the project's name stands large on the left over the photograph and changes
 by a FOCUS PULL (opacity + blur, never a slide); each photograph pans slowly against the
 travel; a stacked index lower left and a circle button lower right jump the scroll, snapped
-to whole projects; the entrance sharpens everything in from blur. `render(p)` is the single
+to whole projects; the frames enter with the shared strip reveal (below) and the name block sharpens in from blur. `render(p)` is the single
 writer of the strip translate, the pans, the name focus states and the index states — never
 add a tween or CSS transition to any of them. TDK adaptations: Josefin, no wordmark/menu (the
 navbar holds the corners), frames and names are links that open the project page through
@@ -143,12 +143,14 @@ stay 100% × 100svh object-cover with no transform/filter/dimming on arrival, or
 `projects/[slug]/page.tsx` (Sept 2026 redesign) is, in order: `ProjectHero` (full bleed, settled)
 → `ProjectScenes` → `ProjectAvailability` → `ProjectStory` → `ProjectRegister`, white ground,
 Josefin light, NO eyebrows and no decorative hairlines (user's request). Everything is scroll:
-no galleries, lightboxes, tabs or draggable strips. `ProjectScenes` is four 100svh editorial
-spreads fed exactly five images by `sceneImages()` (galleries de-duplicated, hero only as a
-fallback, then cycled): A aperture (framed plate scales up as it rises), B side note (portrait
-crop + pull quote + features written on), C diptych (two plates drifting at different speeds),
-D panorama (band whose image pans sideways with scroll). Below lg the scenes stack and the
-motion is smaller. Availability is a rule-less banded table with three counting figures; Story is
+no galleries, lightboxes, tabs or draggable strips. `ProjectScenes` is four editorial spreads
+fed exactly five images by `sceneImages()` (galleries de-duplicated, hero only as a fallback,
+then cycled), stacked on the page grid with `gap-page` between them — the user wants ONE measure
+of white around every picture, section heights don't matter: A aperture (content-width 16:9,
+render zooms out on scroll), B side note (6-col portrait + quote/features in cols 8–12),
+C diptych (8 + 4 cols, same height, renders drift at different rates inside their frames),
+D panorama (content-width band, render pans sideways). Frames never move or scale on scroll —
+only the render inside them does, so the grid stays exact. Availability is a rule-less banded table with three counting figures; Story is
 the description lead + percentage/bar + specs; Register is the one teal section and posts to the
 unchanged `/api/project-interest`.
 
@@ -160,6 +162,18 @@ scrubbing from the console; an occluded Chrome tab freezes rAF, so verify by scr
 by waiting.
 
 ### Design System
+
+- **Page grid** — `--page-margin` (max(16px, 2vw), the navbar/hero edge) and `--page-gutter`
+  (= margin) in `globals.css`, with utilities `px-page`, `py-page`, `gap-page`, `gap-x-gutter`,
+  `-mx-page` defined in its `@layer utilities` (NOT in tailwind.config: the dev server does not
+  reload config changes, which silently zeroed every margin once). 12 columns. Every project
+  page section uses it; content always keeps the margin.
+- **Image entrance** — every image that is not a full-bleed background enters with
+  `stripReveal` (`src/lib/animations/stripReveal.ts`; `<RevealFrame>` in markup): cover strips of
+  the ground colour wipe off left→right, top strip first, while the render settles from 1.1,
+  firing at `top 92%`. Used by the project scenes, ProjectsPinned frames, About photos and the
+  Contact photo. Do not invent per-section image entrances. Full-bleed images (hero, Interlude,
+  footer) are exempt.
 
 CSS custom properties are defined in `src/styles/globals.css`. Tailwind config (`tailwind.config.ts`) maps them to utility classes. Key tokens:
 

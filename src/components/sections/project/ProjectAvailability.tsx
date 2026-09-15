@@ -72,7 +72,7 @@ export default function ProjectAvailability({ units, note }: ProjectAvailability
       counters.forEach((el) => (el.textContent = '0'));
 
       const tl = gsap.timeline({
-        scrollTrigger: { trigger: root, start: 'top 62%', once: true },
+        scrollTrigger: { trigger: root, start: 'top 85%', once: true },
       });
       tl.to(q('[data-heading]'), { xPercent: 0, x: 0, duration: 1.3, ease: 'power4.out' }, 0);
       tl.to(
@@ -107,7 +107,7 @@ export default function ProjectAvailability({ units, note }: ProjectAvailability
       ref={rootRef}
       data-nav="light"
       aria-labelledby="availability-heading"
-      className="relative px-[max(20px,5.5vw)] pb-[16svh] pt-[18svh]"
+      className="relative px-page pb-[16svh] pt-[18svh]"
       style={{ background: '#ffffff', color: INK, fontFamily: 'var(--font-josefin)' }}
     >
       <div className="flex flex-col gap-14 lg:flex-row lg:items-end lg:justify-between">

@@ -68,7 +68,7 @@ export default function ProjectStory({
         if (counter) counter.textContent = '0';
 
         const tl = gsap.timeline({
-          scrollTrigger: { trigger: root, start: 'top 62%', once: true },
+          scrollTrigger: { trigger: root, start: 'top 85%', once: true },
           onComplete: () => leadSplit?.split.revert(),
         });
 
@@ -120,7 +120,7 @@ export default function ProjectStory({
       ref={rootRef}
       data-nav="light"
       aria-label="About the project"
-      className="relative grid gap-20 px-[max(20px,5.5vw)] pb-[20svh] pt-[10svh] lg:grid-cols-12 lg:gap-x-[2vw]"
+      className="relative grid gap-20 px-page pb-[20svh] pt-[10svh] lg:grid-cols-12 lg:gap-x-gutter"
       style={{ background: '#ffffff', color: INK, fontFamily: 'var(--font-josefin)' }}
     >
       <div className="lg:col-span-7">

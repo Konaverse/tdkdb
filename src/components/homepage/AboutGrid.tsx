@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
 
 import { gsap, ScrollTrigger, gsapInit } from '@/lib/animations/gsap';
+import { stripReveal } from '@/lib/animations/stripReveal';
 import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -109,6 +110,7 @@ export default function AboutGrid() {
     const section = sectionRef.current;
     if (!section) return;
 
+    const reveals: { revert: () => void }[] = [];
     const ctx = gsap.context(() => {
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -147,7 +149,7 @@ export default function AboutGrid() {
 
       const tl = gsap.timeline({
         defaults: { ease: 'power3.out' },
-        scrollTrigger: { trigger: section, start: 'top 75%', once: true },
+        scrollTrigger: { trigger: section, start: 'top 85%', once: true },
       });
 
       // Eyebrow — rule draws, then the label arrives on it.
@@ -171,12 +173,18 @@ export default function AboutGrid() {
       // eye traces the checkerboard and lands on the CTA cell last.
       clips.forEach((clip, i) => {
         const at = 0.9 + i * 0.09;
-        tl.to(clip, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.9, ease: 'sine.inOut' }, at);
 
-        // Image plates settle out of a slight over-scale as their wipe lands.
+        // Photographs take the site's one image entrance (strips wiping off
+        // left to right, top to bottom); the other cells keep their wipe.
         const scaleTarget = enterScales.find((el) => clip.contains(el));
         if (scaleTarget) {
-          tl.to(scaleTarget, { scale: 1, duration: 1.6, ease: 'power2.out' }, at + 0.35);
+          gsap.set(clip, { clipPath: 'inset(0% 0% 0% 0%)' });
+          gsap.set(scaleTarget, { clearProps: 'transform' });
+          const reveal = stripReveal(clip, { scroll: false, settle: scaleTarget });
+          reveals.push(reveal);
+          tl.add(reveal.tl, at);
+        } else {
+          tl.to(clip, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.9, ease: 'sine.inOut' }, at);
         }
 
         // Counter — starts as its own cell is ~40% through its wipe. Driven off
@@ -207,7 +215,10 @@ export default function AboutGrid() {
       ScrollTrigger.refresh();
     }, section);
 
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      reveals.forEach((r) => r.revert());
+    };
   }, []);
 
   // ── Scroll exit ───────────────────────────────────────────────────────────

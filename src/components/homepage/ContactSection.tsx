@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
 
 import { gsap, gsapInit, SplitText } from '@/lib/animations/gsap';
+import { stripReveal } from '@/lib/animations/stripReveal';
 import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
 import type { SiteSettings } from '@/lib/sanity/types';
 
@@ -29,15 +30,15 @@ import type { SiteSettings } from '@/lib/sanity/types';
    MOTION — once, on arrival, nothing on scroll
    · CONTACT: every letter slides one slot right into its own mask, the
      hero's TDK reveal, so the page ends the way it began.
-   · The photograph wipes down from its top edge while the render inside
-     settles out of a slight over-scale (clip and scale on separate nodes).
+   · The photograph enters with the site's one image entrance (stripReveal):
+     strips wiping off left to right, top to bottom, the render settling.
    · The intro and every detail value are written on line by line, left to
      right (SplitText lines in masks), the hero's paragraph reveal.
    · Cell hairlines draw left to right just before their text lands.
 
    LAYERS — one node, one property
      [data-letter]   xPercent      entrance
-     [data-plate]    clip-path     entrance
+     [data-plate]    strips        entrance (stripReveal)
        [data-settle] scale         entrance
      [data-rule]     scaleX        entrance
      line masks      clip-path     entrance
@@ -88,6 +89,7 @@ export default function ContactSection({ settings }: ContactSectionProps) {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     let ctx: gsap.Context | null = null;
+    let reveal: { revert: () => void } | null = null;
     let alive = true;
 
     const build = () => {
@@ -112,8 +114,6 @@ export default function ContactSection({ settings }: ContactSectionProps) {
 
         /* hidden state, set here so a no-JS pass is always complete */
         gsap.set(letters, { xPercent: -100, x: 0 });
-        gsap.set(plate, { clipPath: 'inset(0% 0% 100% 0%)' });
-        gsap.set(settle, { scale: 1.14 });
         gsap.set([...introMasks, ...cellParts.flatMap((c) => c.masks)], {
           clipPath: 'inset(0% 100% 0% 0%)',
         });
@@ -127,8 +127,9 @@ export default function ContactSection({ settings }: ContactSectionProps) {
           scrollTrigger: { trigger: scope, start: 'top 68%', once: true },
         });
 
-        tl.to(plate, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'power3.inOut' }, 0);
-        tl.to(settle, { scale: 1, duration: 2.4, ease: 'power2.out' }, 0.25);
+        // The photograph has its own trigger: it can be on screen well before
+        // the heading block reaches 68%.
+        reveal = stripReveal(plate as HTMLElement, { settle });
 
         tl.to(
           letters,
@@ -165,6 +166,7 @@ export default function ContactSection({ settings }: ContactSectionProps) {
     return () => {
       alive = false;
       ctx?.revert();
+      reveal?.revert();
     };
   }, []);
 

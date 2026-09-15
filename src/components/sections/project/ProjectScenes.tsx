@@ -2,41 +2,39 @@
 
 import { useLayoutEffect, useRef } from 'react';
 
-import { gsap, gsapInit } from '@/lib/animations/gsap';
+import RevealFrame from '@/components/animations/RevealFrame';
+import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { LINE_HIDDEN, LINE_SHOWN, maskLines } from '@/lib/animations/lines';
 import { cloudinaryUrl, responsiveSrcSet } from '@/lib/cloudinary/transforms';
 
 /* ───────────────────────────────────────────────────────────────────────────
    ProjectScenes — the renders, as four spreads rather than a gallery
 
-   Four viewport-tall scenes, each a different editorial composition, each
-   with one idea of motion tied to the scroll. Nothing to click, nothing to
-   drag: the reader scrolls and the pages turn.
+   THE SYSTEM
+   One stack on the page grid: side margins of --page-margin, the 12-column
+   grid with --page-gutter, and the spreads separated by --page-margin too,
+   so the white around every picture is one measure. Spreads are as tall as
+   their pictures make them; only the system is fixed.
 
-   A · APERTURE   One plate, framed on white. It arrives small and opens to
-                  its full size as the scene rises into place, the render
-                  inside pulling back as it grows: after the full-bleed hero,
-                  the page steps back and hangs the picture on a wall.
-   B · SIDE NOTE  A tall portrait crop on the left; on the right the pull
-                  quote and the features, written on line by line. The
-                  picture drifts slowly inside its frame.
-   C · DIPTYCH    Two plates, a wide one low left and a tall one high right,
-                  with the white between them held open. They travel at
-                  different speeds, so the pair has depth.
-   D · PANORAMA   A band across the full width. The camera pans along it,
-                  left to right, as the page moves down.
+   A · APERTURE   One plate across the full content width. The render inside
+                  pulls back as the plate crosses the screen.
+   B · SIDE NOTE  A portrait crop over six columns; the pull quote and the
+                  features in columns 8–12, written on line by line. The
+                  picture drifts inside its frame.
+   C · DIPTYCH    A wide plate over eight columns and a tall one over four,
+                  one row, the same height. Their renders drift at different
+                  rates, so the pair has depth without breaking the grid.
+   D · PANORAMA   A low, wide band across the content width. The camera pans
+                  along it as the page moves down.
 
-   LAYERS — one node, one property (see gsap-transform-pitfalls)
-     A  [data-a-frame] scale (scrub)    > [data-a-img] scale (scrub)
-     B  [data-b-clip] clip-path (enter) > [data-b-settle] scale (enter)
-                                        > [data-b-pan] yPercent (scrub)
-     C  [data-c-drift] y (scrub)        > [data-c-clip] clip-path (enter)
-                                        > [data-c-settle] scale (enter)
-     D  [data-d-band] clip-path (enter) > [data-d-pan] xPercent (scrub)
+   ENTRANCE — every picture uses <RevealFrame> (stripReveal), the site's one
+   image entrance. Only the text entrances and the scroll motion live here.
+
+   LAYERS — one node, one property
+     RevealFrame settle (scale, entrance) > [data-a-zoom] scale (scrub)
+                                          > [data-pan] yPercent (scrub)
+                                          > [data-d-pan] xPercent (scrub)
    Scrubs use scrub: true — Lenis already smooths the scroll.
-
-   Images load lazily and are decoded as soon as they arrive, so no render
-   decodes on the frame it first scrolls into view.
    ─────────────────────────────────────────────────────────────────────────── */
 
 interface ProjectScenesProps {
@@ -50,33 +48,32 @@ interface ProjectScenesProps {
 const INK = '#111111';
 const MUTED = 'rgba(17, 17, 17, 0.5)';
 
-const GUTTER = 'px-[max(20px,5.5vw)]';
-
-function Render({
-  id,
-  alt,
-  sizes,
-  className = '',
-  data,
-}: {
-  id: string;
-  alt: string;
-  sizes: string;
-  className?: string;
-  data?: Record<string, string>;
-}) {
+function Render({ id, alt, sizes }: { id: string; alt: string; sizes: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      {...data}
       src={cloudinaryUrl(id, { width: 1600 })}
       srcSet={responsiveSrcSet(id)}
       sizes={sizes}
       alt={alt}
       loading="lazy"
       decoding="async"
-      className={`block h-full w-full object-cover ${className}`}
+      className="block h-full w-full object-cover"
     />
+  );
+}
+
+/** A render with vertical overscan, for a drift of ±`range`% inside its frame. */
+function Drift({ range, children }: { range: number; children: React.ReactNode }) {
+  const over = range * 2 + 4;
+  return (
+    <div
+      data-pan={range}
+      className="absolute inset-x-0"
+      style={{ top: `-${over / 2}%`, height: `${100 + over}%` }}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -93,7 +90,7 @@ export default function ProjectScenes({ title, images, quote, features = [] }: P
     const root = rootRef.current;
     if (!root) return;
 
-    // Decode ahead of the scroll.
+    // Decode ahead of the scroll, so no render decodes on its first frame.
     const decode = (img: HTMLImageElement) => img.decode?.().catch(() => {});
     const imgs = Array.from(root.querySelectorAll('img'));
     const onLoad = (e: Event) => decode(e.currentTarget as HTMLImageElement);
@@ -101,211 +98,136 @@ export default function ProjectScenes({ title, images, quote, features = [] }: P
       if (img.complete && img.naturalWidth) decode(img);
       else img.addEventListener('load', onLoad);
     });
-
     const cleanupImgs = () => imgs.forEach((img) => img.removeEventListener('load', onLoad));
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return cleanupImgs;
 
     let alive = true;
-    let mm: gsap.MatchMedia | null = null;
+    let ctx: gsap.Context | null = null;
 
     // Line splits need the real face.
     (document.fonts?.ready ?? Promise.resolve()).then(() => {
       if (!alive) return;
-      mm = gsap.matchMedia(root);
-      mm.add({ lg: '(min-width: 1024px)' }, (context) => {
-        const { lg } = context.conditions as { lg: boolean };
+      ctx = gsap.context(() => {
         const q = gsap.utils.selector(root);
-        const vh = () => window.innerHeight / 100;
-        const scene = (name: string) => q(`[data-scene="${name}"]`)[0] as HTMLElement;
-
-        /* ── A · aperture ── */
-        const a = scene('aperture');
-        gsap
-          .timeline({
-            scrollTrigger: { trigger: a, start: 'top bottom', end: 'top top', scrub: true },
-          })
-          .fromTo(
-            q('[data-a-frame]'),
-            { scale: lg ? 0.44 : 0.6 },
-            { scale: 1, ease: 'power2.out' },
-            0,
-          )
-          .fromTo(q('[data-a-img]'), { scale: 1.45 }, { scale: 1, ease: 'power2.out' }, 0);
-
-        /* ── B · side note ── */
-        const b = scene('side');
-        gsap.fromTo(
-          q('[data-b-pan]'),
-          { yPercent: -6 },
-          {
-            yPercent: 6,
-            ease: 'none',
-            scrollTrigger: { trigger: b, start: 'top bottom', end: 'bottom top', scrub: true },
-          },
-        );
-
-        const quoteSplit = maskLines(q('[data-b-quote]')[0]);
-        const featureSplits = q('[data-b-feature]').map((el) => maskLines(el));
-        const featureIdx = q('[data-b-index]');
-        gsap.set([...quoteSplit.lines, ...featureSplits.flatMap((s) => s.lines)], {
-          clipPath: LINE_HIDDEN,
+        const passage = (trigger: Element) => ({
+          trigger,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: true,
         });
-        gsap.set(featureIdx, { autoAlpha: 0 });
 
-        gsap
-          .timeline({
-            scrollTrigger: { trigger: b, start: lg ? 'top 55%' : 'top 70%', once: true },
-            onComplete: () => {
-              quoteSplit.split.revert();
-              featureSplits.forEach((s) => s.split.revert());
-            },
-          })
-          .fromTo(
-            q('[data-b-clip]'),
-            { clipPath: 'inset(100% 0% 0% 0%)' },
-            { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'power3.inOut' },
-            0,
-          )
-          .fromTo(
-            q('[data-b-settle]'),
+        /* scroll motion */
+        const zoom = q('[data-a-zoom]')[0];
+        if (zoom) {
+          gsap.fromTo(
+            zoom,
             { scale: 1.2 },
-            { scale: 1, duration: 2.4, ease: 'power2.out' },
-            0.2,
-          )
-          .to(
-            quoteSplit.lines,
-            { clipPath: LINE_SHOWN, duration: 1, ease: 'power2.inOut', stagger: 0.13 },
-            lg ? 0.55 : 0.2,
-          )
-          .to(featureIdx, { autoAlpha: 1, duration: 0.6, stagger: 0.12 }, lg ? 1.05 : 0.7)
-          .to(
-            featureSplits.map((s) => s.lines),
-            { clipPath: LINE_SHOWN, duration: 0.8, ease: 'power2.inOut', stagger: 0.12 },
-            lg ? 1.1 : 0.75,
+            { scale: 1, ease: 'none', scrollTrigger: passage(zoom.parentElement!) },
           );
-
-        /* ── C · diptych ── */
-        const c = scene('diptych');
-        const drift = [lg ? 7 : 3, lg ? 21 : 6];
-        q('[data-c-drift]').forEach((el, i) => {
+        }
+        q('[data-pan]').forEach((el) => {
+          const range = Number((el as HTMLElement).dataset.pan);
           gsap.fromTo(
             el,
-            { y: () => drift[i] * vh() },
+            { yPercent: -range },
+            { yPercent: range, ease: 'none', scrollTrigger: passage(el.parentElement!) },
+          );
+        });
+        const pano = q('[data-d-pan]')[0];
+        if (pano) {
+          gsap.fromTo(
+            pano,
+            { xPercent: 0, x: 0 },
             {
-              y: () => -drift[i] * vh(),
+              // 128% wide: travel exactly the overscan.
+              xPercent: -(28 / 128) * 100,
+              x: 0,
               ease: 'none',
-              scrollTrigger: {
-                trigger: c,
-                start: 'top bottom',
-                end: 'bottom top',
-                scrub: true,
-                invalidateOnRefresh: true,
-              },
+              scrollTrigger: passage(pano.parentElement!),
             },
           );
-        });
-        const clipsFrom = ['inset(0% 100% 0% 0%)', 'inset(0% 0% 100% 0%)'];
-        const cTl = gsap.timeline({
-          scrollTrigger: { trigger: c, start: lg ? 'top 45%' : 'top 70%', once: true },
-        });
-        q('[data-c-clip]').forEach((el, i) => {
-          cTl.fromTo(
-            el,
-            { clipPath: clipsFrom[i] },
-            { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.5, ease: 'power3.inOut' },
-            i * 0.28,
-          );
-        });
-        cTl.fromTo(
-          q('[data-c-settle]'),
-          { scale: 1.22 },
-          { scale: 1, duration: 2.4, ease: 'power2.out', stagger: 0.28 },
-          0.2,
-        );
+        }
 
-        /* ── D · panorama ── */
-        const d = scene('panorama');
-        gsap.fromTo(
-          q('[data-d-pan]'),
-          { xPercent: 0, x: 0 },
-          {
-            // The pan node is 128% of the band: travel exactly its overscan.
-            xPercent: -(28 / 128) * 100,
-            x: 0,
-            ease: 'none',
-            scrollTrigger: { trigger: d, start: 'top bottom', end: 'bottom top', scrub: true },
-          },
-        );
-        gsap.fromTo(
-          q('[data-d-band]'),
-          { clipPath: 'inset(0% 50% 0% 50%)' },
-          {
-            clipPath: 'inset(0% 0% 0% 0%)',
-            duration: 1.7,
-            ease: 'power3.inOut',
-            scrollTrigger: { trigger: d, start: lg ? 'top 55%' : 'top 75%', once: true },
-          },
-        );
-      });
+        /* the side note's words */
+        const quoteEl = q('[data-b-quote]')[0];
+        if (quoteEl) {
+          const quoteSplit = maskLines(quoteEl);
+          const featureSplits = q('[data-b-feature]').map((el) => maskLines(el));
+          const idx = q('[data-b-index]');
+          gsap.set([...quoteSplit.lines, ...featureSplits.flatMap((s) => s.lines)], {
+            clipPath: LINE_HIDDEN,
+          });
+          gsap.set(idx, { autoAlpha: 0 });
+          gsap
+            .timeline({
+              scrollTrigger: { trigger: quoteEl, start: 'top 88%', once: true },
+              onComplete: () => {
+                quoteSplit.split.revert();
+                featureSplits.forEach((s) => s.split.revert());
+              },
+            })
+            .to(
+              quoteSplit.lines,
+              { clipPath: LINE_SHOWN, duration: 1, ease: 'power2.inOut', stagger: 0.13 },
+              0,
+            )
+            .to(idx, { autoAlpha: 1, duration: 0.6, stagger: 0.12 }, 0.45)
+            .to(
+              featureSplits.map((s) => s.lines),
+              { clipPath: LINE_SHOWN, duration: 0.8, ease: 'power2.inOut', stagger: 0.12 },
+              0.5,
+            );
+        }
+
+        // Fonts have settled every height above; place the triggers again.
+        ScrollTrigger.refresh();
+      }, root);
     });
 
     return () => {
       alive = false;
-      mm?.revert();
+      ctx?.revert();
       cleanupImgs();
     };
   }, []);
 
   return (
-    <div ref={rootRef} style={{ background: '#ffffff', color: INK }}>
+    <div
+      ref={rootRef}
+      data-nav="light"
+      className="gap-page px-page py-page flex flex-col"
+      style={{ background: '#ffffff', color: INK }}
+    >
       {/* ── A · Aperture ─────────────────────────────────────────────────── */}
-      <section
-        data-scene="aperture"
-        data-nav="light"
-        aria-label={`${title}, the building`}
-        className="relative flex h-svh items-center justify-center overflow-hidden"
-      >
-        {imgA && (
-          <div
-            data-a-frame
-            data-nav="dark"
-            className="relative aspect-[4/5] w-[min(88vw,64svh)] overflow-hidden lg:aspect-[16/10] lg:w-[min(72vw,134svh)]"
-          >
-            <Render
-              id={imgA}
-              alt={`${title}, exterior`}
-              sizes="(min-width: 1024px) 72vw, 150vw"
-              data={{ 'data-a-img': '' }}
-            />
-          </div>
-        )}
-      </section>
+      {imgA && (
+        <section aria-label={`${title}, the building`}>
+          <RevealFrame nav="dark" className="aspect-[4/5] w-full lg:aspect-[16/9]">
+            <div data-a-zoom className="h-full w-full">
+              <Render
+                id={imgA}
+                alt={`${title}, exterior`}
+                sizes="(min-width: 1024px) 100vw, 180vw"
+              />
+            </div>
+          </RevealFrame>
+        </section>
+      )}
 
       {/* ── B · Side note ────────────────────────────────────────────────── */}
-      <section
-        data-scene="side"
-        data-nav="light"
-        className={`relative flex min-h-svh flex-col gap-12 pb-24 lg:grid lg:h-svh lg:grid-cols-12 lg:gap-x-[2vw] lg:py-[8svh] ${GUTTER}`}
-      >
+      <section className="lg:gap-x-gutter grid grid-cols-1 gap-y-12 pb-8 lg:grid-cols-12 lg:pb-0">
         {imgB && (
-          <div
-            data-b-clip
-            data-nav="dark"
-            className="relative -mx-[max(20px,5.5vw)] h-[64svh] overflow-hidden lg:col-span-5 lg:mx-0 lg:h-full"
-          >
-            <div data-b-settle className="absolute inset-0">
-              <div data-b-pan className="absolute inset-x-0 -top-[8%] h-[116%]">
-                <Render
-                  id={imgB}
-                  alt={`${title}, the building from the garden`}
-                  sizes="(min-width: 1024px) 160vh, 190vw"
-                />
-              </div>
-            </div>
-          </div>
+          <RevealFrame nav="dark" className="aspect-[4/5] w-full lg:col-span-6">
+            <Drift range={6}>
+              <Render
+                id={imgB}
+                alt={`${title}, the building from the garden`}
+                sizes="(min-width: 1024px) 110vw, 180vw"
+              />
+            </Drift>
+          </RevealFrame>
         )}
 
-        <div className="flex flex-col justify-end lg:col-span-5 lg:col-start-7 lg:pb-[1svh]">
+        <div className="flex flex-col justify-end lg:col-span-5 lg:col-start-8">
           <p
             data-b-quote
             className="max-w-[15ch] text-[clamp(34px,3.7vw,70px)] font-[300] leading-[1.08] tracking-[-0.005em]"
@@ -338,53 +260,41 @@ export default function ProjectScenes({ title, images, quote, features = [] }: P
       </section>
 
       {/* ── C · Diptych ──────────────────────────────────────────────────── */}
-      <section
-        data-scene="diptych"
-        data-nav="light"
-        aria-label={`${title}, two views`}
-        className={`relative flex flex-col gap-10 py-24 lg:block lg:h-svh lg:p-0 ${GUTTER}`}
-      >
-        {[imgC1, imgC2].map((id, i) =>
-          id ? (
-            <div
-              key={i}
-              data-c-drift
-              data-nav="dark"
-              className={
-                i === 0
-                  ? 'relative aspect-[3/2] w-[88%] lg:absolute lg:bottom-[9svh] lg:left-[5.5vw] lg:w-[47vw]'
-                  : 'relative aspect-[4/5] w-[62%] self-end lg:absolute lg:right-[5.5vw] lg:top-[9svh] lg:w-[27vw]'
-              }
-            >
-              <div data-c-clip className="absolute inset-0 overflow-hidden">
-                <div data-c-settle className="absolute inset-0">
-                  <Render
-                    id={id}
-                    alt={`${title}, view ${i + 1}`}
-                    sizes={
-                      i === 0 ? '(min-width: 1024px) 47vw, 88vw' : '(min-width: 1024px) 60vw, 110vw'
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-          ) : null,
-        )}
-      </section>
+      {(imgC1 || imgC2) && (
+        <section
+          aria-label={`${title}, two views`}
+          className="gap-page lg:gap-x-gutter grid grid-cols-1 lg:grid-cols-12 lg:gap-y-0"
+        >
+          {imgC1 && (
+            <RevealFrame nav="dark" className="aspect-[3/2] w-full lg:col-span-8">
+              <Drift range={5}>
+                <Render
+                  id={imgC1}
+                  alt={`${title}, view one`}
+                  sizes="(min-width: 1024px) 70vw, 100vw"
+                />
+              </Drift>
+            </RevealFrame>
+          )}
+          {imgC2 && (
+            // Stretches to the row: the same height as its neighbour.
+            <RevealFrame nav="dark" className="aspect-[4/5] w-full lg:col-span-4 lg:aspect-auto">
+              <Drift range={11}>
+                <Render
+                  id={imgC2}
+                  alt={`${title}, view two`}
+                  sizes="(min-width: 1024px) 60vw, 140vw"
+                />
+              </Drift>
+            </RevealFrame>
+          )}
+        </section>
+      )}
 
       {/* ── D · Panorama ─────────────────────────────────────────────────── */}
-      <section
-        data-scene="panorama"
-        data-nav="light"
-        aria-label={`${title}, panorama`}
-        className="relative flex h-[82svh] items-center lg:h-svh"
-      >
-        {imgD && (
-          <div
-            data-d-band
-            data-nav="dark"
-            className="relative h-[58svh] w-full overflow-hidden lg:h-[66svh]"
-          >
+      {imgD && (
+        <section aria-label={`${title}, panorama`}>
+          <RevealFrame nav="dark" className="h-[48svh] w-full lg:h-[72svh]">
             <div data-d-pan className="absolute inset-y-0 left-0 w-[128%]">
               <Render
                 id={imgD}
@@ -392,9 +302,9 @@ export default function ProjectScenes({ title, images, quote, features = [] }: P
                 sizes="(min-width: 1024px) 128vw, 200vw"
               />
             </div>
-          </div>
-        )}
-      </section>
+          </RevealFrame>
+        </section>
+      )}
     </div>
   );
 }

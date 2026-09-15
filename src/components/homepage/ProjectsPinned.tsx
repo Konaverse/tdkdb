@@ -7,6 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { getLenis } from '@/lib/animations/lenis';
+import { stripReveal } from '@/lib/animations/stripReveal';
 import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
 import { displayTitle, projectHref, STATUS_LABEL } from '@/lib/projects/display';
 import { useProjectTransition } from '@/components/transition/ProjectTransition';
@@ -60,11 +61,10 @@ import type { Project } from '@/lib/sanity/types';
      The snap now waits for input to stop and retargets Lenis instead, and
      never acts outside the pin, so nothing pulls a leaving reader back.
    · No anticipatePin: with Lenis it pins early and jumps.
-   · The frame entrance is a focus pull done by cross-fading out of a tiny,
-     Cloudinary-pre-blurred copy of each render. A CSS blur on a 900px
-     photograph is re-rasterised on every frame of the entrance (and GSAP
-     left `blur(0px)` behind, a permanent filter layer); an opacity fade is
-     composited for free.
+   · The frames enter with the site's one image entrance (stripReveal):
+     white strips wiping off left to right, top to bottom, while each render
+     settles on its own [data-settle] node. The strips are composited
+     transforms and are removed when they finish.
    · No ScrollTrigger.refresh() on image load: the frames are aspect-ratio
      boxes, so a decode cannot move layout, and a refresh mid-scroll is a
      jump in itself. All renders load eagerly so none decodes mid-travel.
@@ -77,8 +77,8 @@ import type { Project } from '@/lib/sanity/types';
      centring; it derives from the locked 3:2 ratio.
    · Names change by opacity + blur ONLY. No transforms, no slides.
    · The pan is written on [data-pan] (inner), the travel on [data-strip]
-     (outer); the entrance writes opacity on [data-frame] and [data-soft].
-     Never merge them.
+     (outer); the entrance writes scale on [data-settle] (between them) and
+     adds its strips inside [data-frame]. Never merge them.
    · The images carry 16% vertical overscan that the pan spends.
    · Snap is to whole projects.
    ─────────────────────────────────────────────────────────────────────────── */
@@ -143,7 +143,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
     const p = projects[j];
     const href = projectHref(locale, p.slug.current);
     const frame = rootRef.current?.querySelectorAll<HTMLElement>('[data-frame]')[j];
-    const image = frame?.querySelector<HTMLImageElement>('[data-pan] img:not([data-soft])');
+    const image = frame?.querySelector<HTMLImageElement>('[data-pan] img');
     const handled =
       !!frame &&
       !!image &&
@@ -163,7 +163,6 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
 
     const frames = gsap.utils.toArray<HTMLElement>('[data-frame]', scope);
     const pans = gsap.utils.toArray<HTMLElement>('[data-pan]', scope);
-    const softs = gsap.utils.toArray<HTMLElement>('[data-soft]', scope);
     const names = gsap.utils.toArray<HTMLElement>('[data-name]', scope);
     const indexBtns = gsap.utils.toArray<HTMLElement>('[data-index]', scope);
 
@@ -230,6 +229,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
     /* ──────────────────────────────────────────────────────── behaviours */
 
     let trigger: ScrollTrigger | null = null;
+    const reveals: { revert: () => void }[] = [];
 
     const scrollFor = (j: number) =>
       trigger ? trigger.start + (j / (N - 1)) * (trigger.end - trigger.start) : 0;
@@ -333,19 +333,19 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
         return;
       }
 
-      // Focus-pull entrance. The frames sharpen by cross-fading out of their
-      // pre-blurred copies (composited opacity, no live filter); the name
-      // block is small enough to take a real blur, cleared when it lands.
-      gsap.set(softs, { opacity: 1 });
+      // The frames: the site's image entrance, one after the other. The
+      // name block is small enough to take a real blur, cleared when it lands.
       const tl = gsap.timeline({
-        scrollTrigger: { trigger: scope, start: 'top 75%', once: true },
+        scrollTrigger: { trigger: scope, start: 'top 85%', once: true },
       });
-      tl.fromTo(
-        frames,
-        { autoAlpha: 0 },
-        { autoAlpha: 1, duration: 0.6, ease: 'power1.out', stagger: 0.12 },
-      );
-      tl.to(softs, { opacity: 0, duration: 1.3, ease: 'power2.inOut', stagger: 0.12 }, 0.2);
+      frames.forEach((frame, i) => {
+        const reveal = stripReveal(frame, {
+          scroll: false,
+          settle: frame.querySelector('[data-settle]'),
+        });
+        reveals.push(reveal);
+        tl.add(reveal.tl, i * 0.18);
+      });
       tl.from(
         '[data-name-wrap]',
         {
@@ -368,6 +368,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
 
     return () => {
       ctx.revert();
+      reveals.forEach((r) => r.revert());
       ro.disconnect();
       clearTimeout(resizeTimer);
       clearTimeout(snapTimer);
@@ -416,29 +417,16 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
                   className="block w-full cursor-pointer overflow-hidden"
                   style={{ aspectRatio: '3 / 2' }}
                 >
-                  <div data-pan className="relative h-full w-full will-change-transform">
-                    <img
-                      src={cloudinaryUrl(p.heroImageId, { width: 1600 })}
-                      alt={displayTitle(p)}
-                      loading="eager"
-                      decoding="async"
-                      className="h-[116%] w-full -translate-y-[7%] object-cover"
-                    />
-                    {/* The out-of-focus copy the entrance sharpens out of. */}
-                    <img
-                      data-soft
-                      src={cloudinaryUrl(p.heroImageId, {
-                        width: 320,
-                        quality: 50,
-                        effects: ['e_blur:400'],
-                      })}
-                      alt=""
-                      aria-hidden="true"
-                      loading="eager"
-                      decoding="async"
-                      className="pointer-events-none absolute left-0 top-0 h-[116%] w-full -translate-y-[7%] object-cover"
-                      style={{ opacity: 0 }}
-                    />
+                  <div data-settle className="h-full w-full">
+                    <div data-pan className="relative h-full w-full will-change-transform">
+                      <img
+                        src={cloudinaryUrl(p.heroImageId, { width: 1600 })}
+                        alt={displayTitle(p)}
+                        loading="eager"
+                        decoding="async"
+                        className="h-[116%] w-full -translate-y-[7%] object-cover"
+                      />
+                    </div>
                   </div>
                 </Link>
               ))}

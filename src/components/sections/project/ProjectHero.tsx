@@ -183,7 +183,7 @@ export default function ProjectHero({ project }: ProjectHeroProps) {
         }}
       />
 
-      <div className="absolute inset-x-0 bottom-0 px-[max(16px,2vw)] pb-[max(28px,5.5svh)]">
+      <div className="absolute inset-x-0 bottom-0 px-page pb-[max(28px,5.5svh)]">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
             <div data-status className="mb-5 flex items-center gap-3 lg:mb-7">

@@ -112,6 +112,15 @@
     --section-padding: clamp(80px, 10vw, 160px);
     --content-max: 1440px;
     --text-max: 680px;
+
+    /* Page grid — the one horizontal system. Every section's side margin is
+       --page-margin (the navbar's and the hero's left edge); columns are
+       12 with --page-gutter between. The gutter equals the margin, and
+       stacked image spreads are separated by the same amount, so the white
+       around every picture is one measure. Tailwind: px-page, gap-page,
+       gap-x-gutter, -mx-page (defined in the utilities layer below). */
+    --page-margin: max(16px, 2vw);
+    --page-gutter: var(--page-margin);
   }
 
   /* ─── Root Element ─── */
@@ -236,6 +245,38 @@
     font-size: 13px;
     font-weight: 400;
     line-height: 1.4;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UTILITIES LAYER — Page grid
+   The margin and gutter of every section, from --page-margin/--page-gutter.
+   Defined here rather than in tailwind.config so the system lives in one
+   file; utilities in this layer take responsive variants (lg:gap-x-gutter).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  .px-page {
+    padding-left: var(--page-margin);
+    padding-right: var(--page-margin);
+  }
+
+  .py-page {
+    padding-top: var(--page-margin);
+    padding-bottom: var(--page-margin);
+  }
+
+  .gap-page {
+    gap: var(--page-margin);
+  }
+
+  .gap-x-gutter {
+    column-gap: var(--page-gutter);
+  }
+
+  .-mx-page {
+    margin-left: calc(var(--page-margin) * -1);
+    margin-right: calc(var(--page-margin) * -1);
   }
 }
 
