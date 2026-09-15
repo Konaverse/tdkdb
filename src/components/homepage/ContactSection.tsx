@@ -61,12 +61,16 @@ interface ContactSectionProps {
   settings: SiteSettings | null;
 }
 
-/** "Nafpliou 1, Lakatameia, Nicosia, Cyprus" → one line per part. */
+/** "Nafpliou 1, Lakatameia, Nicosia, Cyprus" → two lines: "Nafpliou 1,
+    Lakatameia" and "Nicosia, Cyprus". Four one-word lines cost too much height
+    in a two-column phone grid. */
 function addressLines(address?: string): string[] {
-  return (address ?? '')
+  const parts = (address ?? '')
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
+  const half = Math.ceil(parts.length / 2);
+  return [parts.slice(0, half), parts.slice(half)].filter((p) => p.length).map((p) => p.join(', '));
 }
 
 export default function ContactSection({ settings }: ContactSectionProps) {
@@ -164,7 +168,7 @@ export default function ContactSection({ settings }: ContactSectionProps) {
     };
   }, []);
 
-  const label = 'mb-4 text-[clamp(12px,0.82vw,14px)] font-[400] tracking-[0.02em]';
+  const label = 'mb-2.5 lg:mb-4 text-[clamp(12px,0.82vw,14px)] font-[400] tracking-[0.02em]';
   const value = 'text-[clamp(14px,1vw,17px)] font-[400] leading-[1.45]';
   const link =
     'bg-[linear-gradient(currentColor,currentColor)] bg-[length:0%_1px] bg-left-bottom bg-no-repeat transition-[background-size] duration-500 ease-smooth hover:bg-[length:100%_1px]';
@@ -180,7 +184,7 @@ export default function ContactSection({ settings }: ContactSectionProps) {
     >
       <div className="grid min-h-svh grid-cols-1 lg:grid-cols-[1fr_29vw]">
         {/* ── Left: heading, intro, details ── */}
-        <div className="flex flex-col px-5 pb-16 pt-28 sm:px-8 lg:pb-[11svh] lg:pl-[8.2vw] lg:pr-[4vw] lg:pt-[19svh]">
+        <div className="flex flex-col px-5 pb-12 pt-28 sm:px-8 lg:pb-[11svh] lg:pl-[8.2vw] lg:pr-[4vw] lg:pt-[19svh]">
           <h2
             id="contact-heading"
             aria-label="Contact"
@@ -199,7 +203,7 @@ export default function ContactSection({ settings }: ContactSectionProps) {
             ))}
           </h2>
 
-          <div className="mt-14 grid gap-14 lg:mt-[14svh] lg:grid-cols-[minmax(0,19vw)_minmax(0,1fr)] lg:gap-[8vw]">
+          <div className="mt-10 grid gap-10 lg:mt-[14svh] lg:grid-cols-[minmax(0,19vw)_minmax(0,1fr)] lg:gap-[8vw]">
             {/* Intro and the one link to the form */}
             <div>
               <p
@@ -226,7 +230,7 @@ export default function ContactSection({ settings }: ContactSectionProps) {
             </div>
 
             {/* The details */}
-            <div className="grid grid-cols-1 gap-x-[4vw] gap-y-12 sm:grid-cols-2 lg:gap-y-[7svh]">
+            <div className="grid grid-cols-2 gap-x-5 gap-y-8 sm:gap-x-[4vw] sm:gap-y-12 lg:gap-y-[7svh]">
               <Cell labelClass={label} title="New residences">
                 <div data-lines className={value}>
                   Almond Suites, Strovolos
@@ -295,7 +299,7 @@ export default function ContactSection({ settings }: ContactSectionProps) {
         {/* ── Right: the photograph, full height ── */}
         <div
           data-nav="dark"
-          className="relative aspect-[4/5] w-full overflow-hidden lg:aspect-auto"
+          className="relative aspect-[3/2] w-full overflow-hidden sm:aspect-[4/3] lg:aspect-auto"
         >
           <div data-plate className="absolute inset-0 overflow-hidden">
             <div data-settle className="absolute inset-0 will-change-transform">
@@ -325,7 +329,7 @@ function Cell({
   children: React.ReactNode;
 }) {
   return (
-    <div data-cell className="relative pt-5">
+    <div data-cell className="relative min-w-0 pt-4 lg:pt-5">
       <span
         data-rule
         aria-hidden="true"
