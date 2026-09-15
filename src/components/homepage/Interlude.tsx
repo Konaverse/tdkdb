@@ -62,12 +62,22 @@ import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
    function values. The heading, the paragraph and the wordmark are placed
    from the same variables, so the composition cannot drift apart.
 
+   BELOW lg there is no pin and no state B: the render is a sticky backdrop
+   and the three beats stack vertically over it, each revealed once as it
+   arrives. build() picks the version from DESKTOP_QUERY and is re-run when
+   the width changes, so crossing the breakpoint swaps them cleanly.
+
    Everything is built after the fonts land (SplitText needs final line
    breaks) and rebuilt when the width changes. Pixel twins are pinned on
    every percentage transform because of invalidateOnRefresh (pitfall #3).
    ─────────────────────────────────────────────────────────────────────────── */
 
 const IMAGE_ID = 'clients/tdkdb/armonia/interior/3';
+
+/** The pinned, two-state interlude runs from lg up. Below it (phones and
+    portrait tablets) scrolling vertically to move content sideways reads
+    badly, so the section is a plain vertical stack of the first state. */
+const DESKTOP_QUERY = '(min-width: 1024px)';
 
 const TEAL = 'var(--color-threshold, #66979f)';
 const INK = '#111111';
@@ -139,9 +149,40 @@ export default function Interlude() {
     let entered = false;
     let alive = true;
 
+    /* ── below lg: no pin, no second state. Each beat reveals once as it
+       arrives: title words slide into their masks, lines are written on. ── */
+    const buildMobile = () => {
+      if (reduced) return;
+      gsap.utils.toArray<HTMLElement>('[data-m-beat]', scope).forEach((beat) => {
+        const words = beat.querySelectorAll('[data-m-word]');
+        const masks = Array.from(beat.querySelectorAll<HTMLElement>('[data-m-copy]')).flatMap(
+          (p) => {
+            const s = SplitText.create(p, { type: 'lines', mask: 'lines' });
+            gsap.set(s.masks, { width: 'fit-content', marginRight: 'auto' });
+            return s.masks as HTMLElement[];
+          },
+        );
+        gsap.set(words, { xPercent: -104, x: 0 });
+        gsap.set(masks, { clipPath: LINE_BEFORE });
+        gsap
+          .timeline({ scrollTrigger: { trigger: beat, start: 'top 82%', once: true } })
+          .to(words, { xPercent: 0, x: 0, duration: 1.25, ease: 'power4.out', stagger: 0.1 })
+          .to(
+            masks,
+            { clipPath: LINE_ON, duration: 0.8, ease: 'power2.inOut', stagger: 0.1 },
+            0.35,
+          );
+      });
+    };
+
     const build = () => {
       ctx?.revert();
+      const desktop = window.matchMedia(DESKTOP_QUERY).matches;
       ctx = gsap.context(() => {
+        if (!desktop) {
+          buildMobile();
+          return;
+        }
         const q = gsap.utils.selector(scope);
         const one = (sel: string) => q(sel)[0] as HTMLElement;
         const shrink = one('[data-shrink]');
@@ -499,9 +540,62 @@ export default function Interlude() {
       className="relative w-full"
       style={{ background: '#ffffff', color: INK, fontFamily: 'var(--font-josefin)' }}
     >
+      {/* ── Below lg: the render as a sticky backdrop, the beats stacked over
+          it and scrolling normally. No pin, no sideways travel, no state B. ── */}
+      <div
+        data-nav="dark"
+        className="relative text-white lg:hidden"
+        style={{ background: '#0d0d0d' }}
+      >
+        <div aria-hidden="true" className="sticky top-0 -mb-[100svh] h-svh w-full overflow-hidden">
+          <img
+            src={cloudinaryUrl(IMAGE_ID, { width: 1400 })}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0" style={{ background: 'rgba(0, 0, 0, 0.58)' }} />
+        </div>
+
+        <div className="relative px-5 pb-[30svh] pt-[30svh] sm:px-8">
+          {BEATS.map((b, i) => (
+            <article key={b.title} data-m-beat className={i > 0 ? 'mt-[40svh]' : ''}>
+              <h3 className="text-[clamp(34px,9vw,56px)] font-[300] leading-[1.08] tracking-[0.01em]">
+                {b.title.split(' ').map((w, k) => (
+                  <span key={k}>
+                    {k > 0 && ' '}
+                    <span className="-mb-[0.15em] inline-block overflow-hidden pb-[0.15em] align-top">
+                      <span data-m-word className="inline-block will-change-transform">
+                        {w}
+                      </span>
+                    </span>
+                  </span>
+                ))}
+              </h3>
+              <p
+                data-m-copy
+                className="mt-6 max-w-[36ch] text-[16px] font-[300] leading-[1.5]"
+                style={{ color: 'rgba(255, 255, 255, 0.88)' }}
+              >
+                {b.lead}
+              </p>
+              <p
+                data-m-copy
+                className="mt-4 max-w-[36ch] text-[16px] font-[300] leading-[1.5]"
+                style={{ color: 'rgba(255, 255, 255, 0.62)' }}
+              >
+                {b.aside}
+              </p>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      {/* ── lg and up: the pinned two-state interlude ── */}
       <div
         ref={pinRef}
-        className="relative h-svh w-full overflow-hidden [--fh:calc(var(--fw)*1.05)] [--fw:84vw] [--fy:2svh] lg:[--fh:calc(var(--fw)*9/16)] lg:[--fw:39.5vw] lg:[--fy:4svh]"
+        className="relative hidden h-svh w-full overflow-hidden [--fh:calc(var(--fw)*1.05)] [--fw:84vw] [--fy:2svh] lg:block lg:[--fh:calc(var(--fw)*9/16)] lg:[--fw:39.5vw] lg:[--fy:4svh]"
       >
         {/* ── State B, behind: the wordmark ── */}
         <div

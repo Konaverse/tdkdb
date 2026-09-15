@@ -63,7 +63,9 @@ WHITE ground with the teal accent.
 `ProjectsPinned` scrolls under Lenis, so it uses `scrub: true` and snaps by retargeting Lenis
 once input stops — never ScrollTrigger's own `snap`, which fights Lenis at the pin's ends.
 
-`Interlude.tsx` — one pinned, scrubbed timeline whose pin is exactly its duration in viewport
+`Interlude.tsx` — BELOW lg (1024px) it is NOT pinned and has no second state: the render is a
+sticky backdrop and the three beats stack vertically over it, revealed once each (the user
+rejected vertical-scroll-drives-horizontal on mobile). From lg up: one pinned, scrubbed timeline whose pin is exactly its duration in viewport
 heights (~7.3). Entrance, once on arrival: title words slide sideways into masks and the first
 beat's lines wipe on (the hero's reveals, on their own nodes). Beats: the title row glides with a
 long power3.inOut, the incoming title trailing and settling; paragraph lines are wiped off and
