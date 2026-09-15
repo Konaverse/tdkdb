@@ -24,8 +24,9 @@ import type { SiteSettings } from '@/lib/sanity/types';
    takes six columns, a column is left empty, then Index, Studio and the
    socials. Below a hairline, the email sits under the lead and the legal line
    answers it at the far right. Margins are the hero's and the navbar's (2vw
-   left, 1.35vw right). The footer is only as tall as that content, and the
-   wordmark sinks 0.26em past its bottom edge.
+   left, 1.35vw right). The footer is a full viewport; the container keeps a
+   compact height at the top, the room shows through below it, and the
+   wordmark sits on the floor, sunk 0.26em past the bottom edge.
 
    THE REVEAL — the page lifts off the footer
    The footer keeps its place in the flow, so nothing about page height or
@@ -288,10 +289,14 @@ export default function FooterClient({ settings }: Props) {
     <footer
       data-nav="dark"
       ref={footerRef}
-      className="relative overflow-hidden [--wm:8vw]"
+      className="relative overflow-hidden [--wm:8vw] lg:h-[max(100svh,720px)]"
       style={{ background: '#0b0b0b', color: PAPER, fontFamily: 'var(--font-josefin)' }}
     >
-      <div ref={driftRef} data-drift className="relative will-change-transform">
+      <div
+        ref={driftRef}
+        data-drift
+        className="relative flex flex-col will-change-transform lg:h-full"
+      >
         {/* ── The room ── */}
         <img
           src={BACKDROP}
@@ -311,7 +316,7 @@ export default function FooterClient({ settings }: Props) {
         />
 
         {/* ── The glass: everything above the wordmark, in one container ── */}
-        <div className="relative z-10 pl-[max(16px,2vw)] pr-[max(16px,1.35vw)] pt-[max(80px,9svh)]">
+        <div className="relative z-10 pl-[max(16px,2vw)] pr-[max(16px,1.35vw)] pt-[max(104px,13svh)]">
           <div data-panel className="relative">
             {/* Drawn first, along the top edge; the glass fades up under it. */}
             <span
@@ -487,7 +492,7 @@ export default function FooterClient({ settings }: Props) {
             fit() to span the margins, sunk so the bottom edge cuts it. ── */}
         <div
           aria-hidden="true"
-          className="pointer-events-none relative z-0 mt-[5svh] select-none pl-[max(16px,2vw)] pr-[max(16px,1.35vw)] font-[600] uppercase leading-none"
+          className="pointer-events-none relative z-0 mt-[5svh] select-none pl-[max(16px,2vw)] pr-[max(16px,1.35vw)] font-[600] uppercase leading-none lg:mt-auto"
           style={{ fontSize: 'var(--wm)', marginBottom: `-${WORDMARK_SINK}em` }}
         >
           <div data-wm className="w-max whitespace-nowrap tracking-[-0.045em]">
