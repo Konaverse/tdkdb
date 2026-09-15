@@ -56,8 +56,8 @@ two Sanity queries and composes, in order: `HomeLoader` (first-load intro) → `
 `ProjectsPinned` → `AboutGrid` → `Interlude` → `ContactSection`.
 The Sept 2026 restructure (boards in `homepage_redesign.zip` at the repo root) has replaced
 the hero, the projects section, the interlude and contact, and repainted About light (same
-grid and motion, teal stat cells); the footer is next (the old dark `FeaturedResidence` spotlight was
-removed at the user's request), and everything after the hero is on a
+grid and motion, teal stat cells), and replaced the site-wide footer (the old dark
+`FeaturedResidence` spotlight was removed at the user's request), and everything after the hero is on a
 WHITE ground with the teal accent.
 
 `ProjectsPinned` scrolls under Lenis, so it uses `scrub: true` and snaps by retargeting Lenis
@@ -78,6 +78,15 @@ explicitly here, the hero stays parallax-free. Scrub is `true` (never numeric un
 sliding into masks), an intro with one "Write to us" link to /en/contact, a drawn 2×2 grid of
 details from Sanity siteSettings (email, phone, address, socials; never hardcode them), and a
 full-height render (armonia/interior/6) on the right. Entrance only, once; nothing on scroll.
+
+`FooterClient.tsx` (site-wide, every page) — the room behind the page. It stays in the flow;
+its contents ([data-drift]) start 42% up behind its own top edge and scrub to 0, so the section
+above leaves at full speed and the footer is uncovered moving slower, a veil lifting off it.
+Dimmed armonia/interior/2 full bleed, "Stay in contact" top left, a frosted panel anchored low
+on the 47vw line, and a wordmark: "TDK DESIGN" cut through its lower half, "& BUILD" stepped
+onto the panel line. The letters and the panel are painted with aligned copies of the render
+(brightened for the letters, Cloudinary-blurred for the glass) by paint(): NEVER backdrop-filter
+or a clip-path wipe there, both re-rasterise on every frame of the reveal. Data from siteSettings.
 
 `Hero.tsx` — "TDK" behind the building. Two supplied plates, identical 1512 × 1300 frames
 (`public/hero/hero-back.webp`, the street with the building removed; `hero-front.webp`, the
