@@ -183,10 +183,14 @@ export default function ContactSection({ settings }: ContactSectionProps) {
           <h2
             id="contact-heading"
             aria-label="Contact"
-            className="whitespace-nowrap text-[clamp(56px,7.4vw,150px)] font-[300] leading-[0.9] tracking-[0.06em]"
+            className="-mt-[0.2em] whitespace-nowrap text-[clamp(56px,7.4vw,150px)] font-[300] leading-[0.9] tracking-[0.06em]"
           >
             {HEADING.split('').map((ch, i) => (
-              <span key={i} aria-hidden="true" className="inline-block overflow-hidden align-top">
+              <span
+                key={i}
+                aria-hidden="true"
+                className="inline-block overflow-hidden pb-[0.06em] pt-[0.2em] align-top"
+              >
                 <span data-letter className="inline-block will-change-transform">
                   {ch}
                 </span>

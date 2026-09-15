@@ -18,7 +18,8 @@ import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
 
    State B: when the beats are spent, the render shrinks to a centred frame on
    white, the camera pulling back as it goes, and uncovers a giant teal
-   "TDK DESIGN" whose letters draw together behind it. "We House / Your Dream"
+   "TDK DESIGN & BUILD", wider than the screen, drifting from one edge to the
+   other and back on its own. "We House / Your Dream"
    slides in over the frame's top edge and its paragraph is written on below.
 
    THE MOTION, AND WHY
@@ -34,7 +35,11 @@ import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
      direction, starting as the last outgoing line clears. One continuous
      sweep of the pen, never a cross-fade of two blocks.
    · Shrink (scrubbed): scale + clip to the frame, a slow zoom-out inside it,
-     the dim lifting, the wordmark's letters converging on the frame.
+     the dim lifting.
+   · Wordmark (time-based, not scroll): at the board's size, reading
+     "TDK DESIGN & BUILD", it glides on its own from its first letter on the
+     left edge to its last letter on the right edge and back, forever, and
+     only runs while the section is on screen.
    · Parallax: the photograph drifts on its own node and trigger throughout.
 
    THE LAYERS (one node, one writer per property — gsap-transform-pitfalls)
@@ -47,7 +52,8 @@ import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
        [data-word]       xPercent      entrance
      line mask (SplitText) clip-path   entrance (first beat only)
        line              clip-path     timeline
-     [data-wm-letter]    x             timeline
+     [data-wordmark]     x             its own endless tween (the wrapper owns the
+                                       vertical centring translate)
      [data-dream-line]   xPercent      timeline
 
    GEOMETRY
@@ -94,7 +100,7 @@ const DREAM = ['We House', 'Your Dream'];
 const DREAM_COPY =
   'From the first sketch to the handed keys, one team designs and builds your home, so the residence you imagined is the one you move into.';
 
-const WORDMARK = 'TDK DESIGN';
+const WORDMARK = 'TDK DESIGN & BUILD';
 
 /* Title strengths. */
 const WAITING = 0.38;
@@ -110,6 +116,8 @@ const GLIDE = 1.3;
 const HOLD = 0.5;
 const SHRINK = 1.6;
 const HOLD_LAST = 0.55;
+/** Seconds for one edge-to-edge pass of the wordmark. */
+const WORDMARK_GLIDE = 18;
 
 /* Line clip states. */
 const LINE_ON = 'inset(0% 0% 0% 0%)';
@@ -145,7 +153,7 @@ export default function Interlude() {
         const target = one('[data-frame-target]');
         const titles = q('[data-title]') as HTMLElement[];
         const words = q('[data-word]') as HTMLElement[];
-        const letters = q('[data-wm-letter]') as HTMLElement[];
+        const wordmark = one('[data-wordmark]');
         const dreamLines = q('[data-dream-line]') as HTMLElement[];
 
         /* ── split the copy into lines, each in its own mask ── */
@@ -366,15 +374,6 @@ export default function Interlude() {
           shrinkAt,
         );
 
-        // The wordmark's letters draw together on the frame.
-        const mid = (letters.length - 1) / 2;
-        tl.fromTo(
-          letters,
-          { x: (i: number) => (i - mid) * vw() * 0.017 },
-          { x: 0, duration: SHRINK * 0.95, ease: 'power2.out' },
-          shrinkAt + SHRINK * 0.15,
-        );
-
         // "We House / Your Dream" slides in; its paragraph is written on.
         const dreamAt = shrinkAt + SHRINK * 0.62;
         tl.fromTo(
@@ -420,6 +419,37 @@ export default function Interlude() {
               },
             },
           );
+        }
+
+        /* ── the wordmark: its own clock, not the scroll ──
+           A slow glide from the first letter on the left edge to the last
+           letter on the right edge, and back, forever. It runs only while the
+           section is on screen. */
+        if (!reduced) {
+          // The last letter carries trailing tracking; it is not ink.
+          const travel = () => {
+            const trailing = parseFloat(getComputedStyle(wordmark).fontSize) * 0.04;
+            return Math.max(0, wordmark.scrollWidth - trailing - vw() * (1 - 2 * 0.009));
+          };
+          const drift = gsap.fromTo(
+            wordmark,
+            { x: 0, xPercent: 0 },
+            {
+              x: () => -travel(),
+              xPercent: 0,
+              duration: WORDMARK_GLIDE,
+              ease: 'sine.inOut',
+              repeat: -1,
+              yoyo: true,
+              paused: true,
+            },
+          );
+          ScrollTrigger.create({
+            trigger: scope,
+            start: 'top bottom',
+            end: 'bottom top',
+            onToggle: (self) => (self.isActive ? drift.play() : drift.pause()),
+          });
         }
 
         if (process.env.NODE_ENV !== 'production') {
@@ -475,7 +505,7 @@ export default function Interlude() {
         {/* ── State B, behind: the wordmark ── */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 flex -translate-y-1/2 select-none justify-between px-[0.9vw] font-[300] uppercase leading-none"
+          className="pointer-events-none absolute inset-x-0 -translate-y-1/2 select-none px-[0.9vw] font-[300] uppercase leading-none"
           style={{
             color: TEAL,
             fontSize: '15.5vw',
@@ -483,16 +513,12 @@ export default function Interlude() {
             marginTop: '2.3vw',
           }}
         >
-          {WORDMARK.split('').map((ch, i) => (
-            <span
-              key={i}
-              data-wm-letter
-              className="block"
-              style={ch === ' ' ? { width: '0.2em' } : undefined}
-            >
-              {ch === ' ' ? ' ' : ch}
-            </span>
-          ))}
+          <div
+            data-wordmark
+            className="w-max whitespace-nowrap tracking-[0.04em] will-change-transform"
+          >
+            {WORDMARK}
+          </div>
         </div>
 
         {/* The frame the render shrinks to. Invisible; measured. */}

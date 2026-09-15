@@ -1,15 +1,10 @@
 import AboutGrid from '@/components/homepage/AboutGrid';
 import ProjectsPinned from '@/components/homepage/ProjectsPinned';
 import Interlude from '@/components/homepage/Interlude';
-import FeaturedResidence from '@/components/homepage/FeaturedResidence';
 import ContactSection from '@/components/homepage/ContactSection';
 import HomeLoader from '@/components/homepage/HomeLoader';
 import Hero from '@/components/homepage/Hero';
-import {
-  getProjectsForHomepageReel,
-  getFeaturedResidence,
-  getSiteSettings,
-} from '@/lib/sanity/queries';
+import { getProjectsForHomepageReel, getSiteSettings } from '@/lib/sanity/queries';
 
 const HERO_PARAGRAPHS: [string, string] = [
   'TDK is a design-and-build studio in Nicosia. The architects who draw a residence are the same people who build it and hand over the keys — one team, accountable from the first sketch to the last fitting.',
@@ -17,11 +12,7 @@ const HERO_PARAGRAPHS: [string, string] = [
 ];
 
 export default async function HomePage() {
-  const [projects, featured, settings] = await Promise.all([
-    getProjectsForHomepageReel(),
-    getFeaturedResidence(),
-    getSiteSettings(),
-  ]);
+  const [projects, settings] = await Promise.all([getProjectsForHomepageReel(), getSiteSettings()]);
 
   return (
     <main className="relative">
@@ -39,11 +30,6 @@ export default async function HomePage() {
       {/* Interlude — pinned: three beats over the kitchen, then the render
           shrinks to a frame under "We House Your Dream". */}
       <Interlude />
-
-      {/* Remaining scenes. */}
-      <div className="relative z-[60] bg-void">
-        {featured && <FeaturedResidence project={featured} />}
-      </div>
 
       {/* Contact — the board's layout: CONTACT, intro, details, tall render. */}
       <ContactSection settings={settings} />

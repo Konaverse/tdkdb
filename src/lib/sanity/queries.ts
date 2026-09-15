@@ -35,27 +35,6 @@ export async function getProjectsForHomepageReel(): Promise<Project[]> {
   }
 }
 
-export async function getFeaturedResidence(): Promise<Project | null> {
-  // The homepage spotlight features the active sales project — i.e. the one
-  // taking interest registrations (currently Almond). Latest such project wins.
-  const query = `*[_type == 'project' && ctaType == 'register-interest'] | order(year desc) [0] {
-    _id, title, slug, status, type, ctaType, location, year, heroImageId,
-    homepageIntro, pullQuote, features,
-    homepageGridImageId, homepagePortraitImageId,
-    progressPercent, progressLabel,
-    unitsHeading, unitsNote,
-    units[] { floor, unitType, sizeM2, status }
-  }`;
-
-  try {
-    const data = await client.fetch<Project | null>(query);
-    return data || null;
-  } catch (error) {
-    console.error('Error fetching featured residence:', error);
-    return null;
-  }
-}
-
 export async function getProjectBySlug(slug: string): Promise<Project | null> {
   const query = `*[_type == 'project' && slug.current == $slug][0] {
     _id, title, slug, status, type, ctaType, location, year,

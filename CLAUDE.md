@@ -52,12 +52,12 @@ All CMS images are **Cloudinary public IDs stored as strings in Sanity** — not
 ### Homepage
 
 The homepage (`src/app/[locale]/(site)/page.tsx`) is a small server component that fetches
-three Sanity queries and composes, in order: `HomeLoader` (first-load intro) → `Hero` →
-`ProjectsPinned` → `AboutGrid` → `Interlude` → `FeaturedResidence` → `ContactSection`.
+two Sanity queries and composes, in order: `HomeLoader` (first-load intro) → `Hero` →
+`ProjectsPinned` → `AboutGrid` → `Interlude` → `ContactSection`.
 The Sept 2026 restructure (boards in `homepage_redesign.zip` at the repo root) has replaced
 the hero, the projects section, the interlude and contact, and repainted About light (same
-grid and motion, teal stat cells); the footer is next (`FeaturedResidence` is still the old dark
-section and appears on no board), and everything after the hero is on a
+grid and motion, teal stat cells); the footer is next (the old dark `FeaturedResidence` spotlight was
+removed at the user's request), and everything after the hero is on a
 WHITE ground with the teal accent.
 
 `ProjectsPinned` scrolls under Lenis, so it uses `scrub: true` and snaps by retargeting Lenis
@@ -68,8 +68,9 @@ heights (~7.3). Entrance, once on arrival: title words slide sideways into masks
 beat's lines wipe on (the hero's reveals, on their own nodes). Beats: the title row glides with a
 long power3.inOut, the incoming title trailing and settling; paragraph lines are wiped off and
 written on left to right (SplitText lines in masks, rebuilt on width change). Then the render
-shrinks (scale + clip, camera pulling back inside) to a frame over a teal "TDK DESIGN" whose
-letters converge, and "We House / Your Dream" slides in, allowed to overlap the frame's top
+shrinks (scale + clip, camera pulling back inside) to a frame over a teal "TDK DESIGN & BUILD" that
+drifts edge to edge on its own endless, time-based tween (NOT scroll-driven, at the user's
+request; paused off screen), and "We House / Your Dream" slides in, allowed to overlap the frame's top
 edge so it never clips. The photograph has its own parallax trigger; the user asked for it
 explicitly here, the hero stays parallax-free. Scrub is `true` (never numeric under Lenis).
 
