@@ -313,6 +313,7 @@ export default function Hero({
 
   return (
     <section
+      data-nav="dark"
       ref={sectionRef}
       className="relative w-full overflow-hidden"
       style={{ backgroundColor: '#0e141c' }}

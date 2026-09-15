@@ -15,14 +15,23 @@ import type { SiteSettings } from '@/lib/sanity/types';
    Navbar — logo, and a small cluster: Contact | EN · EL | burger
 
    THE BAR
-   Transparent, mix-blend-mode: difference, so the paper-white marks read
-   black on the white sections and white on the renders without any scroll
-   logic. Thin hairlines separate the three controls on the right.
+   Transparent, and only ever pure black or pure white. A difference blend was
+   tried first and dropped: over a photograph it inverts the colours (the
+   blue hero sky turned the marks orange). Instead each homepage section, and
+   each dark region inside one, declares data-nav="light" | "dark"; the logo
+   and the right-hand cluster each read what lies under them a few times a
+   second and switch, independently, via --nav-ink / --nav-ground. The
+   Contact button is filled with the ink: black with white type on light
+   ground, white with black type on dark.
+   Side margins follow the hero: 2vw left (the socials and paragraphs), 1.35vw
+   right (the right-hand paragraph); the logo file carries 15.5% of empty
+   space on its left, taken back with a negative margin. Thin hairlines
+   separate the three controls on the right.
 
    THE MENU
-   A compact dark-glass panel pinned to the top-right corner. It opens FROM
-   the burger: its clip-path starts as the icon's own box and grows out to
-   the panel, while the two burger lines turn into an X. The panel sits under
+   A compact white panel pinned to the top-right corner. That corner is
+   locked: the clip-path unfolds from it, down and to the left, while the two
+   burger lines turn into an X. The panel sits under
    the bar in z-order, so the X stays on top of it; Contact and the language
    switcher step back while it is open.
 
@@ -31,8 +40,8 @@ import type { SiteSettings } from '@/lib/sanity/types';
    draws, then the contact details and socials. Closing plays the same
    timeline backwards, faster.
 
-   One timeline, built once. It is invalidated before each fresh open so the
-   icon-sized starting clip is measured at that moment.
+   One timeline, built once. The page you are on is set in teal; the others
+   are ink and take the teal on hover.
 
    A11y: the burger is a real toggle (aria-expanded, aria-controls); the panel
    is a dialog; Escape, a click outside and navigation all close it; focus
@@ -50,11 +59,27 @@ const PAGES = [
   { label: 'Contact', path: 'contact' },
 ];
 
-const PAPER = '#f4f2ee';
-const PAPER_SOFT = 'rgba(244, 242, 238, 0.74)';
-const PAPER_FAINT = 'rgba(244, 242, 238, 0.5)';
-const HAIRLINE = 'rgba(244, 242, 238, 0.16)';
+/* The menu is white, always: ink type, hairlines, one teal page. */
+const INK = '#111111';
+const INK_SOFT = 'rgba(17, 17, 17, 0.72)';
+const INK_FAINT = 'rgba(17, 17, 17, 0.48)';
+const HAIRLINE = 'rgba(17, 17, 17, 0.12)';
 const TEAL = 'var(--color-threshold, #66979f)';
+
+type Theme = 'light' | 'dark';
+
+/** The bar's two states: marks in pure black on light ground, pure white on
+    dark. --nav-ground is the opposite colour, for the filled button's type. */
+const DARK_VARS = {
+  '--nav-ink': '#ffffff',
+  '--nav-ground': '#000000',
+  '--nav-logo': 'brightness(0) invert(1)',
+} as React.CSSProperties;
+const LIGHT_VARS = {
+  '--nav-ink': '#000000',
+  '--nav-ground': '#ffffff',
+  '--nav-logo': 'brightness(0)',
+} as React.CSSProperties;
 
 interface Props {
   settings: SiteSettings | null;
@@ -91,6 +116,9 @@ export default function NavbarClient({ settings }: Props) {
   const tlRef = useRef<gsap.core.Timeline | null>(null);
   const navFirstRunRef = useRef(true);
   const wasOpenRef = useRef(false);
+  const leftRef = useRef<HTMLAnchorElement>(null);
+  const rightRef = useRef<HTMLDivElement>(null);
+  const openRef = useRef(false);
 
   const email = settings?.email;
   const phone = settings?.phone;
@@ -144,18 +172,6 @@ export default function NavbarClient({ settings }: Props) {
       const pageReveals = q('[data-page] [data-reveal]');
       const detailReveals = reveals.filter((el) => !pageReveals.includes(el));
 
-      /** The burger's box, as an inset of the panel. */
-      const iconInset = () => {
-        const p = panel.getBoundingClientRect();
-        const b = burger.getBoundingClientRect();
-        const pad = 6;
-        const t = Math.max(0, b.top - p.top - pad);
-        const r = Math.max(0, p.right - b.right - pad);
-        const btm = Math.max(0, p.bottom - b.bottom - pad);
-        const l = Math.max(0, b.left - p.left - pad);
-        return `inset(${t}px ${r}px ${btm}px ${l}px)`;
-      };
-
       gsap.set(panel, { autoAlpha: 0 });
       gsap.set(reveals, { xPercent: -104, x: 0 });
       gsap.set(rules, { scaleX: 0 });
@@ -170,11 +186,12 @@ export default function NavbarClient({ settings }: Props) {
 
       tl.set(panel, { autoAlpha: 1 }, 0);
 
-      // The panel grows out of the icon.
+      // The top-right corner stays put; the panel unfolds from it, down and
+      // to the left.
       tl.fromTo(
         panel,
-        { clipPath: iconInset },
-        { clipPath: 'inset(0px 0px 0px 0px)', duration: reduced ? 0.01 : 0.8 },
+        { clipPath: 'inset(0% 0% 100% 100%)' },
+        { clipPath: 'inset(0% 0% 0% 0%)', duration: reduced ? 0.01 : 0.85 },
         0,
       );
 
@@ -211,8 +228,6 @@ export default function NavbarClient({ settings }: Props) {
     if (!tl) return;
 
     if (open) {
-      // A fresh open re-measures the icon-sized starting clip.
-      if (tl.progress() === 0) tl.invalidate();
       tl.timeScale(1).play();
       getLenis()?.stop();
       wasOpenRef.current = true;
@@ -226,6 +241,56 @@ export default function NavbarClient({ settings }: Props) {
       burgerRef.current?.focus({ preventScroll: true });
       wasOpenRef.current = false;
     }
+  }, [open]);
+
+  /* ── black or white, from what is underneath ──
+     Each homepage section declares data-nav="light" | "dark", and so does any
+     dark region inside a light section (the interlude's render, the contact
+     photograph). A few times a second the logo and the right-hand cluster
+     each look straight down: the last declared element in document order
+     whose box contains their point wins, so nested regions beat their
+     section. Anything undeclared (the interior pages) counts as dark. While
+     the menu is open the cluster sits on the white panel, so it is black. */
+  useEffect(() => {
+    const left = leftRef.current;
+    const right = rightRef.current;
+    if (!left || !right) return;
+
+    const themeAt = (x: number, y: number): Theme => {
+      let theme: Theme = 'dark';
+      document.querySelectorAll<HTMLElement>('[data-nav]').forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
+          theme = el.dataset.nav === 'light' ? 'light' : 'dark';
+        }
+      });
+      return theme;
+    };
+
+    const apply = (el: HTMLElement, theme: Theme) => {
+      if (el.dataset.theme === theme) return;
+      el.dataset.theme = theme;
+      const vars = theme === 'light' ? LIGHT_VARS : DARK_VARS;
+      Object.entries(vars as Record<string, string>).forEach(([k, v]) =>
+        el.style.setProperty(k, v),
+      );
+    };
+
+    let frame = 0;
+    const tick = () => {
+      if (++frame % 4) return;
+      const l = left.getBoundingClientRect();
+      const r = right.getBoundingClientRect();
+      const y = l.top + l.height / 2;
+      apply(left, themeAt(l.left + l.width / 2, y));
+      apply(right, openRef.current ? 'light' : themeAt(r.left + r.width / 2, y));
+    };
+    gsap.ticker.add(tick);
+    return () => gsap.ticker.remove(tick);
+  }, []);
+
+  useEffect(() => {
+    openRef.current = open;
   }, [open]);
 
   /* ── close on navigation ── */
@@ -249,28 +314,39 @@ export default function NavbarClient({ settings }: Props) {
   return (
     <>
       {/* ── The bar ── */}
-      <header
-        ref={headerRef}
-        className="pointer-events-none fixed left-0 top-0 z-[100] w-full"
-        style={{ mixBlendMode: 'difference' }}
-      >
-        <nav className="mx-auto flex h-20 max-w-content items-center justify-between px-5 sm:px-8">
-          <Link href={href('')} className="pointer-events-auto flex items-center">
+      <header ref={headerRef} className="pointer-events-none fixed left-0 top-0 z-[100] w-full">
+        <nav className="flex h-20 items-center justify-between pl-[max(16px,2vw)] pr-[max(16px,1.35vw)]">
+          <Link
+            ref={leftRef}
+            href={href('')}
+            className="pointer-events-auto flex items-center"
+            style={DARK_VARS}
+          >
             <Image
               src={LOGO}
               alt="TDK Design & Build"
               width={140}
               height={36}
-              className="h-24 w-auto object-contain brightness-0 invert"
+              className="-ml-[12.5px] h-24 w-auto object-contain transition-[filter] duration-300"
+              style={{ filter: 'var(--nav-logo)' }}
               priority
             />
           </Link>
 
-          <div className="pointer-events-auto flex items-center gap-4 sm:gap-6">
+          <div
+            ref={rightRef}
+            className="pointer-events-auto flex items-center gap-4 sm:gap-6"
+            style={DARK_VARS}
+          >
             <Link
               data-step-back
               href={href('contact')}
-              className="hidden border border-paper px-5 py-2.5 text-label text-paper transition-colors duration-fast ease-smooth hover:bg-paper hover:text-void sm:block"
+              className="hidden border px-5 py-2.5 text-label transition-colors duration-300 hover:!bg-transparent hover:!text-[color:var(--nav-ink)] sm:block"
+              style={{
+                background: 'var(--nav-ink)',
+                borderColor: 'var(--nav-ink)',
+                color: 'var(--nav-ground)',
+              }}
             >
               Contact
             </Link>
@@ -278,14 +354,17 @@ export default function NavbarClient({ settings }: Props) {
             <span
               data-step-back
               aria-hidden="true"
-              className="hidden h-5 w-px sm:block"
-              style={{ background: 'rgba(245, 240, 232, 0.45)' }}
+              className="hidden h-4 w-px transition-colors duration-300 sm:block"
+              style={{ background: 'var(--nav-ink)' }}
             />
 
-            <div data-step-back className="flex items-center gap-1.5 text-label">
-              <span className="text-paper">EN</span>
-              <span className="text-paper opacity-40">|</span>
-              <span className="cursor-not-allowed text-paper opacity-40" title="Greek coming soon">
+            <div
+              data-step-back
+              className="flex items-center gap-3 text-label transition-colors duration-300"
+              style={{ color: 'var(--nav-ink)' }}
+            >
+              <span className="border-b border-current pb-px">EN</span>
+              <span className="cursor-not-allowed" title="Greek coming soon">
                 EL
               </span>
             </div>
@@ -293,8 +372,8 @@ export default function NavbarClient({ settings }: Props) {
             <span
               data-step-back
               aria-hidden="true"
-              className="h-5 w-px"
-              style={{ background: 'rgba(245, 240, 232, 0.45)' }}
+              className="h-4 w-px transition-colors duration-300"
+              style={{ background: 'var(--nav-ink)' }}
             />
 
             <button
@@ -304,16 +383,18 @@ export default function NavbarClient({ settings }: Props) {
               aria-label={open ? 'Close menu' : 'Open menu'}
               aria-expanded={open}
               aria-controls="site-menu"
-              className="relative -mr-2 flex h-10 w-10 cursor-pointer items-center justify-center"
+              className="relative -mr-1.5 flex h-10 w-10 cursor-pointer items-center justify-center"
             >
               <span className="relative block h-[7px] w-7">
                 <span
                   data-line="top"
-                  className="absolute left-0 top-0 block h-px w-full bg-paper"
+                  className="absolute left-0 top-0 block h-px w-full transition-colors duration-300"
+                  style={{ background: 'var(--nav-ink)' }}
                 />
                 <span
                   data-line="bottom"
-                  className="absolute bottom-0 left-0 block h-px w-full bg-paper"
+                  className="absolute bottom-0 left-0 block h-px w-full transition-colors duration-300"
+                  style={{ background: 'var(--nav-ink)' }}
                 />
               </span>
             </button>
@@ -335,19 +416,13 @@ export default function NavbarClient({ settings }: Props) {
         aria-label="Menu"
         aria-hidden={!open}
         className="invisible fixed right-2 top-2 z-[90] w-[min(460px,calc(100vw-16px))] sm:right-3 sm:top-3"
-        style={{ color: PAPER, fontFamily: 'var(--font-josefin)' }}
+        style={{ color: INK, fontFamily: 'var(--font-josefin)' }}
       >
-        {/* Dark glass */}
+        {/* White, always. */}
         <div
           aria-hidden="true"
           className="absolute inset-0"
-          style={{
-            background:
-              'linear-gradient(160deg, rgba(34, 34, 34, 0.94) 0%, rgba(12, 12, 12, 0.96) 55%, rgba(8, 8, 8, 0.97) 100%)',
-            backdropFilter: 'blur(24px) saturate(1.2)',
-            WebkitBackdropFilter: 'blur(24px) saturate(1.2)',
-            boxShadow: `inset 0 0 0 1px ${HAIRLINE}, inset 0 1px 0 rgba(255,255,255,0.14)`,
-          }}
+          style={{ background: '#ffffff', boxShadow: `inset 0 0 0 1px ${HAIRLINE}` }}
         />
 
         <div className="relative px-7 pb-7 pt-24 sm:px-9 sm:pb-9">
@@ -364,16 +439,13 @@ export default function NavbarClient({ settings }: Props) {
                         href={href(p.path)}
                         onClick={() => setOpen(false)}
                         aria-current={current ? 'page' : undefined}
-                        className="group inline-flex items-center gap-4 text-[clamp(34px,4.2vw,46px)] font-[300] leading-[1.12]"
+                        className={`inline-block text-[clamp(34px,4.2vw,46px)] font-[300] leading-[1.12] transition-colors duration-300 ${
+                          current ? '' : 'hover:text-threshold'
+                        }`}
+                        // The page you are on is the one in teal.
+                        style={current ? { color: TEAL } : undefined}
                       >
-                        <span className={underline}>{p.label}</span>
-                        {current && (
-                          <span
-                            aria-hidden="true"
-                            className="block h-px w-8"
-                            style={{ background: TEAL }}
-                          />
-                        )}
+                        <span className={current ? '' : underline}>{p.label}</span>
                       </Link>
                     </Reveal>
                   </li>
@@ -394,7 +466,7 @@ export default function NavbarClient({ settings }: Props) {
             <div>
               <p
                 className="mb-3 text-[10px] font-[600] uppercase tracking-[0.24em]"
-                style={{ color: PAPER_FAINT }}
+                style={{ color: INK_FAINT }}
               >
                 <Reveal>Get in touch</Reveal>
               </p>
@@ -410,7 +482,7 @@ export default function NavbarClient({ settings }: Props) {
                   <a
                     href={`tel:${phone.replace(/\s+/g, '')}`}
                     className={underline}
-                    style={{ color: PAPER_SOFT }}
+                    style={{ color: INK_SOFT }}
                   >
                     {phone}
                   </a>
@@ -422,11 +494,11 @@ export default function NavbarClient({ settings }: Props) {
               <div>
                 <p
                   className="mb-3 text-[10px] font-[600] uppercase tracking-[0.24em]"
-                  style={{ color: PAPER_FAINT }}
+                  style={{ color: INK_FAINT }}
                 >
                   <Reveal>Studio</Reveal>
                 </p>
-                <address className="not-italic" style={{ color: PAPER_SOFT }}>
+                <address className="not-italic" style={{ color: INK_SOFT }}>
                   {address.map((line) => (
                     <Reveal key={line}>{line}</Reveal>
                   ))}
@@ -452,8 +524,8 @@ export default function NavbarClient({ settings }: Props) {
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={s.platform}
-                        className="flex h-10 w-10 items-center justify-center rounded-full border transition-colors duration-300 hover:bg-[#f4f2ee] hover:text-[#111111]"
-                        style={{ borderColor: 'rgba(244,242,238,0.34)' }}
+                        className="flex h-10 w-10 items-center justify-center rounded-full border transition-colors duration-300 hover:bg-[#111111] hover:text-white"
+                        style={{ borderColor: 'rgba(17,17,17,0.3)' }}
                       >
                         <span className="block h-4 w-4">
                           <SocialGlyph platform={s.platform} />

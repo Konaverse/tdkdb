@@ -493,6 +493,7 @@ export default function Interlude() {
 
   return (
     <section
+      data-nav="light"
       ref={rootRef}
       aria-label="We house your dream"
       className="relative w-full"
@@ -530,7 +531,7 @@ export default function Interlude() {
         />
 
         {/* ── The render ── */}
-        <div data-shrink className="absolute inset-0 will-change-transform">
+        <div data-shrink data-nav="dark" className="absolute inset-0 will-change-transform">
           <div data-clip className="absolute inset-0 overflow-hidden">
             <div data-zoom className="absolute inset-0 will-change-transform">
               <div

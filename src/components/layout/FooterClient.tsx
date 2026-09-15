@@ -283,6 +283,7 @@ export default function FooterClient({ settings }: Props) {
 
   return (
     <footer
+      data-nav="dark"
       ref={footerRef}
       className="relative overflow-hidden [--wm:8vw] lg:h-[max(100svh,720px)]"
       style={{ background: '#0b0b0b', color: PAPER, fontFamily: 'var(--font-josefin)' }}

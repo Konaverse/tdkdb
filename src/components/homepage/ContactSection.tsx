@@ -171,6 +171,7 @@ export default function ContactSection({ settings }: ContactSectionProps) {
 
   return (
     <section
+      data-nav="light"
       ref={rootRef}
       id="contact"
       aria-labelledby="contact-heading"
@@ -292,7 +293,7 @@ export default function ContactSection({ settings }: ContactSectionProps) {
         </div>
 
         {/* ── Right: the photograph, full height ── */}
-        <div className="relative aspect-[4/5] w-full overflow-hidden lg:aspect-auto">
+        <div data-nav="dark" className="relative aspect-[4/5] w-full overflow-hidden lg:aspect-auto">
           <div data-plate className="absolute inset-0 overflow-hidden">
             <div data-settle className="absolute inset-0 will-change-transform">
               <img

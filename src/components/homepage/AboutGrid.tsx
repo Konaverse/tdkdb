@@ -347,7 +347,10 @@ export default function AboutGrid() {
   };
 
   return (
-    <section ref={sectionRef} className="relative w-full" style={{ background: PAPER, color: INK }}>
+    <section
+      ref={sectionRef}
+      data-nav="light"
+      className="relative w-full" style={{ background: PAPER, color: INK }}>
       {/* ── Sticky eyebrow rail ──────────────────────────────────────────────
           Absolutely positioned to the full section height so the sticky child
           has real travel — it rides the whole 130vh beside the composition. */}

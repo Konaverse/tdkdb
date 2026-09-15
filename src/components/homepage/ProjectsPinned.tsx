@@ -372,6 +372,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
   return (
     <>
       <section
+        data-nav="light"
         id="projects"
         ref={rootRef}
         aria-label="Selected projects"
