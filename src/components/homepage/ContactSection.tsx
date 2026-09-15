@@ -293,7 +293,10 @@ export default function ContactSection({ settings }: ContactSectionProps) {
         </div>
 
         {/* ── Right: the photograph, full height ── */}
-        <div data-nav="dark" className="relative aspect-[4/5] w-full overflow-hidden lg:aspect-auto">
+        <div
+          data-nav="dark"
+          className="relative aspect-[4/5] w-full overflow-hidden lg:aspect-auto"
+        >
           <div data-plate className="absolute inset-0 overflow-hidden">
             <div data-settle className="absolute inset-0 will-change-transform">
               <img
