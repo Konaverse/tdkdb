@@ -19,14 +19,17 @@ import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
      · A 4 × 2 cell grid below it, occupied in a checkerboard: six of eight
        cells carry something, two stay empty. The empties are the design.
 
-   The reference mockup separated its cells with a 4% value shift, which works
-   on a light ground and dies on a dark one. So the structure is DRAWN instead:
-   hairlines at every column and row boundary, at 6% white. The empty cells
-   then read as deliberately empty rather than missing, and the whole thing
-   reads as a plan drawing rather than a row of cards.
+   LIGHT THEME (Sept 2026 board, "about section.png"). White ground, ink
+   type, and the checkerboard carried by colour: the three stat cells are
+   solid teal with white type, the two photographs stay, and the empty cells
+   are paper. The structure is still DRAWN — ink hairlines at every column
+   and row boundary — so the empty cells read as deliberately empty and the
+   whole thing reads as a plan drawing rather than a row of cards.
 
    No pin, no scroll-hijack. Entrance once, hover, and a scrubbed exit where
-   the columns shear apart at different rates as the section leaves.
+   the columns shear apart at different rates as the section leaves. The old
+   dark version also faded the whole section to 30% on exit; on white that
+   turns the plate grey over the dark page behind it, so it is gone.
 
    Note on layering — this is the trap that cost an hour on the hero. GSAP
    writes the whole `transform` string from a per-element cache, so no node
@@ -71,9 +74,17 @@ const STATS: Stat[] = [
 const IMAGE_A = 'clients/tdkdb/general/about/fourth-people';
 const IMAGE_B = 'clients/tdkdb/general/about/second-design-philosophy';
 
-/** Cell fill. Only a hair off `void` — the drawn lines carry the structure. */
-const CELL_BG = '#141414';
-const CELL_BG_HOVER = '#1c1c1c';
+/* Light palette. Inline values rather than Tailwind alpha tokens: `bg-void/90`
+   style classes compile to a transparent colour in this project. */
+const PAPER = '#ffffff';
+const INK = '#111111';
+const INK_SOFT = 'rgba(17, 17, 17, 0.62)';
+const LINE = 'rgba(17, 17, 17, 0.14)';
+/** Stat cells are the board's solid teal; hover deepens it. */
+const CELL_BG = '#66979f';
+const CELL_BG_HOVER = '#58868d';
+const ON_TEAL = '#ffffff';
+const ON_TEAL_SOFT = 'rgba(255, 255, 255, 0.78)';
 
 export default function AboutGrid() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -247,8 +258,6 @@ export default function AboutGrid() {
         // The drawn grid dissolves as the cells pull off it, so the structure
         // never sits still while its contents drift out of alignment with it.
         tl.to(linesLayerRef.current, { autoAlpha: 0 }, 0);
-
-        tl.to(section, { opacity: 0.3 }, 0.6);
       },
     );
 
@@ -265,18 +274,15 @@ export default function AboutGrid() {
       duration: entering ? 0.4 : 0.3,
       ease: 'power2.out',
     });
-    // Accent rule draws across the cell's top edge — the one place `threshold`
-    // appears in this section.
+    // A white rule draws across the teal cell's top edge.
     gsap.to(el.querySelector('[data-hairline]'), {
       scaleX: entering ? 1 : 0,
       duration: entering ? 0.5 : 0.3,
       ease: entering ? 'power3.out' : 'power2.inOut',
     });
-    // The label brightens rather than the numeral changing hue. Tinting a
-    // paper-white numeral to `threshold` on a near-black cell makes it DARKER
-    // than at rest, so the cell reads as dimming on hover — backwards.
+    // The label brightens to full white as the teal deepens.
     gsap.to(el.querySelector('[data-micro]'), {
-      color: entering ? 'var(--color-paper)' : 'var(--color-stone)',
+      color: entering ? ON_TEAL : ON_TEAL_SOFT,
       duration: 0.35,
       ease: 'power2.out',
     });
@@ -309,7 +315,7 @@ export default function AboutGrid() {
       ease: entering ? 'power3.out' : 'power3.inOut',
     });
     gsap.to(el.querySelectorAll('[data-cta-text]'), {
-      color: entering ? 'var(--color-void)' : 'var(--color-paper)',
+      color: entering ? PAPER : INK,
       duration: 0.35,
       ease: 'power2.out',
     });
@@ -326,12 +332,12 @@ export default function AboutGrid() {
 
     gsap.to(q('[data-fill]'), { backgroundColor: CELL_BG, duration: 0.3, ease: 'power2.out' });
     gsap.to(q('[data-hairline]'), { scaleX: 0, duration: 0.3, ease: 'power2.inOut' });
-    gsap.to(q('[data-micro]'), { color: 'var(--color-stone)', duration: 0.35 });
+    gsap.to(q('[data-micro]'), { color: ON_TEAL_SOFT, duration: 0.35 });
     gsap.to(q('[data-hover-scale]'), { scale: 1, duration: 0.6, ease: 'power3.out' });
     gsap.to(q('[data-img-dim]'), { opacity: 0.25, duration: 0.5 });
     gsap.to(q('[data-caption]'), { yPercent: 100, duration: 0.35, ease: 'power2.in' });
     gsap.to(q('[data-cta-fill]'), { scaleY: 0, duration: 0.4, ease: 'power3.inOut' });
-    gsap.to(q('[data-cta-text]'), { color: 'var(--color-paper)', duration: 0.35 });
+    gsap.to(q('[data-cta-text]'), { color: INK, duration: 0.35 });
   };
 
   /** Registers a cell's outer (exit) node together with the column it sits in. */
@@ -341,7 +347,7 @@ export default function AboutGrid() {
   };
 
   return (
-    <section ref={sectionRef} className="relative w-full bg-void">
+    <section ref={sectionRef} className="relative w-full" style={{ background: PAPER, color: INK }}>
       {/* ── Sticky eyebrow rail ──────────────────────────────────────────────
           Absolutely positioned to the full section height so the sticky child
           has real travel — it rides the whole 130vh beside the composition. */}
@@ -349,10 +355,14 @@ export default function AboutGrid() {
         <div className="sticky top-32 flex items-center gap-3">
           <span
             ref={eyebrowRuleRef}
-            className="block h-px w-8 origin-left bg-stone"
-            style={{ transform: 'scaleX(0)' }}
+            className="block h-px w-8 origin-left"
+            style={{ transform: 'scaleX(0)', background: CELL_BG }}
           />
-          <span ref={eyebrowLabelRef} className="block text-label text-stone opacity-0">
+          <span
+            ref={eyebrowLabelRef}
+            className="block text-label opacity-0"
+            style={{ color: INK_SOFT }}
+          >
             {EYEBROW}
           </span>
         </div>
@@ -363,8 +373,10 @@ export default function AboutGrid() {
         <div ref={headerExitRef} className="will-change-transform">
           {/* Mobile keeps the eyebrow inline — the rail above is desktop-only. */}
           <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <span className="block h-px w-8 bg-stone" />
-            <span className="block text-label text-stone">{EYEBROW}</span>
+            <span className="block h-px w-8" style={{ background: CELL_BG }} />
+            <span className="block text-label" style={{ color: INK_SOFT }}>
+              {EYEBROW}
+            </span>
           </div>
 
           <div className="lg:pl-[25%]">
@@ -372,7 +384,7 @@ export default function AboutGrid() {
                 what makes this composition read is the headline block spanning
                 from the 25% seam to the right edge, and Josefin is wide enough
                 that the token's 64px cap would wrap these lines. */}
-            <h2 className="font-sans text-[clamp(26px,3.6vw,56px)] font-[300] uppercase leading-[0.95] tracking-[0.01em] text-paper lg:whitespace-nowrap">
+            <h2 className="font-sans text-[clamp(26px,3.6vw,56px)] font-[300] uppercase leading-[0.95] tracking-[0.01em] lg:whitespace-nowrap">
               {HEADLINE.map((line, i) => (
                 <span key={i} className="block overflow-hidden pb-[0.06em]">
                   <span
@@ -390,7 +402,8 @@ export default function AboutGrid() {
 
             <p
               ref={paragraphRef}
-              className="mt-10 max-w-[40ch] text-body text-stone opacity-0 md:mt-12"
+              className="mt-10 max-w-[40ch] text-body opacity-0 md:mt-12"
+              style={{ color: INK_SOFT }}
             >
               {PARAGRAPH}
             </p>
@@ -409,15 +422,23 @@ export default function AboutGrid() {
             {[0, 25, 50, 75, 100].map((pct) => (
               <span
                 key={`v${pct}`}
-                className="absolute top-0 h-full w-px bg-white/[0.07]"
-                style={{ left: `${pct}%`, transform: pct === 100 ? 'translateX(-1px)' : undefined }}
+                className="absolute top-0 h-full w-px"
+                style={{
+                  left: `${pct}%`,
+                  background: LINE,
+                  transform: pct === 100 ? 'translateX(-1px)' : undefined,
+                }}
               />
             ))}
             {[0, 50, 100].map((pct) => (
               <span
                 key={`h${pct}`}
-                className="absolute left-0 h-px w-full bg-white/[0.07]"
-                style={{ top: `${pct}%`, transform: pct === 100 ? 'translateY(-1px)' : undefined }}
+                className="absolute left-0 h-px w-full"
+                style={{
+                  top: `${pct}%`,
+                  background: LINE,
+                  transform: pct === 100 ? 'translateY(-1px)' : undefined,
+                }}
               />
             ))}
           </div>
@@ -529,7 +550,7 @@ export default function AboutGrid() {
 const hiddenClip = (row: number) => (row === 1 ? 'inset(0% 0% 100% 0%)' : 'inset(100% 0% 0% 0%)');
 
 const CELL_BOX =
-  'relative aspect-square w-full border border-white/[0.07] lg:aspect-auto lg:h-[28vh] lg:min-h-[225px] lg:border-0';
+  'relative aspect-square w-full border border-black/[0.14] lg:aspect-auto lg:h-[28vh] lg:min-h-[225px] lg:border-0';
 
 interface CellChrome {
   row: number;
@@ -569,11 +590,15 @@ function StatCell({
           <div data-fill className="absolute inset-0" style={{ backgroundColor: CELL_BG }} />
           <span
             data-hairline
-            className="absolute left-0 top-0 h-px w-full origin-left bg-threshold"
+            className="absolute left-0 top-0 h-px w-full origin-left"
+            style={{ background: ON_TEAL }}
           />
 
           <div className="relative flex h-full flex-col justify-between p-5 md:p-7 lg:p-8">
-            <span className="block font-sans text-[clamp(44px,7vw,88px)] font-[200] tabular-nums leading-none text-paper">
+            <span
+              className="block font-sans text-[clamp(44px,7vw,88px)] font-[200] tabular-nums leading-none"
+              style={{ color: ON_TEAL }}
+            >
               {/* Rendered at its final value so a no-JS or reduced-motion pass
                   is never blank; the counter tween repaints it from 0 on
                   entrance, keyed off `data-numeral-value`. */}
@@ -584,7 +609,8 @@ function StatCell({
             <span
               ref={microRef}
               data-micro
-              className="block self-end text-right text-label leading-[1.5] text-stone opacity-0"
+              className="block self-end text-right text-label leading-[1.5] opacity-0"
+              style={{ color: ON_TEAL_SOFT }}
             >
               {stat.label}
             </span>
@@ -638,19 +664,29 @@ function ImageCell({
             </div>
           </div>
 
-          <div data-img-dim className="pointer-events-none absolute inset-0 bg-void opacity-25" />
+          <div
+            data-img-dim
+            className="pointer-events-none absolute inset-0 opacity-25"
+            style={{ background: '#0d0d0d' }}
+          />
 
           {/* Floor for the caption. Undimming on hover is exactly when the
               image gets bright enough to swallow paper-white type, so the
               caption needs its own ground rather than the dim layer's. */}
-          <div className="from-void/85 via-void/45 pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t to-transparent" />
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3"
+            style={{
+              background:
+                'linear-gradient(to top, rgba(13,13,13,0.85), rgba(13,13,13,0.45) 50%, transparent)',
+            }}
+          />
 
           {/* Masked caption. The mask hugs the text — padding sits outside it,
               or the offset text would still show in the padding. Its resting
               offset is set by gsap.set(), not by a class. */}
           <div className="pointer-events-none absolute bottom-0 left-0 p-5 md:p-7 lg:p-8">
             <span className="block overflow-hidden">
-              <span data-caption className="block text-label text-paper will-change-transform">
+              <span data-caption className="block text-label text-white will-change-transform">
                 {caption}
               </span>
             </span>
@@ -691,13 +727,15 @@ function CtaCell({
               GSAP on mount, not by a class. */}
           <span
             data-cta-fill
-            className="absolute inset-0 block origin-bottom bg-paper will-change-transform"
+            className="absolute inset-0 block origin-bottom will-change-transform"
+            style={{ background: CELL_BG }}
           />
 
           <span className="relative flex h-full flex-col justify-between p-5 md:p-7 lg:p-8">
             <span
               data-cta-text
-              className="block font-sans text-[clamp(20px,2.2vw,32px)] font-[300] leading-tight text-paper"
+              className="block font-sans text-[clamp(20px,2.2vw,32px)] font-[300] leading-tight"
+              style={{ color: INK }}
             >
               Read our
               <br />
@@ -706,7 +744,8 @@ function CtaCell({
             <span
               ref={microRef}
               data-cta-text
-              className="flex items-center gap-3 self-end text-label text-paper opacity-0"
+              className="flex items-center gap-3 self-end text-label opacity-0"
+              style={{ color: INK }}
             >
               ABOUT TDK
               <svg

@@ -55,8 +55,12 @@ The homepage (`src/app/[locale]/(site)/page.tsx`) is a small server component th
 three Sanity queries and composes, in order: `HomeLoader` (first-load intro) → `Hero` →
 `ProjectsPinned` → `AboutGrid` → `TheDifference` → `FeaturedResidence` → `SceneContact`.
 The Sept 2026 restructure (boards in `homepage_redesign.zip` at the repo root) has replaced
-the hero and the projects section so far; About, the interlude, contact and the footer are
-next, and everything after the hero is on a WHITE ground with the teal accent.
+the hero and the projects section and repainted About light (same grid and motion, teal stat
+cells); the interlude, contact and the footer are next, and everything after the hero is on a
+WHITE ground with the teal accent.
+
+`ProjectsPinned` scrolls under Lenis, so it uses `scrub: true` and snaps by retargeting Lenis
+once input stops — never ScrollTrigger's own `snap`, which fights Lenis at the pin's ends.
 
 `Hero.tsx` — "TDK" behind the building. Two supplied plates, identical 1512 × 1300 frames
 (`public/hero/hero-back.webp`, the street with the building removed; `hero-front.webp`, the
