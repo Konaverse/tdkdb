@@ -88,6 +88,12 @@ by fit() to span the margins and sunk 0.14em so the bottom edge just cuts its fe
 (brightened for the letters, Cloudinary-blurred for the glass) by paint(): NEVER backdrop-filter
 or a clip-path wipe there, both re-rasterise on every frame of the reveal. Data from siteSettings.
 
+`NavbarClient.tsx` (site-wide) — logo left; Contact | EN·EL | burger right, on a transparent bar with
+mix-blend-mode: difference. The burger opens a compact dark-glass dialog pinned top-right whose
+clip-path grows out of the icon's own box while the lines turn into an X (the panel sits under the
+bar so the X stays on top); pages, then contact details and socials, arrive by the side reveal.
+One paused timeline, invalidated before each fresh open; reverse at 1.7× to close.
+
 `Hero.tsx` — "TDK" behind the building. Two supplied plates, identical 1512 × 1300 frames
 (`public/hero/hero-back.webp`, the street with the building removed; `hero-front.webp`, the
 building with the sky knocked out), stacked in one full-width box at the plate's aspect with
