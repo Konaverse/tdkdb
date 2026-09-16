@@ -6,12 +6,22 @@ interface CloudinaryOptions {
   quality?: 'auto' | number;
   format?: 'auto' | 'webp' | 'avif';
   crop?: 'fill' | 'fit' | 'scale';
+  /** Where to crop from. `auto` lets Cloudinary find the subject. */
+  gravity?: 'auto' | 'face' | 'auto:face' | 'center';
   /** Raw Cloudinary effect tokens, e.g. `['e_blur:200']`. Applied last. */
   effects?: string[];
 }
 
 export function cloudinaryUrl(publicId: string, options: CloudinaryOptions = {}): string {
-  const { width, height, quality = 'auto', format = 'auto', crop = 'fill', effects } = options;
+  const {
+    width,
+    height,
+    quality = 'auto',
+    format = 'auto',
+    crop = 'fill',
+    gravity,
+    effects,
+  } = options;
 
   const transforms = [
     width && `w_${width}`,
@@ -19,6 +29,7 @@ export function cloudinaryUrl(publicId: string, options: CloudinaryOptions = {})
     `q_${quality}`,
     `f_${format}`,
     (width || height) && `c_${crop}`,
+    gravity && `g_${gravity}`,
     ...(effects ?? []),
   ]
     .filter(Boolean)
@@ -75,6 +86,24 @@ export function galleryImage(publicId: string): string {
 
 export function constructionPhoto(publicId: string): string {
   return cloudinaryUrl(publicId, { width: 1000 });
+}
+
+/**
+ * A team portrait at 3:4, cropped by Cloudinary rather than by CSS: these are
+ * ordinary photographs (a wide shot at a ceremony, a selfie indoors), so a
+ * centred CSS crop loses the person. `g_auto` finds the subject.
+ */
+export function portraitUrl(publicId: string, width: number): string {
+  return cloudinaryUrl(publicId, {
+    width,
+    height: Math.round((width * 4) / 3),
+    crop: 'fill',
+    gravity: 'auto',
+  });
+}
+
+export function portraitSrcSet(publicId: string, widths = [600, 900, 1200]): string {
+  return widths.map((w) => `${portraitUrl(publicId, w)} ${w}w`).join(', ');
 }
 
 export function teamPhoto(publicId: string): string {

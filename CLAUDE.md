@@ -138,6 +138,18 @@ still moment. `ProjectHero` claims the run at first render, renders the exact UR
 smooth frames, then removes the layer and the hero's copy and the navbar enter. The hero image must
 stay 100% × 100svh object-cover with no transform/filter/dimming on arrival, or the handoff shows.
 
+### About page
+
+`about/page.tsx` + `AboutClient.tsx` (Sept 2026, from the user's two boards) — light, editorial,
+on the page grid: a headline with a photograph set INSIDE the line (two sets of line breaks,
+sm and up vs phones, never wrapping — a wrap strands the picture), a full-width plate, the
+"one team" statement with three captioned plates (Draw / Build / Hand over), the second board's
+spread (small text columns against a large plate, a staggered row with captions, a pull quote
+held in the margin), then the family — each member's portrait and full Sanity bio — and a close
+that links to Contact. Team portraits use `portraitUrl()` (Cloudinary `g_auto`): the photos are
+casual snapshots, so a centred CSS crop loses the person. NO invented numbers: the old page
+claimed 15 years and 8 deliveries; the dataset says 2 buildings.
+
 ### Contact page
 
 `contact/page.tsx` + `ContactClient.tsx` (Sept 2026) — white and editorial, the hub's
