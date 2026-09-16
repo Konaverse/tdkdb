@@ -1,12 +1,18 @@
 import type { Metadata } from 'next';
 import ContactClient from './ContactClient';
 
+import { getSiteSettings } from '@/lib/sanity/queries';
+
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: 'Contact | TDK Design & Build',
   description:
-    'Get in touch with TDK Design & Build to discuss your next project. Architecture, construction, and interior design in Cyprus.',
+    'Write to TDK Design & Build in Nicosia — about a new home, a residence under construction, or a question for the studio.',
 };
 
-export default function ContactPage() {
-  return <ContactClient />;
+export default async function ContactPage() {
+  const settings = await getSiteSettings();
+
+  return <ContactClient settings={settings} />;
 }

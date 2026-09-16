@@ -138,6 +138,17 @@ still moment. `ProjectHero` claims the run at first render, renders the exact UR
 smooth frames, then removes the layer and the hero's copy and the navbar enter. The hero image must
 stay 100% × 100svh object-cover with no transform/filter/dimming on arrival, or the handoff shows.
 
+### Contact page
+
+`contact/page.tsx` + `ContactClient.tsx` (Sept 2026) — white and editorial, the hub's
+typographic hero ("Contact" + a lead), then the form at six columns with the studio's details
+beside it and one `RevealFrame` photograph under them, all on the page grid. Fields are solid
+blocks (as in the project page's register section) with a teal focus ring; validation notes are
+teal and tied to their field by aria-describedby. The page is a server component that passes
+Sanity `siteSettings` in — email, phone, address and socials are NEVER hardcoded (the old page
+had them in markup). The Google Maps embed was dropped (a generic Nicosia pin behind a dark
+filter); `/api/contact` is unchanged.
+
 ### Projects hub
 
 `projects/page.tsx` + `ProjectsClient.tsx` (Sept 2026) — white, editorial, no eyebrows, no
