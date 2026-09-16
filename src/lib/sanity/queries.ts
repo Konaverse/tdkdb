@@ -18,6 +18,22 @@ export async function getAllProjects(): Promise<Project[]> {
   }
 }
 
+/** The projects hub: everything the index entries state, counts included. */
+export async function getProjectsForIndex(): Promise<Project[]> {
+  const query = `*[_type == 'project'] | order(year desc) {
+    _id, title, slug, status, type, ctaType, location, year, heroImageId, pullQuote,
+    units[] { floor, unitType, sizeM2, status }
+  }`;
+
+  try {
+    const data = await client.fetch<Project[]>(query);
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching projects for index:', error);
+    return [];
+  }
+}
+
 export async function getProjectsForHomepageReel(): Promise<Project[]> {
   const query = `*[_type == 'project'] | order(year desc) [0...5] {
     _id, title, slug, status, type, ctaType, location, year, heroImageId,

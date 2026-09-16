@@ -138,6 +138,16 @@ still moment. `ProjectHero` claims the run at first render, renders the exact UR
 smooth frames, then removes the layer and the hero's copy and the navbar enter. The hero image must
 stay 100% × 100svh object-cover with no transform/filter/dimming on arrival, or the handoff shows.
 
+### Projects hub
+
+`projects/page.tsx` + `ProjectsClient.tsx` (Sept 2026) — white, editorial, no eyebrows, no
+filters/tabs/cards (the old FilterTabs, ProjectCard and masonry grid are gone). A typographic
+hero — "Projects", a lead, and three mono figures counted from Sanity (buildings, residences,
+available) — then one entry per project: the project page's plate (content width, 16:9, render
+pulling back on scroll, `RevealFrame` entrance) with the name and particulars under it on the
+page grid. A plain click opens the project through `ProjectTransition`, as on the homepage;
+`getProjectsForIndex()` supplies the units the figures need.
+
 ### Project page
 
 `projects/[slug]/page.tsx` (Sept 2026 redesign) is, in order: `ProjectHero` (full bleed, settled)

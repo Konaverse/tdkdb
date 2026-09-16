@@ -17,6 +17,7 @@ export default function RevealFrame({
   style,
   cover = '#ffffff',
   nav,
+  frameAttrs,
   children,
 }: {
   className?: string;
@@ -24,6 +25,9 @@ export default function RevealFrame({
   cover?: string;
   /** data-nav for the navbar's colour switch. */
   nav?: 'light' | 'dark';
+  /** Extra attributes on the frame itself, e.g. the `data-frame` the project
+      transition opens from. */
+  frameAttrs?: Record<string, string>;
   children: ReactNode;
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
@@ -40,6 +44,7 @@ export default function RevealFrame({
   return (
     <div
       ref={frameRef}
+      {...frameAttrs}
       data-nav={nav}
       className={`relative overflow-hidden ${className}`}
       style={style}

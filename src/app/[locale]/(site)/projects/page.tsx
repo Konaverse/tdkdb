@@ -1,18 +1,18 @@
 import type { Metadata } from 'next';
 import ProjectsClient from './ProjectsClient';
 
-import { getAllProjects } from '@/lib/sanity/queries';
+import { getProjectsForIndex } from '@/lib/sanity/queries';
 
 export const revalidate = 60; // ISR cache revalidation
 
 export const metadata: Metadata = {
   title: 'Projects | TDK Design & Build',
   description:
-    'A curated portfolio of residential and commercial projects across Cyprus — from completed developments to upcoming opportunities.',
+    'The residences TDK Design & Build has drawn and built in Nicosia — completed, under construction, and what is available now.',
 };
 
 export default async function ProjectsPage() {
-  const projects = await getAllProjects();
+  const projects = await getProjectsForIndex();
 
   return <ProjectsClient projects={projects} />;
 }
