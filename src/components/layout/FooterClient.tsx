@@ -1,11 +1,12 @@
 'use client';
 
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 
 import { gsap, gsapInit } from '@/lib/animations/gsap';
-import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
+import { imageUrl } from '@/lib/sanity/image';
+import type { SanityImage } from '@/lib/sanity/types';
 import SocialGlyph from '@/components/ui/SocialGlyph';
 import type { SiteSettings } from '@/lib/sanity/types';
 
@@ -67,13 +68,21 @@ import type { SiteSettings } from '@/lib/sanity/types';
                                     and lands aligned)
    ─────────────────────────────────────────────────────────────────────────── */
 
-const IMAGE_ID = 'clients/tdkdb/armonia/interior/2';
 /** Natural aspect of the render (2400 × 1350). */
 const IMAGE_ASPECT = 16 / 9;
 
-const BACKDROP = cloudinaryUrl(IMAGE_ID, { width: 2400 });
-const LIT = cloudinaryUrl(IMAGE_ID, { width: 2400, effects: ['e_brightness:60'] });
-const FROSTED = cloudinaryUrl(IMAGE_ID, { width: 1200, quality: 60, effects: ['e_blur:1400'] });
+/** The three copies paint() aligns: the backdrop itself, the one the letters
+    are cut out of, and the blurred one behind the glass panel. Sanity has no
+    brightness filter, so the letters' copy is lifted by the paper wash
+    composited over it where it is used (see the wordmark below). */
+const plates = (image?: SanityImage) =>
+  image
+    ? {
+        backdrop: imageUrl(image, { width: 2400 }),
+        lit: imageUrl(image, { width: 2400 }),
+        frosted: imageUrl(image, { width: 1200, quality: 60, blur: 100 }),
+      }
+    : { backdrop: '', lit: '', frosted: '' };
 
 /** How far (em) the wordmark sinks below the footer's bottom edge: its feet
     are cut, just a little. */
@@ -92,10 +101,19 @@ const INDEX = [
 ];
 
 interface Props {
+  /** The photograph behind the footer (siteImage `footer-backdrop`). */
+  backdrop?: SanityImage;
   settings: SiteSettings | null;
 }
 
-export default function FooterClient({ settings }: Props) {
+export default function FooterClient({ settings, backdrop }: Props) {
+  // The three aligned copies. Memoised so the effects below can depend on
+  // them without re-running on every render.
+  const {
+    backdrop: BACKDROP,
+    lit: LIT,
+    frosted: FROSTED,
+  } = useMemo(() => plates(backdrop), [backdrop]);
   const params = useParams();
   const locale = (params?.locale as string) ?? 'en';
   const href = (path: string) => (path ? `/${locale}/${path}` : `/${locale}`);
@@ -189,7 +207,7 @@ export default function FooterClient({ settings }: Props) {
       ro.disconnect();
       io.disconnect();
     };
-  }, []);
+  }, [BACKDROP, LIT, FROSTED]);
 
   /* ── motion ── */
   useLayoutEffect(() => {
@@ -504,7 +522,7 @@ export default function FooterClient({ settings }: Props) {
                   data-window="washed"
                   className="inline-block will-change-transform"
                   style={{
-                    backgroundImage: `linear-gradient(rgba(244,242,238,0.34), rgba(244,242,238,0.34)), url(${LIT})`,
+                    backgroundImage: `linear-gradient(rgba(244,242,238,0.46), rgba(244,242,238,0.46)), url(${LIT})`,
                     WebkitBackgroundClip: 'text',
                     backgroundClip: 'text',
                     color: 'transparent',

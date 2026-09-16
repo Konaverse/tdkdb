@@ -39,7 +39,9 @@ along with their Sanity schemas. Do not reintroduce them without being asked.
 
 All Sanity reads happen in **Server Components** using the public `client` from `src/lib/sanity/client.ts`. The `serverClient` (token-bearing) is **only** for API routes. GROQ queries go in `src/lib/sanity/queries.ts`; return types in `src/lib/sanity/types.ts`.
 
-All CMS images are **Cloudinary public IDs stored as strings in Sanity** — not native Sanity image objects. Use `cloudinaryUrl()` and the preset helpers in `src/lib/cloudinary/transforms.ts` to generate URLs. Render them as plain `<img>` tags, not `next/image` (Cloudinary handles optimization). Use `next/image` only for local static assets in `/public/`.
+All images are **Sanity image fields**, uploaded in the Studio (Cloudinary was removed in Sept 2026). Build URLs with `imageUrl()` / `imageSrcSet()` and the presets in `src/lib/sanity/image.ts`, and render plain `<img>` tags, not `next/image`. Photographs the DESIGN asks for by name (About's plates, the interlude, the footer backdrop) are `siteImage` documents keyed by slug: a server component fetches `getSiteImages()` and passes them down — never hardcode an image in a component. `next/image` is only for local static assets in `/public/` (the hero plates, the logo).
+
+**Sanity ids must not contain a dot.** A document whose `_id` has a dot is private to authenticated clients, so `siteImage.about-hero` returned nothing for the site's public client while the token saw it. Use `siteImage-about-hero`.
 
 ### Animation Stack
 
@@ -230,7 +232,7 @@ redirects everything to `/en`. Copy is written inline in English.
 
 1. **No Three.js** — the dependency has been removed. Use GSAP or plain canvas.
 2. **No Framer Motion** — GSAP for all animation.
-3. **No Sanity native images** — all images are Cloudinary IDs (strings) in Sanity.
+3. **No Cloudinary** — images are Sanity assets; `src/lib/sanity/image.ts` builds every URL.
 4. **`SANITY_API_TOKEN` must never have `NEXT_PUBLIC_` prefix** — server-only.
 5. **Email addresses come from env vars** — never hardcoded.
 6. **One prompt = one component** — commit after each prompt as `feat: Phase X.Y — description`.

@@ -1,4 +1,4 @@
-import type { Project, ProjectUnit } from '@/lib/sanity/types';
+import type { Project, ProjectUnit, SanityImage } from '@/lib/sanity/types';
 
 /** Display names where the CMS title is shorter than the one the boards
     carry. Rename the title in Sanity to retire an entry. */
@@ -26,17 +26,20 @@ export function projectHref(locale: string, slug: string): string {
  * it); the hero only when the galleries run short; then round again.
  */
 export function sceneImages(
-  p: Pick<Project, 'heroImageId' | 'rendersGallery' | 'photosGallery'>,
+  p: Pick<Project, 'heroImage' | 'rendersGallery' | 'photosGallery'>,
   count: number,
-): string[] {
-  const pool: string[] = [];
-  const add = (id?: string) => {
-    if (id && !pool.includes(id)) pool.push(id);
+): SanityImage[] {
+  const pool: SanityImage[] = [];
+  const assetOf = (img?: SanityImage) => img?.asset?._ref;
+  const add = (img?: SanityImage) => {
+    if (!img?.asset?._ref) return;
+    if (pool.some((p) => assetOf(p) === assetOf(img))) return;
+    pool.push(img);
   };
   [...(p.rendersGallery?.images ?? []), ...(p.photosGallery?.images ?? [])]
-    .filter((id) => id !== p.heroImageId)
+    .filter((img) => assetOf(img) !== assetOf(p.heroImage))
     .forEach(add);
-  if (pool.length < count) add(p.heroImageId);
+  if (pool.length < count) add(p.heroImage);
   if (!pool.length) return [];
   return Array.from({ length: count }, (_, i) => pool[i % pool.length]);
 }

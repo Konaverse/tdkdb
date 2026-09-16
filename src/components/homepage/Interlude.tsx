@@ -3,7 +3,8 @@
 import { useLayoutEffect, useRef } from 'react';
 
 import { gsap, gsapInit, ScrollTrigger, SplitText } from '@/lib/animations/gsap';
-import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
+import { imageUrl } from '@/lib/sanity/image';
+import type { SanityImage } from '@/lib/sanity/types';
 
 /* ───────────────────────────────────────────────────────────────────────────
    Interlude — the kitchen, then "We House Your Dream"
@@ -72,8 +73,6 @@ import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
    every percentage transform because of invalidateOnRefresh (pitfall #3).
    ─────────────────────────────────────────────────────────────────────────── */
 
-const IMAGE_ID = 'clients/tdkdb/armonia/interior/3';
-
 /** The pinned, two-state interlude runs from lg up. Below it (phones and
     portrait tablets) scrolling vertically to move content sideways reads
     badly, so the section is a plain vertical stack of the first state. */
@@ -134,7 +133,7 @@ const LINE_ON = 'inset(0% 0% 0% 0%)';
 const LINE_BEFORE = 'inset(0% 100% 0% 0%)';
 const LINE_AFTER = 'inset(0% 0% 0% 100%)';
 
-export default function Interlude() {
+export default function Interlude({ image }: { image?: SanityImage }) {
   const rootRef = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
 
@@ -549,7 +548,7 @@ export default function Interlude() {
       >
         <div aria-hidden="true" className="sticky top-0 -mb-[100svh] h-svh w-full overflow-hidden">
           <img
-            src={cloudinaryUrl(IMAGE_ID, { width: 1400 })}
+            src={image ? imageUrl(image, { width: 1400 }) : ''}
             alt=""
             loading="lazy"
             decoding="async"
@@ -633,7 +632,7 @@ export default function Interlude() {
                 className="absolute inset-x-0 top-[-10%] h-[120%] will-change-transform"
               >
                 <img
-                  src={cloudinaryUrl(IMAGE_ID, { width: 2400 })}
+                  src={image ? imageUrl(image, { width: 2400 }) : ''}
                   alt="Armonia apartment kitchen and dining room"
                   loading="eager"
                   decoding="async"

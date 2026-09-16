@@ -5,7 +5,8 @@ import Link from 'next/link';
 
 import { gsap, gsapInit, SplitText } from '@/lib/animations/gsap';
 import { stripReveal } from '@/lib/animations/stripReveal';
-import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
+import { imageUrl } from '@/lib/sanity/image';
+import type { SanityImage } from '@/lib/sanity/types';
 import type { SiteSettings } from '@/lib/sanity/types';
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -44,8 +45,6 @@ import type { SiteSettings } from '@/lib/sanity/types';
      line masks      clip-path     entrance
    ─────────────────────────────────────────────────────────────────────────── */
 
-const IMAGE_ID = 'clients/tdkdb/armonia/interior/6';
-
 const INK = '#111111';
 const MUTED = 'rgba(17, 17, 17, 0.48)';
 const RULE = 'rgba(17, 17, 17, 0.14)';
@@ -60,6 +59,7 @@ const FORM_HREF = '/en/contact';
 
 interface ContactSectionProps {
   settings: SiteSettings | null;
+  plate?: SanityImage;
 }
 
 /** "Nafpliou 1, Lakatameia, Nicosia, Cyprus" → two lines: "Nafpliou 1,
@@ -74,7 +74,7 @@ function addressLines(address?: string): string[] {
   return [parts.slice(0, half), parts.slice(half)].filter((p) => p.length).map((p) => p.join(', '));
 }
 
-export default function ContactSection({ settings }: ContactSectionProps) {
+export default function ContactSection({ settings, plate }: ContactSectionProps) {
   const rootRef = useRef<HTMLElement>(null);
 
   const email = settings?.email;
@@ -306,7 +306,7 @@ export default function ContactSection({ settings }: ContactSectionProps) {
           <div data-plate className="absolute inset-0 overflow-hidden">
             <div data-settle className="absolute inset-0 will-change-transform">
               <img
-                src={cloudinaryUrl(IMAGE_ID, { width: 1400 })}
+                src={plate ? imageUrl(plate, { width: 1400 }) : ''}
                 alt="Armonia terrace, a sofa against the glass wall"
                 loading="lazy"
                 decoding="async"

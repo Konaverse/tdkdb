@@ -6,8 +6,8 @@ import type { FormEvent } from 'react';
 import RevealFrame from '@/components/animations/RevealFrame';
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { LINE_HIDDEN, LINE_SHOWN, maskLines } from '@/lib/animations/lines';
-import { cloudinaryUrl, responsiveSrcSet } from '@/lib/cloudinary/transforms';
-import type { SiteSettings } from '@/lib/sanity/types';
+import { imageSrcSet, imageUrl } from '@/lib/sanity/image';
+import type { SanityImage, SiteSettings } from '@/lib/sanity/types';
 
 /* ───────────────────────────────────────────────────────────────────────────
    Contact — the page
@@ -30,12 +30,13 @@ import type { SiteSettings } from '@/lib/sanity/types';
 
 interface ContactClientProps {
   settings: SiteSettings | null;
+  /** siteImage `contact-plate`. */
+  plate?: SanityImage;
 }
 
 const INK = '#111111';
 const MUTED = 'rgba(17, 17, 17, 0.5)';
 const TEAL = 'var(--color-threshold, #66979f)';
-const IMAGE_ID = 'clients/tdkdb/armonia/interior/3';
 
 const LEAD =
   'Tell us about the home you have in mind, or ask about a residence. We read everything ourselves and answer within a day or two.';
@@ -72,7 +73,7 @@ function addressLines(address?: string): string[] {
   return [parts.slice(0, half), parts.slice(half)].filter((p) => p.length).map((p) => p.join(', '));
 }
 
-export default function ContactClient({ settings }: ContactClientProps) {
+export default function ContactClient({ settings, plate }: ContactClientProps) {
   const rootRef = useRef<HTMLElement>(null);
   const [status, setStatus] = useState<Status>('idle');
   const [serverError, setServerError] = useState('');
@@ -364,8 +365,8 @@ export default function ContactClient({ settings }: ContactClientProps) {
           <RevealFrame nav="dark" className="mt-16 aspect-[4/5] w-full">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={cloudinaryUrl(IMAGE_ID, { width: 1200 })}
-              srcSet={responsiveSrcSet(IMAGE_ID, [600, 900, 1200, 1600])}
+              src={plate ? imageUrl(plate, { width: 1200 }) : ''}
+              srcSet={plate ? imageSrcSet(plate, [600, 900, 1200, 1600]) : undefined}
               sizes="(min-width: 1024px) 60vw, 100vw"
               alt="An Armonia interior, the glass wall onto the terrace"
               loading="lazy"

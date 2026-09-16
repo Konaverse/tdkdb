@@ -5,7 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import { CustomEase, gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { getLenis } from '@/lib/animations/lenis';
-import { projectHeroUrl, projectHeroWidthFor } from '@/lib/cloudinary/transforms';
+import { projectHeroUrl, projectHeroWidthFor } from '@/lib/sanity/image';
+import type { SanityImage } from '@/lib/sanity/types';
 
 /* ───────────────────────────────────────────────────────────────────────────
    ProjectTransition — a project's photograph carried from the homepage onto
@@ -48,7 +49,8 @@ import { projectHeroUrl, projectHeroWidthFor } from '@/lib/cloudinary/transforms
 export interface TransitionStart {
   href: string;
   slug: string;
-  imageId: string;
+  /** The project's hero image, as the page will render it. */
+  image_source: SanityImage;
   /** The clicked frame — the window opens from its rect. */
   frame: HTMLElement;
   /** The photograph as rendered in it, pan included. */
@@ -213,7 +215,7 @@ export default function ProjectTransitionProvider({ children }: { children: Reac
   }, []);
 
   const start = useCallback<TransitionApi['start']>(
-    ({ href, slug, imageId, frame, image }) => {
+    ({ href, slug, image_source, frame, image }) => {
       if (runRef.current) return true; // one at a time; swallow the second click
       if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
 
@@ -239,7 +241,7 @@ export default function ProjectTransitionProvider({ children }: { children: Reac
       const endPic = coverBox(endWin, aspect);
 
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const src = projectHeroUrl(imageId, projectHeroWidthFor(endPic.w * dpr));
+      const src = projectHeroUrl(image_source, projectHeroWidthFor(endPic.w * dpr));
 
       const startWin = toBox(frame.getBoundingClientRect());
       const startPic = coverBox(toBox(image.getBoundingClientRect()), aspect);

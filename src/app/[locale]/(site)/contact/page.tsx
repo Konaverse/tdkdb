@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import ContactClient from './ContactClient';
 
-import { getSiteSettings } from '@/lib/sanity/queries';
+import { getSiteImages, getSiteSettings } from '@/lib/sanity/queries';
 
 export const revalidate = 60;
 
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ContactPage() {
-  const settings = await getSiteSettings();
+  const [settings, images] = await Promise.all([getSiteSettings(), getSiteImages()]);
 
-  return <ContactClient settings={settings} />;
+  return <ContactClient settings={settings} plate={images['contact-plate']} />;
 }

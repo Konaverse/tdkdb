@@ -52,11 +52,12 @@ export default defineType({
       },
     }),
     defineField({
-      name: 'heroImageId',
-      title: 'Hero Image (Cloudinary ID)',
-      type: 'string',
+      name: 'heroImage',
+      title: 'Hero Image',
+      type: 'image',
+      options: { hotspot: true },
       description:
-        'Upload to Cloudinary under clients/tdkdb/. Paste the public ID here.\nExample: clients/tdkdb/almond/renders/hero-exterior',
+        'The full-bleed image at the top of the project page — and the one that expands out of the homepage when someone opens this project. Landscape. Set the hotspot on what must stay in frame.',
     }),
     // ── Homepage Reel (horizontal Projects section on the homepage) ──────────
     defineField({
@@ -85,18 +86,21 @@ export default defineType({
       description: 'Closing paragraph shown beside the CTA at the end of the beat.',
     }),
     defineField({
-      name: 'homepageGridImageId',
-      title: 'Homepage — Grid Image (Cloudinary ID, landscape)',
-      type: 'string',
+      name: 'homepageGridImage',
+      title: 'Homepage — Grid Image (landscape)',
+      type: 'image',
+      options: { hotspot: true },
       group: 'homepageReel',
       description: 'Landscape image for the lower-left cell of the 2×2 grid in the homepage reel.',
     }),
     defineField({
-      name: 'homepagePortraitImageId',
-      title: 'Homepage — Portrait Image (Cloudinary ID, portrait)',
-      type: 'string',
+      name: 'homepagePortraitImage',
+      title: 'Homepage — Portrait Image',
+      type: 'image',
+      options: { hotspot: true },
       group: 'homepageReel',
-      description: 'Portrait image for the full-height right cell of the 2×2 grid in the homepage reel.',
+      description:
+        'Portrait image for the full-height right cell of the 2×2 grid in the homepage reel.',
     }),
     defineField({
       name: 'rendersGallery',
@@ -114,7 +118,7 @@ export default defineType({
           name: 'images',
           title: 'Images',
           type: 'array',
-          of: [{ type: 'string', title: 'Cloudinary ID' }],
+          of: [{ type: 'image', options: { hotspot: true } }],
         }),
         defineField({ name: 'caption', title: 'Caption', type: 'string' }),
       ],
@@ -136,7 +140,7 @@ export default defineType({
           name: 'images',
           title: 'Images',
           type: 'array',
-          of: [{ type: 'string', title: 'Cloudinary ID' }],
+          of: [{ type: 'image', options: { hotspot: true } }],
         }),
         defineField({
           name: 'caption',

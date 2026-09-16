@@ -6,7 +6,8 @@ import Link from 'next/link';
 import RevealFrame from '@/components/animations/RevealFrame';
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { LINE_HIDDEN, LINE_SHOWN, maskLines } from '@/lib/animations/lines';
-import { cloudinaryUrl, responsiveSrcSet } from '@/lib/cloudinary/transforms';
+import { imageSrcSet, imageUrl } from '@/lib/sanity/image';
+import type { SanityImage, SiteImages } from '@/lib/sanity/types';
 
 /* ───────────────────────────────────────────────────────────────────────────
    About — the studio, light and editorial
@@ -30,17 +31,18 @@ const INK = '#111111';
 const BODY = 'rgba(17, 17, 17, 0.72)';
 const MUTED = 'rgba(17, 17, 17, 0.5)';
 
-const IMG = {
-  chip: 'clients/tdkdb/armonia/interior/5.jpg',
-  hero: 'clients/tdkdb/general/about/armonia_front_angle_day',
-  draw: 'clients/tdkdb/general/about/second-design-philosophy',
-  build: 'clients/tdkdb/general/about/fourth-people',
-  handover: 'clients/tdkdb/armonia/interior/2.jpg',
-  spread: 'clients/tdkdb/armonia/interior/4.jpg',
-  small1: 'clients/tdkdb/armonia/exterior/2.jpg',
-  small2: 'clients/tdkdb/armonia/interior/3.jpg',
-  standard: 'clients/tdkdb/almond/renders/ChatGPT_Image_Feb_6_2026_08_07_30_PM.png',
-};
+/** The siteImage keys this page asks for, in the order they appear. */
+const KEY = {
+  chip: 'about-chip',
+  hero: 'about-hero',
+  draw: 'about-draw',
+  build: 'about-build',
+  handover: 'about-handover',
+  spread: 'about-spread',
+  small1: 'about-view-one',
+  small2: 'about-view-two',
+  standard: 'about-standard',
+} as const;
 
 const LEAD =
   'TDK Design & Build is run by three members of the Kyprianou family. The architect who draws a residence and the manager who builds it sit in the same room, and the same name is on both.';
@@ -54,19 +56,19 @@ const STEPS = [
     n: '01',
     title: 'Draw',
     line: 'Theodora reads the site, the brief and the light, and draws until the plan is resolved.',
-    image: IMG.draw,
+    image: 'draw' as const,
   },
   {
     n: '02',
     title: 'Build',
     line: 'Marios runs the site — the materials, the contractors, the sequence, the standard.',
-    image: IMG.build,
+    image: 'build' as const,
   },
   {
     n: '03',
     title: 'Hand over',
     line: 'We finish the building, snag it ourselves, and give you the keys.',
-    image: IMG.handover,
+    image: 'handover' as const,
   },
 ];
 
@@ -111,7 +113,7 @@ function Picture({
   sizes,
   position,
 }: {
-  id: string;
+  id?: SanityImage;
   alt: string;
   sizes: string;
   /** object-position, for portraits where the centre is not the subject. */
@@ -120,8 +122,8 @@ function Picture({
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={cloudinaryUrl(id, { width: 1600 })}
-      srcSet={responsiveSrcSet(id)}
+      src={id ? imageUrl(id, { width: 1600 }) : ''}
+      srcSet={id ? imageSrcSet(id) : undefined}
       sizes={sizes}
       alt={alt}
       loading="lazy"
@@ -133,12 +135,12 @@ function Picture({
 }
 
 /** The photograph set into the headline. */
-function Chip() {
+function Chip({ chip }: { chip?: SanityImage }) {
   return (
     <span className="inline-block h-[0.58em] w-[1.5em] shrink-0 translate-y-[0.04em] overflow-hidden">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={cloudinaryUrl(IMG.chip, { width: 400 })}
+        src={chip ? imageUrl(chip, { width: 400 }) : ''}
         alt=""
         aria-hidden="true"
         className="h-full w-full object-cover"
@@ -155,8 +157,9 @@ function Caption({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function AboutClient() {
+export default function AboutClient({ images }: { images: SiteImages }) {
   const rootRef = useRef<HTMLElement>(null);
+  const img = (key: keyof typeof KEY) => images[KEY[key]];
 
   useLayoutEffect(() => {
     gsapInit();
@@ -287,7 +290,7 @@ export default function AboutClient() {
                     {line}
                     {i === 0 && (
                       <>
-                        <Chip />
+                        <Chip chip={img('chip')} />
                         {HEAD_WIDE_TAIL}
                       </>
                     )}
@@ -301,7 +304,7 @@ export default function AboutClient() {
                 <span key={line} className={heroLine}>
                   <span data-hero-line className="inline-flex items-baseline gap-[0.22em]">
                     {line}
-                    {i === 0 && <Chip />}
+                    {i === 0 && <Chip chip={img('chip')} />}
                   </span>
                 </span>
               ))}
@@ -323,7 +326,7 @@ export default function AboutClient() {
         <RevealFrame nav="dark" className="aspect-[4/5] w-full lg:aspect-[16/9]">
           <Drift range={5}>
             <Picture
-              id={IMG.hero}
+              id={img('hero')}
               alt="An Armonia facade at dusk"
               sizes="(min-width: 1024px) 100vw, 180vw"
             />
@@ -364,7 +367,7 @@ export default function AboutClient() {
           {STEPS.map((s) => (
             <div key={s.title}>
               <RevealFrame nav="dark" className="aspect-[4/5] w-full">
-                <Picture id={s.image} alt="" sizes="(min-width: 640px) 34vw, 100vw" />
+                <Picture id={img(s.image)} alt="" sizes="(min-width: 640px) 34vw, 100vw" />
               </RevealFrame>
               <div className="mt-5 flex items-baseline gap-4">
                 <span data-rise className="font-mono text-[12px]" style={{ color: MUTED }}>
@@ -406,7 +409,7 @@ export default function AboutClient() {
             <RevealFrame nav="dark" className="aspect-[4/5] w-full lg:aspect-[3/2]">
               <Drift range={6}>
                 <Picture
-                  id={IMG.spread}
+                  id={img('spread')}
                   alt="An Armonia living space opening onto its terrace"
                   sizes="(min-width: 1024px) 70vw, 100vw"
                 />
@@ -421,7 +424,7 @@ export default function AboutClient() {
           <div className="lg:col-span-3">
             <RevealFrame nav="dark" className="aspect-[4/5] w-full">
               <Picture
-                id={IMG.small1}
+                id={img('small1')}
                 alt="Armonia from the street"
                 sizes="(min-width: 1024px) 28vw, 100vw"
               />
@@ -432,7 +435,7 @@ export default function AboutClient() {
           <div className="lg:col-span-4 lg:mt-[9svh]">
             <RevealFrame nav="dark" className="aspect-[3/2] w-full">
               <Picture
-                id={IMG.small2}
+                id={img('small2')}
                 alt="An Armonia interior"
                 sizes="(min-width: 1024px) 36vw, 100vw"
               />
@@ -464,7 +467,7 @@ export default function AboutClient() {
         <RevealFrame nav="dark" className="h-[78svh] w-full lg:h-[92svh]">
           <Drift range={5}>
             <Picture
-              id={IMG.standard}
+              id={img('standard')}
               alt="Almond Suites at dusk"
               sizes="(min-width: 1024px) 100vw, 180vw"
             />

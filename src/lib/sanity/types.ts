@@ -2,10 +2,22 @@
 
 // --- Shared Types ---
 
+/** A Sanity image field. The URL builder takes this shape directly. */
+export interface SanityImage {
+  _type?: 'image';
+  _key?: string;
+  asset: { _ref: string; _type?: 'reference' };
+  hotspot?: { x: number; y: number; height: number; width: number };
+  crop?: { top: number; bottom: number; left: number; right: number };
+}
+
+/** A photograph the design asks for by name (see the siteImage schema). */
+export type SiteImages = Record<string, SanityImage | undefined>;
+
 export interface SeoMeta {
   title: string;
   description: string;
-  ogImageId?: string;
+  ogImage?: SanityImage;
 }
 
 import type { PortableTextBlock } from '@portabletext/types';
@@ -16,7 +28,7 @@ export type { PortableTextBlock };
 
 export interface ProjectGallery {
   heading: string;
-  images: string[];
+  images: SanityImage[];
   caption?: string;
 }
 
@@ -42,13 +54,13 @@ export interface Project {
   ctaType: 'showcase' | 'register-interest' | 'contact';
   location: string;
   year: number;
-  heroImageId: string;
+  heroImage: SanityImage;
   // Homepage horizontal reel
   homepageIntro?: string;
   homepageParagraphMid?: string;
   homepageParagraphClose?: string;
-  homepageGridImageId?: string;
-  homepagePortraitImageId?: string;
+  homepageGridImage?: SanityImage;
+  homepagePortraitImage?: SanityImage;
   rendersGallery?: ProjectGallery;
   photosGallery?: ProjectGallery;
   pullQuote?: string;
@@ -82,7 +94,7 @@ export interface TeamMember {
   name: string;
   role: string;
   bio?: string;
-  photoId?: string; // Cloudinary ID
+  photo?: SanityImage;
   email?: string;
   linkedin?: string;
   order?: number;
@@ -103,7 +115,7 @@ export interface SiteSettings {
   phone?: string;
   email?: string;
   socialLinks?: SocialLink[];
-  logoId?: string; // Cloudinary ID
-  ogImageId?: string; // Cloudinary ID
+  logo?: SanityImage;
+  ogImage?: SanityImage;
   googleAnalyticsId?: string;
 }

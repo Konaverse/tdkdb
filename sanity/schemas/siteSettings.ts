@@ -25,8 +25,14 @@ export default defineType({
         }),
       ],
     }),
-    defineField({ name: 'logoId', title: 'Logo (Cloudinary ID)', type: 'string' }),
-    defineField({ name: 'ogImageId', title: 'Default OG Image (Cloudinary ID)', type: 'string' }),
+    defineField({ name: 'logo', title: 'Logo', type: 'image' }),
+    defineField({
+      name: 'ogImage',
+      title: 'Default Social Share Image',
+      type: 'image',
+      options: { hotspot: true },
+      description: 'Shown when a page is shared and has no image of its own. Landscape.',
+    }),
     defineField({ name: 'googleAnalyticsId', title: 'Google Analytics ID', type: 'string' }),
   ],
 });

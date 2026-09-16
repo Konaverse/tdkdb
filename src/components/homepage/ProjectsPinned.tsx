@@ -8,7 +8,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { getLenis } from '@/lib/animations/lenis';
 import { stripReveal } from '@/lib/animations/stripReveal';
-import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
+import { imageUrl } from '@/lib/sanity/image';
 import { displayTitle, projectHref, STATUS_LABEL } from '@/lib/projects/display';
 import { useProjectTransition } from '@/components/transition/ProjectTransition';
 import type { Project } from '@/lib/sanity/types';
@@ -147,7 +147,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
     const handled =
       !!frame &&
       !!image &&
-      transition.start({ href, slug: p.slug.current, imageId: p.heroImageId, frame, image });
+      transition.start({ href, slug: p.slug.current, image_source: p.heroImage, frame, image });
     if (!handled) router.push(href);
   };
 
@@ -420,7 +420,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
                   <div data-settle className="h-full w-full">
                     <div data-pan className="relative h-full w-full will-change-transform">
                       <img
-                        src={cloudinaryUrl(p.heroImageId, { width: 1600 })}
+                        src={imageUrl(p.heroImage, { width: 1600 })}
                         alt={displayTitle(p)}
                         loading="eager"
                         decoding="async"

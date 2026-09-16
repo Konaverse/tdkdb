@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 
 import { gsap, gsapInit } from '@/lib/animations/gsap';
-import { projectHeroSrcSet, projectHeroUrl } from '@/lib/cloudinary/transforms';
+import { projectHeroSrcSet, projectHeroUrl } from '@/lib/sanity/image';
 import { displayTitle, STATUS_LABEL } from '@/lib/projects/display';
 import { useProjectTransition } from '@/components/transition/ProjectTransition';
 import type { Project } from '@/lib/sanity/types';
@@ -33,7 +33,7 @@ import type { Project } from '@/lib/sanity/types';
 
 type HeroProject = Pick<
   Project,
-  'title' | 'slug' | 'status' | 'type' | 'location' | 'year' | 'heroImageId'
+  'title' | 'slug' | 'status' | 'type' | 'location' | 'year' | 'heroImage'
 >;
 
 interface ProjectHeroProps {
@@ -160,8 +160,8 @@ export default function ProjectHero({ project }: ProjectHeroProps) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         ref={imgRef}
-        src={arrival ? arrival.src : projectHeroUrl(project.heroImageId, 2000)}
-        srcSet={arrival ? undefined : projectHeroSrcSet(project.heroImageId)}
+        src={arrival ? arrival.src : projectHeroUrl(project.heroImage, 2000)}
+        srcSet={arrival ? undefined : projectHeroSrcSet(project.heroImage)}
         sizes={arrival ? undefined : '100vw'}
         alt={title}
         decoding="async"

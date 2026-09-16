@@ -49,8 +49,8 @@ import type { SiteSettings } from '@/lib/sanity/types';
    stopped while it is open.
    ─────────────────────────────────────────────────────────────────────────── */
 
-const LOGO =
-  'https://res.cloudinary.com/konaverse/image/upload/v1772055539/clients/tdkdb/general/logo-dark.svg';
+/** Local and tracked in git — the mark is not content. */
+const LOGO = '/images/logo-dark.svg';
 
 const PAGES = [
   { label: 'Home', path: '' },

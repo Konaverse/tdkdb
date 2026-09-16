@@ -4,7 +4,7 @@ import Interlude from '@/components/homepage/Interlude';
 import ContactSection from '@/components/homepage/ContactSection';
 import HomeLoader from '@/components/homepage/HomeLoader';
 import Hero from '@/components/homepage/Hero';
-import { getProjectsForHomepageReel, getSiteSettings } from '@/lib/sanity/queries';
+import { getProjectsForHomepageReel, getSiteImages, getSiteSettings } from '@/lib/sanity/queries';
 
 const HERO_PARAGRAPHS: [string, string] = [
   'TDK is a design-and-build studio in Nicosia. The architects who draw a residence are the same people who build it and hand over the keys — one team, accountable from the first sketch to the last fitting.',
@@ -12,7 +12,11 @@ const HERO_PARAGRAPHS: [string, string] = [
 ];
 
 export default async function HomePage() {
-  const [projects, settings] = await Promise.all([getProjectsForHomepageReel(), getSiteSettings()]);
+  const [projects, settings, images] = await Promise.all([
+    getProjectsForHomepageReel(),
+    getSiteSettings(),
+    getSiteImages(),
+  ]);
 
   return (
     <main className="relative">
@@ -25,14 +29,14 @@ export default async function HomePage() {
       <ProjectsPinned projects={projects} />
 
       {/* About — flat architectural grid, ~130vh, no pin. */}
-      <AboutGrid />
+      <AboutGrid people={images['home-about-people']} material={images['home-about-material']} />
 
       {/* Interlude — pinned: three beats over the kitchen, then the render
           shrinks to a frame under "We House Your Dream". */}
-      <Interlude />
+      <Interlude image={images['home-interlude']} />
 
       {/* Contact — the board's layout: CONTACT, intro, details, tall render. */}
-      <ContactSection settings={settings} />
+      <ContactSection settings={settings} plate={images['home-contact-plate']} />
     </main>
   );
 }

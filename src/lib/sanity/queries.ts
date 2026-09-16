@@ -1,12 +1,12 @@
 // src/lib/sanity/queries.ts
 import { client } from './client';
-import type { Project, SiteSettings, TeamMember } from './types';
+import type { Project, SiteImages, SiteSettings, TeamMember } from './types';
 
 // --- PROJECT QUERIES ---
 
 export async function getAllProjects(): Promise<Project[]> {
   const query = `*[_type == 'project'] | order(year desc) {
-    _id, title, slug, status, type, ctaType, location, year, heroImageId, seo
+    _id, title, slug, status, type, ctaType, location, year, heroImage, seo
   }`;
 
   try {
@@ -21,7 +21,7 @@ export async function getAllProjects(): Promise<Project[]> {
 /** The projects hub: everything the index entries state, counts included. */
 export async function getProjectsForIndex(): Promise<Project[]> {
   const query = `*[_type == 'project'] | order(year desc) {
-    _id, title, slug, status, type, ctaType, location, year, heroImageId, pullQuote,
+    _id, title, slug, status, type, ctaType, location, year, heroImage, pullQuote,
     units[] { floor, unitType, sizeM2, status }
   }`;
 
@@ -36,10 +36,10 @@ export async function getProjectsForIndex(): Promise<Project[]> {
 
 export async function getProjectsForHomepageReel(): Promise<Project[]> {
   const query = `*[_type == 'project'] | order(year desc) [0...5] {
-    _id, title, slug, status, type, ctaType, location, year, heroImageId,
+    _id, title, slug, status, type, ctaType, location, year, heroImage,
     features,
     homepageIntro, homepageParagraphMid, homepageParagraphClose,
-    homepageGridImageId, homepagePortraitImageId
+    homepageGridImage, homepagePortraitImage
   }`;
 
   try {
@@ -54,7 +54,7 @@ export async function getProjectsForHomepageReel(): Promise<Project[]> {
 export async function getProjectBySlug(slug: string): Promise<Project | null> {
   const query = `*[_type == 'project' && slug.current == $slug][0] {
     _id, title, slug, status, type, ctaType, location, year,
-    heroImageId,
+    heroImage,
     rendersGallery { heading, images, caption },
     photosGallery { heading, images, caption },
     pullQuote, description, features, specs,
@@ -83,7 +83,7 @@ export async function getSiteSettings(): Promise<SiteSettings | null> {
   const query = `*[_type == 'siteSettings'][0] {
     _id, companyName, tagline, address, phone, email,
     socialLinks[] { platform, url },
-    logoId, ogImageId, googleAnalyticsId
+    logo, ogImage, googleAnalyticsId
   }`;
 
   try {
@@ -95,11 +95,28 @@ export async function getSiteSettings(): Promise<SiteSettings | null> {
   }
 }
 
+/**
+ * The photographs the design asks for by name, as a map: `images['about-hero']`.
+ * One query per page that needs them; a missing key renders nothing rather
+ * than breaking the page.
+ */
+export async function getSiteImages(): Promise<SiteImages> {
+  const query = `*[_type == 'siteImage']{ 'key': key.current, image }`;
+
+  try {
+    const rows = await client.fetch<{ key: string; image: SiteImages[string] }[]>(query);
+    return Object.fromEntries((rows || []).map((r) => [r.key, r.image]));
+  } catch (error) {
+    console.error('Error fetching site images:', error);
+    return {};
+  }
+}
+
 // --- TEAM QUERIES ---
 
 export async function getAllTeamMembers(): Promise<TeamMember[]> {
   const query = `*[_type == 'teamMember'] | order(order asc, name asc) {
-    _id, name, role, bio, photoId, email, linkedin, order
+    _id, name, role, bio, photo, email, linkedin, order
   }`;
 
   try {

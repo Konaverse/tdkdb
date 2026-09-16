@@ -7,12 +7,9 @@ const nextConfig = {
   },
 
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'res.cloudinary.com',
-      },
-    ],
+    // Sanity's CDN, for any next/image use. Photography and renders are
+    // served as plain <img> from the same host (see docs/ADR.md).
+    remotePatterns: [{ protocol: 'https', hostname: 'cdn.sanity.io' }],
   },
 
   async headers() {
@@ -37,10 +34,10 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://res.cloudinary.com https://cdn.sanity.io https://www.google-analytics.com https://www.googletagmanager.com",
+              "img-src 'self' data: blob: https://cdn.sanity.io https://www.google-analytics.com https://www.googletagmanager.com",
               "font-src 'self' data:",
-              "connect-src 'self' https://*.sanity.io https://www.google-analytics.com https://www.googletagmanager.com https://www.clarity.ms https://res.cloudinary.com",
-              "media-src 'self' blob: https://res.cloudinary.com",
+              "connect-src 'self' https://*.sanity.io https://www.google-analytics.com https://www.googletagmanager.com https://www.clarity.ms",
+              "media-src 'self' blob:",
               "frame-src 'self'",
               "frame-ancestors 'none'",
               "base-uri 'self'",

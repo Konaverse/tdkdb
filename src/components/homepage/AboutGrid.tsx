@@ -5,7 +5,8 @@ import Link from 'next/link';
 
 import { gsap, ScrollTrigger, gsapInit } from '@/lib/animations/gsap';
 import { stripReveal } from '@/lib/animations/stripReveal';
-import { cloudinaryUrl } from '@/lib/cloudinary/transforms';
+import { imageUrl } from '@/lib/sanity/image';
+import type { SanityImage } from '@/lib/sanity/types';
 
 /* ───────────────────────────────────────────────────────────────────────────
    AboutGrid — the architectural plate
@@ -72,9 +73,6 @@ const STATS: Stat[] = [
   { value: 100, suffix: '%', label: 'CLIENT SATISFACTION' },
 ];
 
-const IMAGE_A = 'clients/tdkdb/general/about/fourth-people';
-const IMAGE_B = 'clients/tdkdb/general/about/second-design-philosophy';
-
 /* Light palette. Inline values rather than Tailwind alpha tokens: `bg-void/90`
    style classes compile to a transparent colour in this project. */
 const PAPER = '#ffffff';
@@ -87,7 +85,13 @@ const CELL_BG_HOVER = '#58868d';
 const ON_TEAL = '#ffffff';
 const ON_TEAL_SOFT = 'rgba(255, 255, 255, 0.78)';
 
-export default function AboutGrid() {
+export default function AboutGrid({
+  people,
+  material,
+}: {
+  people?: SanityImage;
+  material?: SanityImage;
+}) {
   const sectionRef = useRef<HTMLElement>(null);
 
   // Header — one exit node for the whole band; entrance lives on its children.
@@ -496,7 +500,7 @@ export default function AboutGrid() {
 
             {/* ── 03 · image A · c4r1 ── */}
             <ImageCell
-              imageId={IMAGE_A}
+              image={people}
               caption="THE TEAM"
               row={1}
               className="lg:col-start-4 lg:row-start-1"
@@ -509,7 +513,7 @@ export default function AboutGrid() {
 
             {/* ── 04 · image B · c2r2 ── */}
             <ImageCell
-              imageId={IMAGE_B}
+              image={material}
               caption="MATERIAL STUDY"
               row={2}
               className="lg:col-start-2 lg:row-start-2"
@@ -638,7 +642,7 @@ function StatCell({
 }
 
 function ImageCell({
-  imageId,
+  image,
   caption,
   row,
   className,
@@ -646,7 +650,7 @@ function ImageCell({
   clipRef,
   onHover,
 }: CellChrome & {
-  imageId: string;
+  image?: SanityImage;
   caption: string;
   onHover: (el: HTMLElement | null, entering: boolean) => void;
 }) {
@@ -670,7 +674,7 @@ function ImageCell({
           <div data-enter-scale className="h-full w-full will-change-transform">
             <div data-hover-scale className="h-full w-full will-change-transform">
               <img
-                src={cloudinaryUrl(imageId, { width: 900 })}
+                src={image ? imageUrl(image, { width: 900 }) : ''}
                 alt=""
                 aria-hidden="true"
                 loading="lazy"

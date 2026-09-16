@@ -9,7 +9,7 @@ import RevealFrame from '@/components/animations/RevealFrame';
 import { useProjectTransition } from '@/components/transition/ProjectTransition';
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { LINE_HIDDEN, LINE_SHOWN, maskLines } from '@/lib/animations/lines';
-import { cloudinaryUrl, responsiveSrcSet } from '@/lib/cloudinary/transforms';
+import { imageSrcSet, imageUrl } from '@/lib/sanity/image';
 import { displayTitle, projectHref, STATUS_LABEL } from '@/lib/projects/display';
 import type { Project } from '@/lib/sanity/types';
 
@@ -64,7 +64,7 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
     const handled =
       !!frame &&
       !!image &&
-      transition.start({ href, slug: p.slug.current, imageId: p.heroImageId, frame, image });
+      transition.start({ href, slug: p.slug.current, image_source: p.heroImage, frame, image });
     if (!handled) router.push(href);
   };
 
@@ -243,8 +243,8 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
                   <div data-zoom className="h-full w-full">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={cloudinaryUrl(p.heroImageId, { width: 1600 })}
-                      srcSet={responsiveSrcSet(p.heroImageId)}
+                      src={imageUrl(p.heroImage, { width: 1600 })}
+                      srcSet={imageSrcSet(p.heroImage)}
                       sizes="(min-width: 1024px) 100vw, 180vw"
                       alt={title}
                       loading="lazy"

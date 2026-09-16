@@ -5,7 +5,8 @@ import { useLayoutEffect, useRef } from 'react';
 import RevealFrame from '@/components/animations/RevealFrame';
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { LINE_HIDDEN, LINE_SHOWN, maskLines } from '@/lib/animations/lines';
-import { cloudinaryUrl, responsiveSrcSet } from '@/lib/cloudinary/transforms';
+import { imageSrcSet, imageUrl } from '@/lib/sanity/image';
+import type { SanityImage } from '@/lib/sanity/types';
 
 /* ───────────────────────────────────────────────────────────────────────────
    ProjectScenes — the renders, as four spreads rather than a gallery
@@ -40,7 +41,7 @@ import { cloudinaryUrl, responsiveSrcSet } from '@/lib/cloudinary/transforms';
 interface ProjectScenesProps {
   title: string;
   /** Exactly five: A, B, C-left, C-right, D. */
-  images: string[];
+  images: SanityImage[];
   quote?: string;
   features?: string[];
 }
@@ -48,12 +49,12 @@ interface ProjectScenesProps {
 const INK = '#111111';
 const MUTED = 'rgba(17, 17, 17, 0.5)';
 
-function Render({ id, alt, sizes }: { id: string; alt: string; sizes: string }) {
+function Render({ id, alt, sizes }: { id: SanityImage; alt: string; sizes: string }) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={cloudinaryUrl(id, { width: 1600 })}
-      srcSet={responsiveSrcSet(id)}
+      src={imageUrl(id, { width: 1600 })}
+      srcSet={imageSrcSet(id)}
       sizes={sizes}
       alt={alt}
       loading="lazy"
