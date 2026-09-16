@@ -6,13 +6,7 @@ import Link from 'next/link';
 import RevealFrame from '@/components/animations/RevealFrame';
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { LINE_HIDDEN, LINE_SHOWN, maskLines } from '@/lib/animations/lines';
-import {
-  cloudinaryUrl,
-  portraitSrcSet,
-  portraitUrl,
-  responsiveSrcSet,
-} from '@/lib/cloudinary/transforms';
-import type { TeamMember } from '@/lib/sanity/types';
+import { cloudinaryUrl, responsiveSrcSet } from '@/lib/cloudinary/transforms';
 
 /* ───────────────────────────────────────────────────────────────────────────
    About — the studio, light and editorial
@@ -32,10 +26,6 @@ import type { TeamMember } from '@/lib/sanity/types';
    eight deliveries, which is not what the dataset says.
    ─────────────────────────────────────────────────────────────────────────── */
 
-interface AboutClientProps {
-  team: TeamMember[];
-}
-
 const INK = '#111111';
 const BODY = 'rgba(17, 17, 17, 0.72)';
 const MUTED = 'rgba(17, 17, 17, 0.5)';
@@ -49,6 +39,7 @@ const IMG = {
   spread: 'clients/tdkdb/armonia/interior/4.jpg',
   small1: 'clients/tdkdb/armonia/exterior/2.jpg',
   small2: 'clients/tdkdb/armonia/interior/3.jpg',
+  standard: 'clients/tdkdb/almond/renders/ChatGPT_Image_Feb_6_2026_08_07_30_PM.png',
 };
 
 const LEAD =
@@ -86,6 +77,10 @@ const POSITION = [
 
 const QUOTE = 'A home is not a beautiful object. It is a space that makes daily life feel better.';
 const QUOTE_BY = 'Theodora Kyprianou, architect';
+
+const STANDARD_HEADING = ['Every decision on a site', 'shows up in the finished', 'building.'];
+const STANDARD_BODY =
+  'So we make them in person — the material, the contractor, the detail where the floor meets the wall. It is slower than handing a drawing to someone else and waiting to see what comes back, and it is the only way we can promise that what was drawn is what you are given.';
 
 const CLOSE = 'If you are thinking about a home, write to us.';
 
@@ -160,7 +155,7 @@ function Caption({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function AboutClient({ team }: AboutClientProps) {
+export default function AboutClient() {
   const rootRef = useRef<HTMLElement>(null);
 
   useLayoutEffect(() => {
@@ -464,102 +459,53 @@ export default function AboutClient({ team }: AboutClientProps) {
         </div>
       </section>
 
-      {/* ── The family ───────────────────────────────────────────────────── */}
-      {team.length > 0 && (
-        <section className="px-page pt-[20svh]">
-          <h2
-            data-heading
-            className="text-[clamp(44px,6.4vw,120px)] font-[300] leading-[0.92] tracking-[-0.01em]"
-          >
-            <span className="-mb-[0.1em] -mt-[0.16em] block overflow-hidden pb-[0.1em] pt-[0.16em]">
-              <span data-heading-line className="block">
-                The family
-              </span>
-            </span>
-          </h2>
+      {/* ── The standard — one picture, the text laid inside it ───────── */}
+      <section className="px-page pt-[20svh]">
+        <RevealFrame nav="dark" className="h-[78svh] w-full lg:h-[92svh]">
+          <Drift range={5}>
+            <Picture
+              id={IMG.standard}
+              alt="Almond Suites at dusk"
+              sizes="(min-width: 1024px) 100vw, 180vw"
+            />
+          </Drift>
 
-          <div className="mt-[10svh] flex flex-col gap-[14svh]">
-            {team.map((member) => (
-              <article key={member._id} className="lg:gap-x-gutter grid gap-y-10 lg:grid-cols-12">
-                <div className="lg:col-span-4">
-                  {member.photoId && (
-                    <RevealFrame nav="dark" className="aspect-[3/4] w-full">
-                      <Drift range={4}>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={portraitUrl(member.photoId, 900)}
-                          srcSet={portraitSrcSet(member.photoId)}
-                          sizes="(min-width: 1024px) 34vw, 100vw"
-                          alt={member.name}
-                          loading="lazy"
-                          decoding="async"
-                          className="block h-full w-full object-cover"
-                        />
-                      </Drift>
-                    </RevealFrame>
-                  )}
-                </div>
+          {/* Legibility for the type, never the picture's own dimming. */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(to top, rgba(0,0,0,0.66) 0%, rgba(0,0,0,0.3) 38%, rgba(0,0,0,0) 68%)',
+            }}
+          />
 
-                <div className="lg:col-span-7 lg:col-start-6">
-                  <h3
-                    data-heading
-                    className="text-[clamp(28px,3vw,54px)] font-[300] leading-[1.05] tracking-[-0.01em]"
-                  >
-                    <span className="-mb-[0.08em] -mt-[0.14em] block overflow-hidden pb-[0.08em] pt-[0.14em]">
-                      <span data-heading-line className="block">
-                        {member.name}
-                      </span>
-                    </span>
-                  </h3>
-                  <p
-                    data-rise
-                    className="mt-3 text-[clamp(14px,1vw,17px)]"
-                    style={{ color: MUTED }}
-                  >
-                    {member.role}
-                  </p>
+          <div className="lg:gap-x-gutter absolute inset-x-0 bottom-0 grid gap-y-8 p-[max(20px,3vw)] text-white lg:grid-cols-12">
+            <h2
+              data-heading
+              className="text-[clamp(26px,3.2vw,58px)] font-[300] leading-[1.1] tracking-[-0.01em] lg:col-span-6"
+            >
+              {STANDARD_HEADING.map((line) => (
+                <span
+                  key={line}
+                  className="-mb-[0.08em] -mt-[0.14em] block overflow-hidden pb-[0.08em] pt-[0.14em]"
+                >
+                  <span data-heading-line className="block">
+                    {line}
+                  </span>
+                </span>
+              ))}
+            </h2>
 
-                  {member.bio && (
-                    <div className="mt-8 flex max-w-[58ch] flex-col gap-5">
-                      {member.bio
-                        .split('\n')
-                        .map((p) => p.trim())
-                        .filter(Boolean)
-                        .map((p, i) => (
-                          <p
-                            key={i}
-                            data-rise
-                            className={
-                              i === 0
-                                ? 'text-[clamp(18px,1.4vw,25px)] font-[300] leading-[1.45]'
-                                : 'text-[clamp(15px,1.05vw,18px)] font-[300] leading-[1.65]'
-                            }
-                            style={i === 0 ? undefined : { color: BODY }}
-                          >
-                            {p}
-                          </p>
-                        ))}
-                    </div>
-                  )}
-
-                  {member.linkedin && (
-                    <a
-                      data-rise
-                      href={member.linkedin}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="mt-7 inline-block bg-[linear-gradient(currentColor,currentColor)] bg-[length:0%_1px] bg-left-bottom bg-no-repeat text-[clamp(14px,1vw,17px)] transition-[background-size,color] duration-500 ease-smooth hover:bg-[length:100%_1px] hover:text-threshold"
-                      style={{ color: MUTED }}
-                    >
-                      LinkedIn
-                    </a>
-                  )}
-                </div>
-              </article>
-            ))}
+            <p
+              data-write
+              className="max-w-[44ch] text-[clamp(15px,1.1vw,19px)] font-[300] leading-[1.6] text-white/85 lg:col-span-4 lg:col-start-9 lg:self-end"
+            >
+              {STANDARD_BODY}
+            </p>
           </div>
-        </section>
-      )}
+        </RevealFrame>
+      </section>
 
       {/* ── Close ────────────────────────────────────────────────────────── */}
       <section className="px-page pb-[18svh] pt-[20svh]">

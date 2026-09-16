@@ -145,10 +145,12 @@ on the page grid: a headline with a photograph set INSIDE the line (two sets of 
 sm and up vs phones, never wrapping — a wrap strands the picture), a full-width plate, the
 "one team" statement with three captioned plates (Draw / Build / Hand over), the second board's
 spread (small text columns against a large plate, a staggered row with captions, a pull quote
-held in the margin), then the family — each member's portrait and full Sanity bio — and a close
-that links to Contact. Team portraits use `portraitUrl()` (Cloudinary `g_auto`): the photos are
-casual snapshots, so a centred CSS crop loses the person. NO invented numbers: the old page
-claimed 15 years and 8 deliveries; the dataset says 2 buildings.
+held in the margin), then a near-full-viewport plate (92svh) with the
+page's closing statement laid out INSIDE it — heading left, paragraph right, over a bottom
+scrim — and a close that links to Contact. There is deliberately NO team section: the user
+asked for it removed (the bios are still in Sanity; `portraitUrl()` with Cloudinary `g_auto`
+remains in transforms for whenever portraits are wanted again). NO invented numbers: the old
+page claimed 15 years and 8 deliveries; the dataset says 2 buildings.
 
 ### Contact page
 
