@@ -149,7 +149,8 @@ then cycled), stacked on the page grid with `gap-page` between them — the user
 of white around every picture, section heights don't matter: A aperture (content-width 16:9,
 render zooms out on scroll), B side note (6-col portrait + quote/features in cols 8–12),
 C diptych (8 + 4 cols, same height, renders drift at different rates inside their frames),
-D plate (a centred square over cols 4–9; replaced a panorama band the user found ugly). Frames never move or scale on scroll —
+D plate (the aperture again — the sequence opens and closes on the same plate; it replaced a
+panorama band the user found ugly). Frames never move or scale on scroll —
 only the render inside them does, so the grid stays exact. Availability is a rule-less banded table with three counting figures; Story is
 the description lead + percentage/bar + specs; Register is the one teal section and posts to the
 unchanged `/api/project-interest`.

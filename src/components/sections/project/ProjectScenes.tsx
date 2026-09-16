@@ -17,22 +17,22 @@ import { cloudinaryUrl, responsiveSrcSet } from '@/lib/cloudinary/transforms';
    their pictures make them; only the system is fixed.
 
    A · APERTURE   One plate across the full content width. The render inside
-                  pulls back as the plate crosses the screen.
+                  pulls back as the plate crosses the screen. The sequence
+                  opens and closes on this same plate (D), so the two spreads
+                  between them sit inside a pair.
    B · SIDE NOTE  A portrait crop over six columns; the pull quote and the
                   features in columns 8–12, written on line by line. The
                   picture drifts inside its frame.
    C · DIPTYCH    A wide plate over eight columns and a tall one over four,
                   one row, the same height. Their renders drift at different
                   rates, so the pair has depth without breaking the grid.
-   D · PLATE      One square plate, centred over columns 4–9, the white even
-                  on both sides: the sequence closes quietly, on a single
-                  picture. The render drifts inside its frame.
+   D · PLATE      The aperture again, closing the sequence.
 
    ENTRANCE — every picture uses <RevealFrame> (stripReveal), the site's one
    image entrance. Only the text entrances and the scroll motion live here.
 
    LAYERS — one node, one property
-     RevealFrame settle (scale, entrance) > [data-a-zoom] scale (scrub)
+     RevealFrame settle (scale, entrance) > [data-zoom] scale (scrub)
                                           > [data-pan] yPercent (scrub)
    Scrubs use scrub: true — Lenis already smooths the scroll.
    ─────────────────────────────────────────────────────────────────────────── */
@@ -117,14 +117,13 @@ export default function ProjectScenes({ title, images, quote, features = [] }: P
         });
 
         /* scroll motion */
-        const zoom = q('[data-a-zoom]')[0];
-        if (zoom) {
+        q('[data-zoom]').forEach((zoom) => {
           gsap.fromTo(
             zoom,
             { scale: 1.2 },
             { scale: 1, ease: 'none', scrollTrigger: passage(zoom.parentElement!) },
           );
-        }
+        });
         q('[data-pan]').forEach((el) => {
           const range = Number((el as HTMLElement).dataset.pan);
           gsap.fromTo(
@@ -187,7 +186,7 @@ export default function ProjectScenes({ title, images, quote, features = [] }: P
       {imgA && (
         <section aria-label={`${title}, the building`}>
           <RevealFrame nav="dark" className="aspect-[4/5] w-full lg:aspect-[16/9]">
-            <div data-a-zoom className="h-full w-full">
+            <div data-zoom className="h-full w-full">
               <Render
                 id={imgA}
                 alt={`${title}, exterior`}
@@ -278,18 +277,15 @@ export default function ProjectScenes({ title, images, quote, features = [] }: P
 
       {/* ── D · Plate ────────────────────────────────────────────────────── */}
       {imgD && (
-        <section
-          aria-label={`${title}, a closer view`}
-          className="lg:gap-x-gutter grid grid-cols-1 lg:grid-cols-12"
-        >
-          <RevealFrame nav="dark" className="aspect-square w-full lg:col-span-6 lg:col-start-4">
-            <Drift range={7}>
+        <section aria-label={`${title}, a closer view`}>
+          <RevealFrame nav="dark" className="aspect-[4/5] w-full lg:aspect-[16/9]">
+            <div data-zoom className="h-full w-full">
               <Render
                 id={imgD}
                 alt={`${title}, a closer view`}
-                sizes="(min-width: 1024px) 85vw, 160vw"
+                sizes="(min-width: 1024px) 100vw, 180vw"
               />
-            </Drift>
+            </div>
           </RevealFrame>
         </section>
       )}
