@@ -114,7 +114,7 @@ export default function ProjectRegister({
       id="register-interest"
       data-nav="dark"
       aria-labelledby="register-heading"
-      className="relative grid min-h-svh gap-16 px-page pb-[14svh] pt-[16svh] text-white lg:grid-cols-12 lg:gap-x-gutter"
+      className="px-page lg:gap-x-gutter relative grid min-h-svh gap-16 pb-[14svh] pt-[16svh] text-white lg:grid-cols-12"
       style={{ background: TEAL, fontFamily: 'var(--font-josefin)' }}
     >
       <div className="lg:col-span-5">
@@ -123,7 +123,10 @@ export default function ProjectRegister({
           className="text-[clamp(56px,7.2vw,138px)] font-[300] leading-[0.92] tracking-[-0.01em]"
         >
           {heading.split(' ').map((w, i) => (
-            <span key={i} className="block overflow-hidden pb-[0.1em]">
+            <span
+              key={i}
+              className="-mb-[0.1em] -mt-[0.18em] block overflow-hidden pb-[0.1em] pt-[0.18em]"
+            >
               <span data-word className="block">
                 {w}
               </span>

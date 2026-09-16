@@ -164,7 +164,10 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
         <div className="lg:gap-x-gutter grid items-end gap-y-12 lg:grid-cols-12">
           <h1 className="text-[clamp(64px,10.5vw,200px)] font-[200] leading-[0.86] tracking-[-0.02em] lg:col-span-7">
             {['Projects'].map((word) => (
-              <span key={word} className="block overflow-hidden pb-[0.08em]">
+              <span
+                key={word}
+                className="-mb-[0.1em] -mt-[0.18em] block overflow-hidden pb-[0.1em] pt-[0.18em]"
+              >
                 <span data-hero-word className="block">
                   {word}
                 </span>
@@ -252,7 +255,7 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
                 </RevealFrame>
 
                 <div className="lg:gap-x-gutter mt-8 grid items-baseline gap-y-8 lg:grid-cols-12">
-                  <h2 className="overflow-hidden pb-[0.06em] text-[clamp(32px,4vw,76px)] font-[300] leading-[1] tracking-[-0.01em] lg:col-span-6">
+                  <h2 className="-mb-[0.08em] -mt-[0.16em] overflow-hidden pb-[0.08em] pt-[0.16em] text-[clamp(32px,4vw,76px)] font-[300] leading-[1] tracking-[-0.01em] lg:col-span-6">
                     <span
                       data-name
                       className="block transition-colors duration-500 ease-smooth group-hover:text-threshold"

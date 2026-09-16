@@ -107,13 +107,13 @@ export default function ProjectAvailability({ units, note }: ProjectAvailability
       ref={rootRef}
       data-nav="light"
       aria-labelledby="availability-heading"
-      className="relative px-page pb-[16svh] pt-[18svh]"
+      className="px-page relative pb-[16svh] pt-[18svh]"
       style={{ background: '#ffffff', color: INK, fontFamily: 'var(--font-josefin)' }}
     >
       <div className="flex flex-col gap-14 lg:flex-row lg:items-end lg:justify-between">
         <h2
           id="availability-heading"
-          className="overflow-hidden pb-[0.08em] text-[clamp(52px,7.4vw,140px)] font-[300] leading-[0.9] tracking-[-0.01em]"
+          className="-mb-[0.1em] -mt-[0.18em] overflow-hidden pb-[0.1em] pt-[0.18em] text-[clamp(52px,7.4vw,140px)] font-[300] leading-[0.9] tracking-[-0.01em]"
         >
           <span data-heading className="block">
             Availability

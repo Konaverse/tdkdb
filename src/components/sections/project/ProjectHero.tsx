@@ -183,7 +183,7 @@ export default function ProjectHero({ project }: ProjectHeroProps) {
         }}
       />
 
-      <div className="absolute inset-x-0 bottom-0 px-page pb-[max(28px,5.5svh)]">
+      <div className="px-page absolute inset-x-0 bottom-0 pb-[max(28px,5.5svh)]">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
             <div data-status className="mb-5 flex items-center gap-3 lg:mb-7">
@@ -201,7 +201,10 @@ export default function ProjectHero({ project }: ProjectHeroProps) {
             <h1 className="text-[clamp(3.1rem,9.2vw,11.5rem)] font-[200] leading-[0.94] tracking-[-0.015em]">
               {words.map((word, i) => (
                 // Padding inside the mask keeps descenders and accents whole.
-                <span key={i} className="-mb-[0.14em] block overflow-hidden pb-[0.14em]">
+                <span
+                  key={i}
+                  className="-mb-[0.14em] -mt-[0.18em] block overflow-hidden pb-[0.14em] pt-[0.18em]"
+                >
                   <span data-word className="block" style={HIDDEN}>
                     {word}
                   </span>
