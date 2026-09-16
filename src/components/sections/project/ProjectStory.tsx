@@ -120,7 +120,7 @@ export default function ProjectStory({
       ref={rootRef}
       data-nav="light"
       aria-label="About the project"
-      className="relative grid gap-20 px-page pb-[20svh] pt-[10svh] lg:grid-cols-12 lg:gap-x-gutter"
+      className="px-page lg:gap-x-gutter relative grid gap-20 pb-[20svh] pt-[10svh] lg:grid-cols-12"
       style={{ background: '#ffffff', color: INK, fontFamily: 'var(--font-josefin)' }}
     >
       <div className="lg:col-span-7">
