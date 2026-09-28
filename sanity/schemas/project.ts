@@ -35,6 +35,22 @@ export default defineType({
         ],
       },
     }),
+    defineField({
+      name: 'scope',
+      title: 'Scope',
+      type: 'string',
+      description:
+        'Design & build = TDK drew AND built it (Armonia, Almond Suites). Design = TDK drew it for someone else to build (the Modulars, the Vragadinou complexes). The projects page groups by this.',
+      initialValue: 'design-build',
+      options: {
+        list: [
+          { title: 'Design & build', value: 'design-build' },
+          { title: 'Design only', value: 'design' },
+        ],
+        layout: 'radio',
+      },
+      validation: (rule) => rule.required(),
+    }),
     defineField({ name: 'location', title: 'Location', type: 'string' }),
     defineField({ name: 'year', title: 'Year', type: 'number' }),
     defineField({

@@ -8,7 +8,7 @@ export const revalidate = 60; // ISR cache revalidation
 export const metadata: Metadata = {
   title: 'Projects | TDK Design & Build',
   description:
-    'The residences TDK Design & Build has drawn and built in Nicosia — completed, under construction, and what is available now.',
+    'The residences TDK Design & Build has drawn and built, and the houses it has drawn for others to build — completed, under construction, and what is available now.',
 };
 
 export default async function ProjectsPage() {

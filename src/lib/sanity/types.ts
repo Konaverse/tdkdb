@@ -26,6 +26,8 @@ export type { PortableTextBlock };
 
 // --- Project ---
 
+export type ProjectScope = 'design-build' | 'design';
+
 export interface ProjectGallery {
   heading: string;
   images: SanityImage[];
@@ -50,6 +52,9 @@ export interface Project {
   title: string;
   slug: { current: string };
   status: 'upcoming' | 'in-progress' | 'completed';
+  /** Drew and built it, or drew it for someone else to build. Older
+      documents may lack it; treat a missing value as 'design-build'. */
+  scope?: ProjectScope;
   type: 'residential' | 'commercial' | 'mixed-use';
   ctaType: 'showcase' | 'register-interest' | 'contact';
   location: string;

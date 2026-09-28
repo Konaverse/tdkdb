@@ -6,7 +6,7 @@ import type { Project, SiteImages, SiteSettings, TeamMember } from './types';
 
 export async function getAllProjects(): Promise<Project[]> {
   const query = `*[_type == 'project'] | order(year desc) {
-    _id, title, slug, status, type, ctaType, location, year, heroImage, seo
+    _id, title, slug, status, scope, type, ctaType, location, year, heroImage, seo
   }`;
 
   try {
@@ -21,7 +21,7 @@ export async function getAllProjects(): Promise<Project[]> {
 /** The projects hub: everything the index entries state, counts included. */
 export async function getProjectsForIndex(): Promise<Project[]> {
   const query = `*[_type == 'project'] | order(year desc) {
-    _id, title, slug, status, type, ctaType, location, year, heroImage, pullQuote,
+    _id, title, slug, status, scope, type, ctaType, location, year, heroImage, pullQuote,
     units[] { floor, unitType, sizeM2, status }
   }`;
 
@@ -36,7 +36,7 @@ export async function getProjectsForIndex(): Promise<Project[]> {
 
 export async function getProjectsForHomepageReel(): Promise<Project[]> {
   const query = `*[_type == 'project'] | order(year desc) [0...5] {
-    _id, title, slug, status, type, ctaType, location, year, heroImage,
+    _id, title, slug, status, scope, type, ctaType, location, year, heroImage,
     features,
     homepageIntro, homepageParagraphMid, homepageParagraphClose,
     homepageGridImage, homepagePortraitImage
@@ -53,7 +53,7 @@ export async function getProjectsForHomepageReel(): Promise<Project[]> {
 
 export async function getProjectBySlug(slug: string): Promise<Project | null> {
   const query = `*[_type == 'project' && slug.current == $slug][0] {
-    _id, title, slug, status, type, ctaType, location, year,
+    _id, title, slug, status, scope, type, ctaType, location, year,
     heroImage,
     rendersGallery { heading, images, caption },
     photosGallery { heading, images, caption },

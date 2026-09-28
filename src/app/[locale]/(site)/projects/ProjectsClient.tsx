@@ -10,22 +10,29 @@ import { useProjectTransition } from '@/components/transition/ProjectTransition'
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { LINE_HIDDEN, LINE_SHOWN, maskLines } from '@/lib/animations/lines';
 import { imageSrcSet, imageUrl } from '@/lib/sanity/image';
-import { displayTitle, projectHref, STATUS_LABEL } from '@/lib/projects/display';
-import type { Project } from '@/lib/sanity/types';
+import { displayTitle, projectHref, projectScope, STATUS_LABEL } from '@/lib/projects/display';
+import type { Project, ProjectScope } from '@/lib/sanity/types';
 
 /* ───────────────────────────────────────────────────────────────────────────
    Projects — the hub
 
-   A ledger, not a gallery. No filters, no tabs, no cards: two buildings, so
-   each one stands at the page's full content width and states itself. The
-   hero is typographic — the page's photographs are the projects themselves,
-   and the first one arrives a scroll later.
+   A ledger, not a gallery. No filters, no tabs, no cards: each building
+   stands at the page's full content width and states itself. The hero is
+   typographic — the page's photographs are the projects themselves, and the
+   first one arrives a scroll later.
+
+   Two ledgers, by scope (Sept 2026, at the client's request): what the
+   studio drew AND built (Armonia, Almond Suites), and what it drew for
+   others to build (the Modulars, the Vragadinou complexes). They must never
+   share a list — a design-only project must not read as one TDK built.
 
    Everything sits on the page grid (--page-margin / 12 columns), the plates
-   are the project page's plate (content width, 16:9, render pulling back on
-   scroll), and each entry enters with the site's one image entrance. A plain
-   click opens the project through ProjectTransition, exactly as on the
-   homepage, so the render becomes the page's hero either way.
+   are the project page's plate (content width, 16:9), and each one enters
+   quietly — a fade with a barely visible settle, RevealFrame's "quiet"
+   entrance. No strips and no scroll zoom here: the architect asked for as
+   few effects as possible on this page. A plain click opens the project
+   through ProjectTransition, exactly as on the homepage, so the render
+   becomes the page's hero either way.
    ─────────────────────────────────────────────────────────────────────────── */
 
 interface ProjectsClientProps {
@@ -33,11 +40,26 @@ interface ProjectsClientProps {
 }
 
 const INK = '#111111';
+const BODY = 'rgba(17, 17, 17, 0.72)';
 const MUTED = 'rgba(17, 17, 17, 0.5)';
 const TEAL = 'var(--color-threshold, #66979f)';
 
 const LEAD =
-  'The studio takes on a few homes at a time. The architects who draw a residence are the ones who build it and hand over the keys.';
+  'The studio takes on a few homes at a time. Some we draw and build ourselves, from the first sketch to the keys; others we draw for someone else to build.';
+
+/** The two ledgers, in page order. */
+const GROUPS: { scope: ProjectScope; title: string; note: string }[] = [
+  {
+    scope: 'design-build',
+    title: 'Designed and built',
+    note: 'Drawn, built and handed over by the studio. The same people from the first sketch to the last fitting.',
+  },
+  {
+    scope: 'design',
+    title: 'Designed',
+    note: 'Drawn by the studio and built by others. The plan, the elevations and the detail were ours; the site was someone else’s.',
+  },
+];
 
 export default function ProjectsClient({ projects }: ProjectsClientProps) {
   const rootRef = useRef<HTMLElement>(null);
@@ -46,13 +68,19 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
   const locale = (params?.locale as string) ?? 'en';
   const transition = useProjectTransition();
 
-  const units = projects.flatMap((p) => p.units ?? []);
+  const built = projects.filter((p) => projectScope(p) === 'design-build');
+  const units = built.flatMap((p) => p.units ?? []);
   const available = units.filter((u) => u.status === 'available').length;
   const figures = [
-    { value: projects.length, label: projects.length === 1 ? 'Building' : 'Buildings' },
-    ...(units.length ? [{ value: units.length, label: 'Residences' }] : []),
+    { value: built.length, label: 'Built' },
+    { value: projects.length, label: 'Designed' },
     ...(units.length ? [{ value: available, label: available ? 'Available' : 'Sold out' }] : []),
   ];
+
+  const groups = GROUPS.map((g) => ({
+    ...g,
+    projects: projects.filter((p) => projectScope(p) === g.scope),
+  })).filter((g) => g.projects.length);
 
   /** Plain clicks go through the transition; modified ones stay links. */
   const open = (e: ReactMouseEvent<HTMLAnchorElement>, p: Project) => {
@@ -109,26 +137,30 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
           0.8,
         );
 
-        /* each entry: the render pulls back as the plate crosses the screen,
-           its name and particulars arrive under it */
-        q('[data-entry]').forEach((entry) => {
-          const zoom = entry.querySelector('[data-zoom]');
-          if (zoom) {
-            gsap.fromTo(
-              zoom,
-              { scale: 1.2 },
-              {
-                scale: 1,
-                ease: 'none',
-                scrollTrigger: {
-                  trigger: entry,
-                  start: 'top bottom',
-                  end: 'bottom top',
-                  scrub: true,
-                },
-              },
+        /* each ledger's heading slides into its mask, its note is written on */
+        q('[data-group]').forEach((group) => {
+          const title = group.querySelector('[data-group-title]');
+          const noteEl = group.querySelector<HTMLElement>('[data-group-note]');
+          const note = noteEl ? maskLines(noteEl) : null;
+          gsap.set(title, { xPercent: -104, x: 0 });
+          if (note) gsap.set(note.lines, { clipPath: LINE_HIDDEN });
+          const tl = gsap
+            .timeline({
+              scrollTrigger: { trigger: group, start: 'top 82%', once: true },
+              onComplete: () => note?.split.revert(),
+            })
+            .to(title, { xPercent: 0, x: 0, duration: 1.2, ease: 'power4.out' }, 0);
+          if (note) {
+            tl.to(
+              note.lines,
+              { clipPath: LINE_SHOWN, duration: 0.9, ease: 'power2.inOut', stagger: 0.1 },
+              0.3,
             );
           }
+        });
+
+        /* each entry: the name and particulars arrive under the plate */
+        q('[data-entry]').forEach((entry) => {
           const name = entry.querySelector('[data-name]');
           const rows = entry.querySelectorAll('[data-detail]');
           gsap.set(name, { xPercent: -104, x: 0 });
@@ -199,95 +231,121 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
         </div>
       </section>
 
-      {/* ── The entries ──────────────────────────────────────────────────── */}
-      <div className="px-page flex flex-col gap-[13svh] pb-[18svh]">
-        {projects.map((p) => {
-          const title = displayTitle(p);
-          const unitCount = p.units?.length ?? 0;
-          const free = (p.units ?? []).filter((u) => u.status === 'available').length;
-          const details = [
-            { label: 'Location', value: p.location },
-            ...(unitCount
-              ? [
-                  {
-                    label: 'Residences',
-                    value:
-                      free === unitCount
-                        ? `${unitCount}, all available`
-                        : free
-                          ? `${unitCount}, ${free} available`
-                          : `${unitCount}, sold out`,
-                    mark: free > 0,
-                  },
-                ]
-              : []),
-            {
-              label: p.status === 'completed' ? 'Completed' : 'Delivery',
-              value: String(p.year),
-            },
-          ];
-
-          return (
-            <article key={p._id} data-entry>
-              <Link
-                href={projectHref(locale, p.slug.current)}
-                onClick={(e) => open(e, p)}
-                aria-label={`${title}, ${STATUS_LABEL[p.status].toLowerCase()}`}
-                className="group block"
+      {/* ── The ledgers ──────────────────────────────────────────────────── */}
+      <div className="px-page flex flex-col gap-[22svh] pb-[18svh]">
+        {groups.map((g) => (
+          <section key={g.scope} data-group aria-labelledby={`projects-${g.scope}`}>
+            <div className="lg:gap-x-gutter grid items-end gap-y-6 lg:grid-cols-12">
+              <h2
+                id={`projects-${g.scope}`}
+                className="-mb-[0.08em] -mt-[0.16em] overflow-hidden pb-[0.08em] pt-[0.16em] text-[clamp(30px,3.5vw,64px)] font-[300] leading-[1.05] tracking-[-0.01em] lg:col-span-6"
               >
-                <RevealFrame
-                  nav="dark"
-                  frameAttrs={{ 'data-frame': '' }}
-                  className="aspect-[4/5] w-full lg:aspect-[16/9]"
-                >
-                  <div data-zoom className="h-full w-full">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={imageUrl(p.heroImage, { width: 1600 })}
-                      srcSet={imageSrcSet(p.heroImage)}
-                      sizes="(min-width: 1024px) 100vw, 180vw"
-                      alt={title}
-                      loading="lazy"
-                      decoding="async"
-                      className="block h-full w-full object-cover"
-                    />
-                  </div>
-                </RevealFrame>
+                <span data-group-title className="block">
+                  {g.title}
+                </span>
+              </h2>
+              <p
+                data-group-note
+                className="max-w-[44ch] text-[clamp(15px,1.1vw,19px)] font-[300] leading-[1.6] lg:col-span-5 lg:col-start-8"
+                style={{ color: BODY }}
+              >
+                {g.note}
+              </p>
+            </div>
 
-                <div className="lg:gap-x-gutter mt-8 grid items-baseline gap-y-8 lg:grid-cols-12">
-                  <h2 className="-mb-[0.08em] -mt-[0.16em] overflow-hidden pb-[0.08em] pt-[0.16em] text-[clamp(32px,4vw,76px)] font-[300] leading-[1] tracking-[-0.01em] lg:col-span-6">
-                    <span
-                      data-name
-                      className="block transition-colors duration-500 ease-smooth group-hover:text-threshold"
+            <div className="mt-[9svh] flex flex-col gap-[13svh]">
+              {g.projects.map((p) => {
+                const title = displayTitle(p);
+                const unitCount = p.units?.length ?? 0;
+                const free = (p.units ?? []).filter((u) => u.status === 'available').length;
+                const details = [
+                  { label: 'Location', value: p.location },
+                  ...(unitCount
+                    ? [
+                        {
+                          label: 'Residences',
+                          value:
+                            free === unitCount
+                              ? `${unitCount}, all available`
+                              : free
+                                ? `${unitCount}, ${free} available`
+                                : `${unitCount}, sold out`,
+                          mark: free > 0,
+                        },
+                      ]
+                    : []),
+                  {
+                    label: p.status === 'completed' ? 'Completed' : 'Delivery',
+                    value: String(p.year),
+                  },
+                ];
+
+                return (
+                  <article key={p._id} data-entry>
+                    <Link
+                      href={projectHref(locale, p.slug.current)}
+                      onClick={(e) => open(e, p)}
+                      aria-label={`${title}, ${STATUS_LABEL[p.status].toLowerCase()}`}
+                      className="group block"
                     >
-                      {title}
-                    </span>
-                  </h2>
+                      <RevealFrame
+                        nav="dark"
+                        entrance="quiet"
+                        frameAttrs={{ 'data-frame': '' }}
+                        className="aspect-[4/5] w-full lg:aspect-[16/9]"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={imageUrl(p.heroImage, { width: 1600 })}
+                          srcSet={imageSrcSet(p.heroImage)}
+                          sizes="(min-width: 1024px) 100vw, 180vw"
+                          alt={title}
+                          loading="lazy"
+                          decoding="async"
+                          className="block h-full w-full object-cover"
+                        />
+                      </RevealFrame>
 
-                  <dl className="gap-x-gutter grid grid-cols-2 gap-y-6 sm:grid-cols-3 lg:col-span-5 lg:col-start-8">
-                    {details.map((d) => (
-                      <div key={d.label} data-detail className="min-w-0">
-                        <dt className="text-[clamp(12px,0.9vw,15px)]" style={{ color: MUTED }}>
-                          {d.label}
-                        </dt>
-                        <dd className="mt-2 flex items-center gap-2.5 text-[clamp(15px,1.15vw,20px)] font-[300]">
-                          {'mark' in d && d.mark && (
-                            <span
-                              aria-hidden="true"
-                              className="block h-2 w-2 shrink-0"
-                              style={{ background: TEAL }}
-                            />
-                          )}
-                          {d.value}
-                        </dd>
+                      <div className="lg:gap-x-gutter mt-8 grid items-baseline gap-y-8 lg:grid-cols-12">
+                        <h3 className="-mb-[0.08em] -mt-[0.16em] overflow-hidden pb-[0.08em] pt-[0.16em] text-[clamp(32px,4vw,76px)] font-[300] leading-[1] tracking-[-0.01em] lg:col-span-6">
+                          <span
+                            data-name
+                            className="block transition-colors duration-500 ease-smooth group-hover:text-threshold"
+                          >
+                            {title}
+                          </span>
+                        </h3>
+
+                        <dl className="gap-x-gutter grid grid-cols-2 gap-y-6 sm:grid-cols-3 lg:col-span-5 lg:col-start-8">
+                          {details.map((d) => (
+                            <div key={d.label} data-detail className="min-w-0">
+                              <dt
+                                className="text-[clamp(12px,0.9vw,15px)]"
+                                style={{ color: MUTED }}
+                              >
+                                {d.label}
+                              </dt>
+                              <dd className="mt-2 flex items-center gap-2.5 text-[clamp(15px,1.15vw,20px)] font-[300]">
+                                {'mark' in d && d.mark && (
+                                  <span
+                                    aria-hidden="true"
+                                    className="block h-2 w-2 shrink-0"
+                                    style={{ background: TEAL }}
+                                  />
+                                )}
+                                {d.value}
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
                       </div>
-                    ))}
-                  </dl>
-                </div>
-              </Link>
-            </article>
-          );
-        })}
+                    </Link>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        ))}
       </div>
     </main>
   );

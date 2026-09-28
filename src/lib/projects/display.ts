@@ -1,4 +1,4 @@
-import type { Project, ProjectUnit, SanityImage } from '@/lib/sanity/types';
+import type { Project, ProjectScope, ProjectUnit, SanityImage } from '@/lib/sanity/types';
 
 /** Display names where the CMS title is shorter than the one the boards
     carry. Rename the title in Sanity to retire an entry. */
@@ -14,6 +14,12 @@ export const STATUS_LABEL: Record<Project['status'], string> = {
 
 export function displayTitle(p: Pick<Project, 'title' | 'slug'>): string {
   return DISPLAY_TITLES[p.slug.current] ?? p.title;
+}
+
+/** Drew and built, or drew only. Documents from before the field (Sept 2026)
+    have none and are the two the studio built. */
+export function projectScope(p: Pick<Project, 'scope'>): ProjectScope {
+  return p.scope ?? 'design-build';
 }
 
 export function projectHref(locale: string, slug: string): string {

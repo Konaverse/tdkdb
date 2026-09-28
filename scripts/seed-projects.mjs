@@ -64,7 +64,7 @@ const PROJECTS = [
     title: 'Vragadinou Complex',
     folder: 'VRAGADINOU COMPLEX',
     year: 2023,
-    location: 'Nicosia',
+    location: 'Limassol',
     setting: 'a pair of two-storey houses on a sloping plot',
     hero: '1_1 - Photo.png',
     gallery: [
@@ -76,11 +76,11 @@ const PROJECTS = [
     ],
   },
   {
-    slug: 'vraganidou-complex-ii',
-    title: 'Vraganidou Complex II',
-    folder: 'VRAGANIDOU COMPLEX 2',
-    year: 2023,
-    location: 'Nicosia',
+    slug: 'vragadinou-complex-ii',
+    title: 'Vragadinou Complex II',
+    folder: 'VRAGANIDOU COMPLEX 2', // the client's folder carries the misspelling
+    year: 2026,
+    location: 'Limassol',
     setting: 'a row of houses on a corner plot',
     hero: '1_1 - Photo.jpg',
     gallery: [
@@ -188,8 +188,10 @@ for (const p of PROJECTS) {
     title: p.title,
     slug: { _type: 'slug', current: p.slug },
     // Designed, not built: completed work, shown as a showcase, with the
-    // scope stated so the page never implies TDK built it.
+    // scope stated (the field groups the projects page; the spec row states
+    // it on the project page) so nothing implies TDK built it.
     status: 'completed',
+    scope: 'design',
     ctaType: 'showcase',
     type: 'residential',
     location: p.location,
