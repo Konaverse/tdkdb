@@ -12,11 +12,13 @@ import type { SanityImage, SiteImages } from '@/lib/sanity/types';
 /* ───────────────────────────────────────────────────────────────────────────
    About — the studio, light and editorial
 
-   From the two boards the user supplied: a headline with a photograph set
-   into the line itself, a full-width plate under it, a statement paired with
-   a row of captioned plates, and then the second board's spread — small text
-   columns against a large picture, a staggered row of plates with captions,
-   and a pull quote held in the margin.
+   From the two boards the user supplied: a headline (the board set a
+   photograph into the line; the client asked for it removed, Sept 2026), a
+   full-width plate under it, a statement paired with a row of captioned
+   plates, and then the second board's spread — small text columns against a
+   large picture, a staggered row of plates with captions, and a statement
+   held in the margin (it was a quote from the architect; she does not want
+   to be quoted, so it is the studio's voice and carries no byline).
 
    Everything is on the page grid, every picture enters with the site's one
    image entrance (RevealFrame), and the big plates carry a slow drift so the
@@ -33,7 +35,6 @@ const MUTED = 'rgba(17, 17, 17, 0.5)';
 
 /** The siteImage keys this page asks for, in the order they appear. */
 const KEY = {
-  chip: 'about-chip',
   hero: 'about-hero',
   draw: 'about-draw',
   build: 'about-build',
@@ -51,21 +52,19 @@ const ROOF_HEADING = ['One team, from the', 'first sketch to the', 'last fitting
 const ROOF_BODY =
   'Most developments pass through three or four companies before anyone lives in them. Ours do not. Drawing, building and handing over are the same people, so nothing is lost in between — and there is no one else to point at when something is wrong.';
 
+/** The three moves. No numbers and no names: the studio speaks as "we". */
 const STEPS = [
   {
-    n: '01',
     title: 'Draw',
-    line: 'Theodora reads the site, the brief and the light, and draws until the plan is resolved.',
+    line: 'We read the site, the brief and the light, and draw until the plan is resolved.',
     image: 'draw' as const,
   },
   {
-    n: '02',
     title: 'Build',
-    line: 'Marios runs the site — the materials, the contractors, the sequence, the standard.',
+    line: 'We run the site — the materials, the contractors, the sequence, the standard.',
     image: 'build' as const,
   },
   {
-    n: '03',
     title: 'Hand over',
     line: 'We finish the building, snag it ourselves, and give you the keys.',
     image: 'handover' as const,
@@ -77,8 +76,9 @@ const POSITION = [
   'The practice is young. What we have built stands in Lakatamia and Strovolos, and it is the argument for what comes next.',
 ];
 
-const QUOTE = 'A home is not a beautiful object. It is a space that makes daily life feel better.';
-const QUOTE_BY = 'Theodora Kyprianou, architect';
+/** The studio's position, in its own voice — not a quotation, no byline. */
+const POSITION_NOTE =
+  'We do not build homes to be looked at. We build them to be lived in, and a good one makes an ordinary day a little better.';
 
 const STANDARD_HEADING = ['Every decision on a site', 'shows up in the finished', 'building.'];
 const STANDARD_BODY =
@@ -86,11 +86,9 @@ const STANDARD_BODY =
 
 const CLOSE = 'If you are thinking about a home, write to us.';
 
-/** The headline's lines. The photograph is set into the end of the first one.
-    Phones get their own, shorter breaks: the lines must never wrap, or the
-    picture is stranded mid-air. */
-const HEAD_WIDE = ['A family studio', 'builds, and hands over', 'the keys.'];
-const HEAD_WIDE_TAIL = 'that draws,';
+/** The headline's lines. Each line slides into its own mask, so the breaks
+    are set by hand: one set from sm up, a shorter one for phones. */
+const HEAD_WIDE = ['A family studio that draws,', 'builds, and hands over', 'the keys.'];
 const HEAD_NARROW = ['A family studio', 'that draws, builds,', 'and hands over', 'the keys.'];
 
 /** A picture with vertical overscan, for a slow drift inside its frame. */
@@ -131,21 +129,6 @@ function Picture({
       className="block h-full w-full object-cover"
       style={position ? { objectPosition: position } : undefined}
     />
-  );
-}
-
-/** The photograph set into the headline. */
-function Chip({ chip }: { chip?: SanityImage }) {
-  return (
-    <span className="inline-block h-[0.58em] w-[1.5em] shrink-0 translate-y-[0.04em] overflow-hidden">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={chip ? imageUrl(chip, { width: 400 }) : ''}
-        alt=""
-        aria-hidden="true"
-        className="h-full w-full object-cover"
-      />
-    </span>
   );
 }
 
@@ -267,8 +250,8 @@ export default function AboutClient({ images }: { images: SiteImages }) {
     };
   }, []);
 
-  // Lines never wrap: the photograph sits inside the first one, and a wrap
-  // would strand it mid-air. The size is in vw, so the longest line always fits.
+  // Lines never wrap: each one is its own mask, and a wrap would break the
+  // reveal. The size is in vw, so the longest line always fits.
   const heroLine =
     '-mb-[0.1em] -mt-[0.16em] block overflow-hidden whitespace-nowrap pb-[0.1em] pt-[0.16em]';
 
@@ -278,33 +261,26 @@ export default function AboutClient({ images }: { images: SiteImages }) {
       data-nav="light"
       style={{ background: '#ffffff', color: INK, fontFamily: 'var(--font-josefin)' }}
     >
-      {/* ── Hero — the headline carries a photograph inside the line ────── */}
+      {/* ── Hero — the headline, line by line ───────────────────────────── */}
       <section className="px-page pb-[9svh] pt-[22svh]">
         <div className="lg:gap-x-gutter grid items-end gap-y-12 lg:grid-cols-12">
           {/* Two sets of breaks, one per width — see HEAD_WIDE / HEAD_NARROW. */}
           <h1 className="lg:col-span-9">
             <span className="hidden text-[clamp(30px,4.9vw,92px)] font-[200] leading-[1.06] tracking-[-0.015em] sm:block">
-              {HEAD_WIDE.map((line, i) => (
+              {HEAD_WIDE.map((line) => (
                 <span key={line} className={heroLine}>
-                  <span data-hero-line className="inline-flex items-baseline gap-[0.22em]">
+                  <span data-hero-line className="block">
                     {line}
-                    {i === 0 && (
-                      <>
-                        <Chip chip={img('chip')} />
-                        {HEAD_WIDE_TAIL}
-                      </>
-                    )}
                   </span>
                 </span>
               ))}
             </span>
 
             <span className="block text-[clamp(26px,7.6vw,40px)] font-[200] leading-[1.1] tracking-[-0.015em] sm:hidden">
-              {HEAD_NARROW.map((line, i) => (
+              {HEAD_NARROW.map((line) => (
                 <span key={line} className={heroLine}>
-                  <span data-hero-line className="inline-flex items-baseline gap-[0.22em]">
+                  <span data-hero-line className="block">
                     {line}
-                    {i === 0 && <Chip chip={img('chip')} />}
                   </span>
                 </span>
               ))}
@@ -369,17 +345,15 @@ export default function AboutClient({ images }: { images: SiteImages }) {
               <RevealFrame nav="dark" className="aspect-[4/5] w-full">
                 <Picture id={img(s.image)} alt="" sizes="(min-width: 640px) 34vw, 100vw" />
               </RevealFrame>
-              <div className="mt-5 flex items-baseline gap-4">
-                <span data-rise className="font-mono text-[12px]" style={{ color: MUTED }}>
-                  {s.n}
-                </span>
-                <h3 data-rise className="text-[clamp(20px,1.7vw,30px)] font-[300]">
-                  {s.title}
-                </h3>
-              </div>
+              <h3
+                data-rise
+                className="mt-6 text-[clamp(28px,2.6vw,48px)] font-[300] leading-[1.05] tracking-[-0.01em]"
+              >
+                {s.title}
+              </h3>
               <p
                 data-rise
-                className="mt-3 max-w-[34ch] text-[clamp(15px,1.05vw,18px)] font-[300] leading-[1.55]"
+                className="mt-4 max-w-[34ch] text-[clamp(15px,1.05vw,18px)] font-[300] leading-[1.55]"
                 style={{ color: BODY }}
               >
                 {s.line}
@@ -443,22 +417,15 @@ export default function AboutClient({ images }: { images: SiteImages }) {
             <Caption>Interior, as delivered</Caption>
           </div>
 
-          <blockquote className="lg:col-span-4 lg:col-start-9 lg:self-end">
+          <div className="lg:col-span-4 lg:col-start-9 lg:self-end">
             <p
               data-write
               className="text-[clamp(22px,2.1vw,38px)] font-[300] leading-[1.25]"
               style={{ color: MUTED }}
             >
-              {QUOTE}
+              {POSITION_NOTE}
             </p>
-            <footer
-              data-rise
-              className="mt-5 text-[clamp(13px,0.95vw,16px)]"
-              style={{ color: MUTED }}
-            >
-              {QUOTE_BY}
-            </footer>
-          </blockquote>
+          </div>
         </div>
       </section>
 
