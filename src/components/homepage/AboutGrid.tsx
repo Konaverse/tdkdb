@@ -85,13 +85,21 @@ const CELL_BG_HOVER = '#58868d';
 const ON_TEAL = '#ffffff';
 const ON_TEAL_SOFT = 'rgba(255, 255, 255, 0.78)';
 
+/** A photograph for one of the grid's two picture cells: the studio's own
+    projects, as the client asked (Sept 2026), never stock. */
+export interface AboutPlate {
+  image?: SanityImage;
+  caption: string;
+  alt: string;
+}
+
 export default function AboutGrid({
-  people,
-  material,
+  plates,
 }: {
-  people?: SanityImage;
-  material?: SanityImage;
+  /** Two plates, in reading order: c4r1 then c2r2. */
+  plates: [AboutPlate | undefined, AboutPlate | undefined];
 }) {
+  const [plateA, plateB] = plates;
   const sectionRef = useRef<HTMLElement>(null);
 
   // Header — one exit node for the whole band; entrance lives on its children.
@@ -500,8 +508,9 @@ export default function AboutGrid({
 
             {/* ── 03 · image A · c4r1 ── */}
             <ImageCell
-              image={people}
-              caption="THE TEAM"
+              image={plateA?.image}
+              caption={plateA?.caption ?? ''}
+              alt={plateA?.alt ?? ''}
               row={1}
               className="lg:col-start-4 lg:row-start-1"
               cellRef={cellRef(2, 4)}
@@ -513,8 +522,9 @@ export default function AboutGrid({
 
             {/* ── 04 · image B · c2r2 ── */}
             <ImageCell
-              image={material}
-              caption="MATERIAL STUDY"
+              image={plateB?.image}
+              caption={plateB?.caption ?? ''}
+              alt={plateB?.alt ?? ''}
               row={2}
               className="lg:col-start-2 lg:row-start-2"
               cellRef={cellRef(3, 2)}
@@ -644,6 +654,7 @@ function StatCell({
 function ImageCell({
   image,
   caption,
+  alt,
   row,
   className,
   cellRef,
@@ -652,6 +663,7 @@ function ImageCell({
 }: CellChrome & {
   image?: SanityImage;
   caption: string;
+  alt: string;
   onHover: (el: HTMLElement | null, entering: boolean) => void;
 }) {
   const self = useRef<HTMLDivElement>(null);
@@ -675,8 +687,7 @@ function ImageCell({
             <div data-hover-scale className="h-full w-full will-change-transform">
               <img
                 src={image ? imageUrl(image, { width: 900 }) : ''}
-                alt=""
-                aria-hidden="true"
+                alt={alt}
                 loading="lazy"
                 decoding="async"
                 className="h-full w-full object-cover"

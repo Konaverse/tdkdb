@@ -39,7 +39,8 @@ export async function getProjectsForHomepageReel(): Promise<Project[]> {
     _id, title, slug, status, scope, type, ctaType, location, year, heroImage,
     features,
     homepageIntro, homepageParagraphMid, homepageParagraphClose,
-    homepageGridImage, homepagePortraitImage
+    homepageGridImage, homepagePortraitImage,
+    'aboutPlate': coalesce(homepageGridImage, rendersGallery.images[1], photosGallery.images[0], heroImage)
   }`;
 
   try {

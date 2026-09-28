@@ -66,6 +66,9 @@ export interface Project {
   homepageParagraphClose?: string;
   homepageGridImage?: SanityImage;
   homepagePortraitImage?: SanityImage;
+  /** Projected by the homepage query only: the picture the About grid shows
+      for this project — the grid image, else a render, else the hero. */
+  aboutPlate?: SanityImage;
   rendersGallery?: ProjectGallery;
   photosGallery?: ProjectGallery;
   pullQuote?: string;
