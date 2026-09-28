@@ -156,13 +156,21 @@
 
   /* ─── Scrollbar (desktop only) ─── */
 
+  /* The native cursor is hidden ONLY while the custom one is on screen —
+     CustomCursor sets .has-cursor on <html> once it has a position and clears
+     it when the pointer leaves the window. If the custom cursor ever fails to
+     render, the native one is simply there. Text fields keep the I-beam. */
   @media (pointer: fine) {
-    *,
-    *::before,
-    *::after,
-    html,
-    body {
-      cursor: none !important;
+    html.has-cursor,
+    html.has-cursor * {
+      cursor: none;
+    }
+
+    html.has-cursor input,
+    html.has-cursor textarea,
+    html.has-cursor select,
+    html.has-cursor [contenteditable='true'] {
+      cursor: auto;
     }
 
     ::-webkit-scrollbar {

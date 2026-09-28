@@ -1,180 +1,219 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
+
 import { gsap } from '@/lib/animations/gsap';
 
-type CursorState = 'default' | 'hover' | 'node' | 'view' | 'scroll';
+/* ───────────────────────────────────────────────────────────────────────────
+   CustomCursor — a dot, and a ring over anything clickable
 
-const STATE: Record<
-  CursorState,
-  {
-    size: number;
-    bg: string;
-    borderColor: string;
-    blend: string;
-    text: string;
-    crosshair: boolean;
-  }
-> = {
-  default: {
-    size: 12,
-    bg: 'transparent',
-    borderColor: 'rgba(245,240,232,1)',
-    blend: 'difference',
-    text: '',
-    crosshair: false,
-  },
-  hover: {
-    size: 40,
-    bg: 'var(--color-threshold)',
-    borderColor: 'transparent',
-    blend: 'normal',
-    text: '',
-    crosshair: false,
-  },
-  node: {
-    size: 60,
-    bg: 'transparent',
-    borderColor: 'rgba(102,151,159,1)',
-    blend: 'normal',
-    text: '',
-    crosshair: true,
-  },
-  view: {
-    size: 80,
-    bg: 'rgba(102,151,159,0.9)',
-    borderColor: 'transparent',
-    blend: 'normal',
-    text: 'VIEW',
-    crosshair: false,
-  },
-  scroll: {
-    size: 6,
-    bg: 'var(--color-paper)',
-    borderColor: 'transparent',
-    blend: 'normal',
-    text: '',
-    crosshair: false,
-  },
-};
+   Rewritten Sept 2026: the old one was a 1px ring that vanished on white,
+   sometimes never rendered, and hid the native cursor whether or not it was
+   there. The rules now:
+
+   · One solid 12px dot in `difference` blend: black on the white pages,
+     white over the dark renders, always there. Over a link or button the dot
+     shrinks and a 44px ring opens around it. Over a text field both hide and
+     the native I-beam shows (see globals.css).
+   · GSAP owns the whole transform (xPercent/yPercent −50 set here, x/y
+     written on move) — the old inline translate(-50%,-50%) was overwritten
+     by GSAP's first write, which is why the cursor sat off the pointer.
+   · The native cursor is hidden ONLY while this one is on screen:
+     `html.has-cursor` is set when the pointer is inside the window with a
+     known position and cleared when it leaves, the tab hides, or the window
+     loses focus. If this component ever fails, the native cursor is simply
+     there. Nothing is hidden before the first pointer event.
+   · The state under the pointer is re-read on scroll (the page moves under
+     a still mouse), and on pointerdown the dot presses.
+   · Not mounted in the Studio, and never on coarse pointers.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+type State = 'default' | 'link' | 'text';
+
+const DOT = 12;
+const RING = 44;
+const CLICKABLE = 'a, button, [role="button"], label, summary, [data-cursor="link"]';
+const TEXTUAL = 'input, textarea, select, [contenteditable="true"]';
 
 export default function CustomCursor() {
-  const cursorRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLSpanElement>(null);
-  const crosshairRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  const inStudio = pathname?.startsWith('/studio') ?? false;
+
+  const rootRef = useRef<HTMLDivElement>(null);
+  const dotRef = useRef<HTMLDivElement>(null);
+  const ringRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Only on fine-pointer (desktop) devices
+    if (inStudio) return;
     if (!window.matchMedia('(pointer: fine)').matches) return;
 
-    const cursor = cursorRef.current!;
-    const text = textRef.current!;
-    const crosshair = crosshairRef.current!;
+    const root = rootRef.current;
+    const dot = dotRef.current;
+    const ring = ringRef.current;
+    if (!root || !dot || !ring) return;
 
-    // Reveal the element (hidden by default to avoid position flash)
-    cursor.style.display = 'flex';
+    const html = document.documentElement;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const D = reduced ? 0 : 0.25;
 
-    // quickTo for butter-smooth continuous tracking
-    const xTo = gsap.quickTo(cursor, 'x', { duration: 0.35, ease: 'power3.out' });
-    const yTo = gsap.quickTo(cursor, 'y', { duration: 0.35, ease: 'power3.out' });
+    gsap.set(root, { xPercent: -50, yPercent: -50, autoAlpha: 0 });
+    gsap.set(dot, { scale: 1 });
+    gsap.set(ring, { scale: 0 });
 
-    let isFirstMove = true;
-    let currentState: CursorState = 'default';
+    const xTo = gsap.quickTo(root, 'x', { duration: reduced ? 0 : 0.2, ease: 'power3.out' });
+    const yTo = gsap.quickTo(root, 'y', { duration: reduced ? 0 : 0.2, ease: 'power3.out' });
 
-    const applyState = (next: CursorState) => {
-      if (next === currentState) return;
-      currentState = next;
-      const s = STATE[next];
+    let shown = false;
+    let state: State = 'default';
+    let pressed = false;
+    let lastX = -1;
+    let lastY = -1;
+    let scrollFrame = 0;
 
-      // Animate size + bg in one call; overwrite prevents queue buildup
-      gsap.to(cursor, {
-        width: s.size,
-        height: s.size,
-        backgroundColor: s.bg,
-        borderColor: s.borderColor,
-        duration: 0.2,
+    const show = () => {
+      if (shown) return;
+      shown = true;
+      html.classList.add('has-cursor');
+      gsap.to(root, { autoAlpha: 1, duration: 0.2, overwrite: 'auto' });
+    };
+
+    const hide = () => {
+      if (!shown) return;
+      shown = false;
+      html.classList.remove('has-cursor');
+      gsap.to(root, { autoAlpha: 0, duration: 0.15, overwrite: 'auto' });
+    };
+
+    const stateOf = (el: Element | null): State => {
+      if (!el || !(el instanceof Element)) return 'default';
+      if (el.closest(TEXTUAL)) return 'text';
+      if (el.closest(CLICKABLE)) return 'link';
+      return 'default';
+    };
+
+    /** Writes the dot and ring for the state (and the press). */
+    const paint = () => {
+      const dotScale = state === 'text' ? 0 : state === 'link' ? 0.5 : 1;
+      gsap.to(dot, {
+        scale: pressed && dotScale ? dotScale * 0.7 : dotScale,
+        duration: D,
         ease: 'power2.out',
         overwrite: 'auto',
       });
-
-      // blend mode is not animatable — set directly
-      cursor.style.mixBlendMode = s.blend as CSSStyleDeclaration['mixBlendMode'];
-
-      // Text label (VIEW etc.)
-      text.textContent = s.text;
-      gsap.set(text, { opacity: s.text ? 1 : 0 });
-
-      // Crosshair lines
-      gsap.set(crosshair, { opacity: s.crosshair ? 1 : 0 });
+      gsap.to(ring, {
+        scale: state === 'link' ? (pressed ? 0.85 : 1) : 0,
+        duration: D,
+        ease: state === 'link' && !pressed ? 'back.out(1.6)' : 'power2.out',
+        overwrite: 'auto',
+      });
     };
 
-    const onMove = (e: MouseEvent) => {
-      if (isFirstMove) {
-        // Snap instantly on first entry — eliminates the ease-from-origin stutter
-        gsap.set(cursor, { x: e.clientX, y: e.clientY, opacity: 1 });
-        isFirstMove = false;
+    const apply = (next: State) => {
+      if (next === state) return;
+      state = next;
+      paint();
+    };
+
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType === 'touch') return;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      if (!shown) {
+        // Snap on (re)entry — no glide in from wherever it was last hidden.
+        gsap.set(root, { x: lastX, y: lastY });
+        show();
       } else {
-        xTo(e.clientX);
-        yTo(e.clientY);
+        xTo(lastX);
+        yTo(lastY);
       }
+      apply(stateOf(e.target as Element | null));
     };
 
-    const onLeave = () => {
-      gsap.to(cursor, { opacity: 0, duration: 0.15, overwrite: 'auto' });
-      // Reset so the next entry also snaps
-      isFirstMove = true;
+    // relatedTarget is null only when the pointer has left the window.
+    const onOut = (e: MouseEvent) => {
+      if (!e.relatedTarget) hide();
     };
 
-    const onOver = (e: MouseEvent) => {
-      const el = e.target as HTMLElement;
-      const dataCursor = el.closest('[data-cursor]');
-      if (dataCursor) {
-        applyState(dataCursor.getAttribute('data-cursor') as CursorState);
-      } else if (el.closest('a, button')) {
-        applyState('hover');
-      } else {
-        applyState('default');
-      }
+    // The page moves under a still pointer: re-read what is beneath it.
+    const onScroll = () => {
+      if (lastX < 0 || scrollFrame) return;
+      scrollFrame = requestAnimationFrame(() => {
+        scrollFrame = 0;
+        apply(stateOf(document.elementFromPoint(lastX, lastY)));
+      });
     };
 
-    window.addEventListener('mousemove', onMove, { passive: true });
-    document.body.addEventListener('mouseleave', onLeave);
-    document.body.addEventListener('mouseover', onOver, { passive: true });
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType === 'touch') return;
+      pressed = true;
+      paint();
+    };
+    const onUp = () => {
+      if (!pressed) return;
+      pressed = false;
+      paint();
+    };
+
+    const onVisibility = () => {
+      if (document.hidden) hide();
+    };
+
+    window.addEventListener('pointermove', onMove, { passive: true });
+    window.addEventListener('pointerdown', onDown, { passive: true });
+    window.addEventListener('pointerup', onUp, { passive: true });
+    window.addEventListener('pointercancel', onUp, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('blur', hide);
+    document.addEventListener('mouseout', onOut);
+    document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
-      window.removeEventListener('mousemove', onMove);
-      document.body.removeEventListener('mouseleave', onLeave);
-      document.body.removeEventListener('mouseover', onOver);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('blur', hide);
+      document.removeEventListener('mouseout', onOut);
+      document.removeEventListener('visibilitychange', onVisibility);
+      if (scrollFrame) cancelAnimationFrame(scrollFrame);
+      html.classList.remove('has-cursor');
+      gsap.killTweensOf([root, dot, ring]);
     };
-  }, []);
+  }, [inStudio]);
+
+  if (inStudio) return null;
 
   return (
     <div
-      ref={cursorRef}
-      className="pointer-events-none fixed left-0 top-0 z-[9999] items-center justify-center rounded-full"
-      style={{
-        display: 'none', // shown in useEffect after pointer check
-        width: 12,
-        height: 12,
-        opacity: 0, // faded in on first mousemove
-        backgroundColor: 'transparent',
-        border: '1px solid rgba(245,240,232,1)',
-        transform: 'translate(-50%, -50%)',
-        mixBlendMode: 'difference',
-        willChange: 'transform', // GPU layer hint
-      }}
+      ref={rootRef}
+      aria-hidden="true"
+      className="pointer-events-none fixed left-0 top-0 z-[9999]"
+      style={{ mixBlendMode: 'difference', opacity: 0, visibility: 'hidden' }}
     >
-      <span ref={textRef} className="text-label text-void" style={{ opacity: 0 }} />
-
-      {/* Crosshair for node state */}
       <div
-        ref={crosshairRef}
-        className="pointer-events-none absolute inset-0"
-        style={{ opacity: 0 }}
-      >
-        <div className="absolute left-1/2 top-1/2 h-full w-[1px] -translate-x-1/2 -translate-y-1/2 bg-threshold" />
-        <div className="absolute left-1/2 top-1/2 h-[1px] w-full -translate-x-1/2 -translate-y-1/2 bg-threshold" />
-      </div>
+        ref={dotRef}
+        className="absolute rounded-full"
+        style={{
+          left: -DOT / 2,
+          top: -DOT / 2,
+          width: DOT,
+          height: DOT,
+          background: '#ffffff',
+        }}
+      />
+      <div
+        ref={ringRef}
+        className="absolute rounded-full"
+        style={{
+          left: -RING / 2,
+          top: -RING / 2,
+          width: RING,
+          height: RING,
+          border: '1.5px solid #ffffff',
+        }}
+      />
     </div>
   );
 }
