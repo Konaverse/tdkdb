@@ -25,8 +25,8 @@ import type { Project } from '@/lib/sanity/types';
    as a vertical filmstrip: the current render centred, the previous one's
    lower edge still leaving at the top, the next one's upper edge already
    arriving below. The project's name stands large on the left, overlapping
-   the photograph; when the strip moves on, the old name loses focus (blur +
-   fade, a lens pull, never a slide) and the new one sharpens in. A stacked
+   the photograph; when the strip moves on, the old name loses focus (a soft
+   blur + fade, a gentle lens pull, never a slide) and the new one sharpens in. A stacked
    project index lower left and a circular next button lower right both jump
    the scroll, snapped to whole projects. Inside each frame the photograph
    pans slowly against the travel.
@@ -75,7 +75,8 @@ import type { Project } from '@/lib/sanity/types';
      transition or a tween to any of them.
    · The strip's paddingTop calc(50svh − var(--col-w) / 3) IS the no-JS
      centring; it derives from the locked 3:2 ratio.
-   · Names change by opacity + blur ONLY. No transforms, no slides.
+   · Names change by opacity + a soft blur ONLY. No transforms, no slides.
+     The entrance fades the name block up without any blur (Sept 2026).
    · The pan is written on [data-pan] (inner), the travel on [data-strip]
      (outer); the entrance writes scale on [data-settle] (between them) and
      adds its strips inside [data-frame]. Never merge them.
@@ -213,9 +214,11 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
         const vis = a >= FADE ? 0 : 1 - a / FADE;
         t.style.opacity = String(vis);
         t.style.visibility = vis > 0.02 ? 'visible' : 'hidden';
-        // The focus pull: out of focus is blurred, in focus is sharp. Hidden
-        // or settled names carry no filter at all.
-        t.style.filter = vis >= 0.999 || vis <= 0.02 ? '' : `blur(${((1 - vis) * 7).toFixed(2)}px)`;
+        // The focus pull: out of focus is softened, in focus is sharp. Hidden
+        // or settled names carry no filter at all. The pull is gentle — 2.5px
+        // at most, was 7 — the client wants nothing that hits the eye.
+        t.style.filter =
+          vis >= 0.999 || vis <= 0.02 ? '' : `blur(${((1 - vis) * 2.5).toFixed(2)}px)`;
       });
 
       if (active !== lastActive) {
@@ -333,8 +336,8 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
         return;
       }
 
-      // The frames: the site's image entrance, one after the other. The
-      // name block is small enough to take a real blur, cleared when it lands.
+      // The frames: the site's image entrance, one after the other. The name
+      // block simply fades up — the client found a blurred entrance too heavy.
       const tl = gsap.timeline({
         scrollTrigger: { trigger: scope, start: 'top 85%', once: true },
       });
@@ -346,17 +349,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
         reveals.push(reveal);
         tl.add(reveal.tl, i * 0.18);
       });
-      tl.from(
-        '[data-name-wrap]',
-        {
-          autoAlpha: 0,
-          filter: 'blur(7px)',
-          duration: 0.8,
-          ease: 'power2.out',
-          clearProps: 'filter',
-        },
-        0.35,
-      );
+      tl.from('[data-name-wrap]', { autoAlpha: 0, duration: 1.1, ease: 'power2.out' }, 0.35);
       tl.from(
         '[data-quiet]',
         { autoAlpha: 0, duration: 0.7, stagger: 0.08, ease: 'power1.out' },
