@@ -28,9 +28,9 @@ import type { Project, ProjectScope } from '@/lib/sanity/types';
 
    Everything sits on the page grid (--page-margin / 12 columns), the plates
    are the project page's plate (content width, 16:9), and each one enters
-   quietly — a fade with a barely visible settle, RevealFrame's "quiet"
-   entrance. No strips and no scroll zoom here: the architect asked for as
-   few effects as possible on this page. A plain click opens the project
+   with the site's one image entrance (RevealFrame: the cover lifts, the
+   render settles). No scroll zoom here: the architect asked for as few
+   effects as possible on this page. A plain click opens the project
    through ProjectTransition, exactly as on the homepage, so the render
    becomes the page's hero either way.
    ─────────────────────────────────────────────────────────────────────────── */
@@ -290,7 +290,6 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
                     >
                       <RevealFrame
                         nav="dark"
-                        entrance="quiet"
                         frameAttrs={{ 'data-frame': '' }}
                         className="aspect-[4/5] w-full lg:aspect-[16/9]"
                       >

@@ -4,7 +4,7 @@ import { useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
 
 import { gsap, gsapInit, SplitText } from '@/lib/animations/gsap';
-import { stripReveal } from '@/lib/animations/stripReveal';
+import { imageReveal } from '@/lib/animations/imageReveal';
 import { imageUrl } from '@/lib/sanity/image';
 import type { SanityImage } from '@/lib/sanity/types';
 import type { SiteSettings } from '@/lib/sanity/types';
@@ -31,15 +31,15 @@ import type { SiteSettings } from '@/lib/sanity/types';
    MOTION — once, on arrival, nothing on scroll
    · CONTACT: every letter slides one slot right into its own mask, the
      hero's TDK reveal, so the page ends the way it began.
-   · The photograph enters with the site's one image entrance (stripReveal):
-     strips wiping off left to right, top to bottom, the render settling.
+   · The photograph enters with the site's one image entrance (imageReveal):
+     one cover lifting away upward, the render settling onto its base.
    · The intro and every detail value are written on line by line, left to
      right (SplitText lines in masks), the hero's paragraph reveal.
    · Cell hairlines draw left to right just before their text lands.
 
    LAYERS — one node, one property
      [data-letter]   xPercent      entrance
-     [data-plate]    strips        entrance (stripReveal)
+     [data-plate]    cover         entrance (imageReveal)
        [data-settle] scale         entrance
      [data-rule]     scaleX        entrance
      line masks      clip-path     entrance
@@ -129,7 +129,7 @@ export default function ContactSection({ settings, plate }: ContactSectionProps)
 
         // The photograph has its own trigger: it can be on screen well before
         // the heading block reaches 68%.
-        reveal = stripReveal(plate as HTMLElement, { settle });
+        reveal = imageReveal(plate as HTMLElement, { settle });
 
         tl.to(
           letters,

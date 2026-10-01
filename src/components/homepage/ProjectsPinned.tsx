@@ -7,7 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { getLenis } from '@/lib/animations/lenis';
-import { stripReveal } from '@/lib/animations/stripReveal';
+import { imageReveal } from '@/lib/animations/imageReveal';
 import { imageUrl } from '@/lib/sanity/image';
 import { displayTitle, projectHref, STATUS_LABEL } from '@/lib/projects/display';
 import { useProjectTransition } from '@/components/transition/ProjectTransition';
@@ -61,10 +61,10 @@ import type { Project } from '@/lib/sanity/types';
      The snap now waits for input to stop and retargets Lenis instead, and
      never acts outside the pin, so nothing pulls a leaving reader back.
    · No anticipatePin: with Lenis it pins early and jumps.
-   · The frames enter with the site's one image entrance (stripReveal):
-     white strips wiping off left to right, top to bottom, while each render
-     settles on its own [data-settle] node. The strips are composited
-     transforms and are removed when they finish.
+   · The frames enter with the site's one image entrance (imageReveal):
+     one white cover lifting away upward per frame, while each render
+     settles on its own [data-settle] node. The cover is a composited
+     transform and is removed when it finishes.
    · No ScrollTrigger.refresh() on image load: the frames are aspect-ratio
      boxes, so a decode cannot move layout, and a refresh mid-scroll is a
      jump in itself. All renders load eagerly so none decodes mid-travel.
@@ -79,7 +79,7 @@ import type { Project } from '@/lib/sanity/types';
      The entrance fades the name block up without any blur (Sept 2026).
    · The pan is written on [data-pan] (inner), the travel on [data-strip]
      (outer); the entrance writes scale on [data-settle] (between them) and
-     adds its strips inside [data-frame]. Never merge them.
+     adds its cover inside [data-frame]. Never merge them.
    · The images carry 16% vertical overscan that the pan spends.
    · Snap is to whole projects.
    ─────────────────────────────────────────────────────────────────────────── */
@@ -342,7 +342,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
         scrollTrigger: { trigger: scope, start: 'top 85%', once: true },
       });
       frames.forEach((frame, i) => {
-        const reveal = stripReveal(frame, {
+        const reveal = imageReveal(frame, {
           scroll: false,
           settle: frame.querySelector('[data-settle]'),
         });

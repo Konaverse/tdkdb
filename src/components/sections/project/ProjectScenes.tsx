@@ -29,7 +29,7 @@ import type { SanityImage } from '@/lib/sanity/types';
                   rates, so the pair has depth without breaking the grid.
    D · PLATE      The aperture again, closing the sequence.
 
-   ENTRANCE — every picture uses <RevealFrame> (stripReveal), the site's one
+   ENTRANCE — every picture uses <RevealFrame> (imageReveal), the site's one
    image entrance. Only the text entrances and the scroll motion live here.
 
    LAYERS — one node, one property

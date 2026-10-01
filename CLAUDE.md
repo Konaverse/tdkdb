@@ -207,10 +207,12 @@ by waiting.
   reload config changes, which silently zeroed every margin once). 12 columns. Every project
   page section uses it; content always keeps the margin.
 - **Image entrance** — every image that is not a full-bleed background enters with
-  `stripReveal` (`src/lib/animations/stripReveal.ts`; `<RevealFrame>` in markup): cover strips of
-  the ground colour wipe off left→right, top strip first, while the render settles from 1.1,
-  firing at `top 92%`. Used by the project scenes, ProjectsPinned frames, About photos and the
-  Contact photo. Do not invent per-section image entrances. Full-bleed images (hero, Interlude,
+  `imageReveal` (`src/lib/animations/imageReveal.ts`; `<RevealFrame>` in markup): ONE cover of
+  the ground colour lifts away upward (scaleY, origin top), so the picture is raised from its
+  base, while the render settles from 1.05 anchored on its bottom edge, firing at `top 92%`.
+  It replaced the staggered strips (Sept 2026), which the user found too loud. Used by the
+  project scenes, ProjectsPinned frames, the projects hub plates, About photos and the Contact
+  photo. Do not invent per-section image entrances. Full-bleed images (hero, Interlude,
   footer) are exempt.
 
 CSS custom properties are defined in `src/styles/globals.css`. Tailwind config (`tailwind.config.ts`) maps them to utility classes. Key tokens:

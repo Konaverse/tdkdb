@@ -4,7 +4,7 @@ import { useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
 
 import { gsap, ScrollTrigger, gsapInit } from '@/lib/animations/gsap';
-import { stripReveal } from '@/lib/animations/stripReveal';
+import { imageReveal } from '@/lib/animations/imageReveal';
 import { imageUrl } from '@/lib/sanity/image';
 import type { SanityImage } from '@/lib/sanity/types';
 
@@ -186,13 +186,13 @@ export default function AboutGrid({
       clips.forEach((clip, i) => {
         const at = 0.9 + i * 0.09;
 
-        // Photographs take the site's one image entrance (strips wiping off
-        // left to right, top to bottom); the other cells keep their wipe.
+        // Photographs take the site's one image entrance (a cover lifting off
+        // upward, the picture raised from its base); the other cells keep their wipe.
         const scaleTarget = enterScales.find((el) => clip.contains(el));
         if (scaleTarget) {
           gsap.set(clip, { clipPath: 'inset(0% 0% 0% 0%)' });
           gsap.set(scaleTarget, { clearProps: 'transform' });
-          const reveal = stripReveal(clip, { scroll: false, settle: scaleTarget });
+          const reveal = imageReveal(clip, { scroll: false, settle: scaleTarget });
           reveals.push(reveal);
           tl.add(reveal.tl, at);
         } else {
