@@ -23,7 +23,10 @@ const env = Object.fromEntries(
     .readFileSync(new URL('../.env.local', import.meta.url), 'utf8')
     .split(/\r?\n/)
     .filter((l) => l.includes('=') && !l.trim().startsWith('#'))
-    .map((l) => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1).replace(/^["']|["']$/g, '')]),
+    .map((l) => [
+      l.slice(0, l.indexOf('=')),
+      l.slice(l.indexOf('=') + 1).replace(/^["']|["']$/g, ''),
+    ]),
 );
 
 const CLOUD = env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
@@ -37,21 +40,77 @@ const client = createClient({
 
 /** The images the design asks for by name: key → Cloudinary id + where it is. */
 const SITE_IMAGES = [
-  ['about-chip', 'clients/tdkdb/armonia/interior/5.jpg', 'About — the photograph set inside the headline'],
-  ['about-hero', 'clients/tdkdb/general/about/armonia_front_angle_day', 'About — the wide plate under the headline'],
-  ['about-draw', 'clients/tdkdb/general/about/second-design-philosophy', 'About — “Draw”, first of the three plates'],
-  ['about-build', 'clients/tdkdb/general/about/fourth-people', 'About — “Build”, second of the three plates'],
-  ['about-handover', 'clients/tdkdb/armonia/interior/2', 'About — “Hand over”, third of the three plates'],
+  [
+    'about-chip',
+    'clients/tdkdb/armonia/interior/5.jpg',
+    'About — the photograph set inside the headline',
+  ],
+  [
+    'about-hero',
+    'clients/tdkdb/general/about/armonia_front_angle_day',
+    'About — the wide plate under the headline',
+  ],
+  [
+    'about-draw',
+    'clients/tdkdb/general/about/second-design-philosophy',
+    'About — “Draw”, first of the three plates',
+  ],
+  [
+    'about-build',
+    'clients/tdkdb/general/about/fourth-people',
+    'About — “Build”, second of the three plates',
+  ],
+  [
+    'about-handover',
+    'clients/tdkdb/armonia/interior/2',
+    'About — “Hand over”, third of the three plates',
+  ],
   ['about-spread', 'clients/tdkdb/armonia/interior/4.jpg', 'About — the large plate in the spread'],
-  ['about-view-one', 'clients/tdkdb/armonia/exterior/2.jpg', 'About — the taller plate in the staggered row'],
-  ['about-view-two', 'clients/tdkdb/armonia/interior/3.jpg', 'About — the wider plate in the staggered row'],
-  ['about-standard', 'clients/tdkdb/almond/renders/ChatGPT_Image_Feb_6_2026_08_07_30_PM.png', 'About — the full-height plate with the closing statement'],
-  ['contact-plate', 'clients/tdkdb/armonia/interior/3.jpg', 'Contact page — the photograph beside the form'],
-  ['home-contact-plate', 'clients/tdkdb/armonia/interior/6', 'Homepage — the tall photograph in the contact section'],
-  ['home-about-people', 'clients/tdkdb/general/about/fourth-people', 'Homepage — the people cell in the About grid'],
-  ['home-about-material', 'clients/tdkdb/general/about/second-design-philosophy', 'Homepage — the material cell in the About grid'],
-  ['home-interlude', 'clients/tdkdb/armonia/interior/3', 'Homepage — the render behind the interlude'],
-  ['footer-backdrop', 'clients/tdkdb/armonia/interior/2', 'Footer — the photograph behind every page’s footer'],
+  [
+    'about-view-one',
+    'clients/tdkdb/armonia/exterior/2.jpg',
+    'About — the taller plate in the staggered row',
+  ],
+  [
+    'about-view-two',
+    'clients/tdkdb/armonia/interior/3.jpg',
+    'About — the wider plate in the staggered row',
+  ],
+  [
+    'about-standard',
+    'clients/tdkdb/almond/renders/ChatGPT_Image_Feb_6_2026_08_07_30_PM.png',
+    'About — the full-height plate with the closing statement',
+  ],
+  [
+    'contact-plate',
+    'clients/tdkdb/armonia/interior/3.jpg',
+    'Contact page — the photograph beside the form',
+  ],
+  [
+    'home-contact-plate',
+    'clients/tdkdb/armonia/interior/6',
+    'Homepage — the tall photograph in the contact section',
+  ],
+  [
+    'home-about-people',
+    'clients/tdkdb/general/about/fourth-people',
+    'Homepage — the people cell in the About grid',
+  ],
+  [
+    'home-about-material',
+    'clients/tdkdb/general/about/second-design-philosophy',
+    'Homepage — the material cell in the About grid',
+  ],
+  [
+    'home-interlude',
+    'clients/tdkdb/armonia/interior/3',
+    'Homepage — the render behind the interlude',
+  ],
+  [
+    'footer-backdrop',
+    'clients/tdkdb/armonia/interior/2',
+    'Footer — the photograph behind every page’s footer',
+  ],
 ];
 
 const uploaded = new Map(); // cloudinary id → { _id }
@@ -64,7 +123,10 @@ async function uploadOnce(publicId) {
   if (!res.ok) throw new Error(`Cloudinary ${res.status} for ${publicId}`);
   const buffer = Buffer.from(await res.arrayBuffer());
 
-  const filename = publicId.split('/').pop().replace(/\.[a-z]+$/i, '');
+  const filename = publicId
+    .split('/')
+    .pop()
+    .replace(/\.[a-z]+$/i, '');
   if (DRY) {
     console.log(`   would upload ${publicId} (${(buffer.length / 1024).toFixed(0)} KB)`);
     const stub = { _id: `image-DRY-${filename}` };

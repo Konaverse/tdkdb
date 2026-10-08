@@ -498,6 +498,24 @@ export default function FooterClient({ settings, backdrop }: Props) {
                     <Link href={href('terms')} className={`hover:text-[#f4f2ee] ${underline}`}>
                       Terms and Conditions
                     </Link>
+                    <a
+                      href="https://www.kona-verse.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`inline-flex items-center gap-1.5 whitespace-nowrap hover:text-[#f4f2ee] focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-4 ${underline}`}
+                    >
+                      Design by Konaverse
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1"
+                        className="h-3 w-3"
+                      >
+                        <path d="M3 13L13 3M5 3h8v8" />
+                      </svg>
+                    </a>
                     <span>© {new Date().getFullYear()} TDK Design &amp; Build</span>
                   </div>
                 </div>
