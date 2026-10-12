@@ -11,6 +11,10 @@ export function gsapInit(): void {
 
   gsap.registerPlugin(ScrollTrigger, MotionPathPlugin, SplitText, CustomEase);
 
+  // Browser toolbars resize the visible viewport during touch scrolling.
+  // Rebuilding every trigger in the middle of that gesture causes jumps.
+  ScrollTrigger.config({ ignoreMobileResize: true });
+
   gsap.defaults({
     ease: 'power3.out',
     duration: 0.8,

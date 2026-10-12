@@ -2,6 +2,13 @@
 
 Updated 2026-10-12.
 
+Latest work: mobile smoothness, SVG link arrows and browser-toolbar-aware fullscreen
+sizing are implemented locally. Touch uses native scrolling, CSS sticky projects
+without automatic snap, lighter word/image entrances, and static footer photography.
+Desktop retains the existing motion. Dynamic heroes and visual-viewport lightbox
+sizing track browser controls. Mobile/desktop interaction and resize checks pass;
+physical Safari review and deployment remain outstanding. Read MEMORY.md for details.
+
 Read these current documents when continuing work:
 
 1. [MEMORY.md](./MEMORY.md): completed requests, latest user corrections,

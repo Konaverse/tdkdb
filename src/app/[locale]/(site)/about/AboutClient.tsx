@@ -191,29 +191,30 @@ export default function AboutClient({ images }: { images: SiteImages }) {
           );
         });
 
-        /* the plates drift slowly as they cross */
-        q('[data-pan]').forEach((el) => {
-          const range = Number((el as HTMLElement).dataset.pan);
-          gsap.fromTo(
-            el,
-            { yPercent: -range },
-            {
-              yPercent: range,
-              ease: 'none',
-              scrollTrigger: {
-                trigger: el.parentElement!,
-                start: 'top bottom',
-                end: 'bottom top',
-                scrub: true,
-              },
-            },
-          );
-        });
-
-        // Separate outer nodes carry the editorial movement. Image entrance,
-        // image pan and text reveal keep their existing individual owners.
+        // Scroll-driven image and outer movement stay on larger screens.
         processMotion = gsap.matchMedia();
-        processMotion.add('(min-width: 1024px)', () => {
+        processMotion.add('(min-width: 1024px) and (hover: hover) and (pointer: fine)', () => {
+          /* the plates drift slowly as they cross */
+          q('[data-pan]').forEach((el) => {
+            const range = Number((el as HTMLElement).dataset.pan);
+            gsap.fromTo(
+              el,
+              { yPercent: -range },
+              {
+                yPercent: range,
+                ease: 'none',
+                scrollTrigger: {
+                  trigger: el.parentElement!,
+                  start: 'top bottom',
+                  end: 'bottom top',
+                  scrub: true,
+                },
+              },
+            );
+          });
+
+          // Separate outer nodes carry the editorial movement. Image entrance,
+          // image pan and text reveal keep their existing individual owners.
           q('[data-process-motion]').forEach((node) => {
             const range = Number((node as HTMLElement).dataset.processMotion);
             gsap.fromTo(

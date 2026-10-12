@@ -52,7 +52,7 @@ CMS images are **Sanity image fields**, uploaded in the Studio (Cloudinary was r
 ### Animation Stack
 
 - **GSAP** (`src/lib/animations/gsap.ts`) — single import point, registers ScrollTrigger once. Always import `{ gsap, ScrollTrigger }` from `@/lib/animations/gsap`, never directly from `gsap`.
-- **Lenis** (`src/lib/animations/lenis.ts`) — smooth scroll singleton, driven by the GSAP ticker. Initialized in `SmoothScrollProvider` which wraps the root layout. `gsap.ticker.lagSmoothing(0)` is required.
+- **Lenis** (`src/lib/animations/lenis.ts`) — desktop smooth scroll singleton, driven by the GSAP ticker. `SmoothScrollProvider` leaves touch-only devices on native scrolling and respects changes to pointer/reduced-motion preferences. `gsap.ticker.lagSmoothing(0)` is required on desktop. Use the shared `lockPageScroll()` for overlays; a Lenis-only stop cannot lock native phone scrolling.
 - All GSAP animations go inside `useLayoutEffect` with a `gsap.context()`. Cleanup is always `ctx.revert()` — this is mandatory for React Strict Mode compatibility and route-transition cleanup.
 - GSAP is the animation library for all new work. Three.js and Framer Motion are gone from
   the project entirely. `SplitText` is registered in `gsap.ts` alongside ScrollTrigger.
@@ -66,6 +66,13 @@ create it inside a GSAP context so deferred work is owned by that context.
 `RevealFrame` likewise hides `data-image-entrance` until its white entrance cover
 is installed, preventing a photograph from appearing and then wiping in again.
 
+Mobile motion uses masked words instead of individual characters and a shorter
+image-cover entrance without a simultaneous image scale. About and project image
+drift is desktop-only. `ScrollTrigger.config({ ignoreMobileResize: true })` prevents
+mid-gesture refreshes from browser toolbars; the provider refreshes changed layout
+after scrolling/resizing settles, excluding open dialogs, focused fields and zoom.
+Use `ArrowIcon` for link arrows so mobile fonts cannot substitute emoji glyphs.
+
 ### Image lightbox
 
 `ImageLightboxProvider` lives in the site layout. Editorial `RevealFrame`s opt in
@@ -75,6 +82,8 @@ as navigation: do not place lightbox buttons over them. Hub hero portraits use t
 own group, and the footer photograph is a separate one-image group.
 
 The native modal dialog shows uncropped, responsive Sanity images or bundled WebPs.
+Its dimensions and offset follow `visualViewport` through resize/scroll listeners,
+with a `100dvh` CSS fallback, so browser toolbars and zoom cannot strand controls.
 Fit every photograph inside the same responsive 16:9 landscape frame with `contain`.
 Reserve a fixed two-line caption area so cycling portrait/landscape images or captions
 never changes the frame dimensions or control positions.
@@ -116,6 +125,12 @@ the image, with concise copy and the Register interest CTA stacked to fit one vi
 
 `ProjectsPinned` scrolls under Lenis, so it uses `scrub: true` and snaps by retargeting Lenis
 once input stops — never ScrollTrigger's own `snap`, which fights Lenis at the pin's ends.
+This applies to desktop. Mobile keeps the filmstrip with native CSS sticky positioning,
+stable `100svh` stage geometry and no automatic snap, blur or inner-image pan. Measure
+frame height and the computed CSS gap, never the changing `window.innerHeight`.
+Only the first mobile strip image gets a separate entrance. Responsive sources avoid
+decoding a desktop-sized photograph for every phone frame. MatchMedia owns breakpoint
+cleanup so switching screen sizes cannot leave duplicate pins/listeners.
 
 `Interlude.tsx` — BELOW lg (1024px) it is NOT pinned and has no second state: the render is a
 sticky backdrop and the three beats stack vertically over it, revealed once each (the user
@@ -154,7 +169,9 @@ The white content and letter shapes scroll normally while the room starts raised
 travels more slowly. One scroll offset drives the photograph and wordmark background
 together; image overscan covers the entire range. Reduced motion keeps the image static.
 Two-column mobile
-layout, visible focus states, reduced motion supported. Filled button labels use
+layout, visible focus states, reduced motion supported. On phones and touch tablets,
+the photograph and its matching letter fill stay static; desktop keeps parallax.
+Filled button labels use
 .button-label for a small optical correction to Josefin’s glyph alignment.
 
 `NavbarClient.tsx` (site-wide) — logo left; Contact | EN·EL | burger right, margins from the hero
@@ -205,7 +222,7 @@ ONLY after the expansion (a mid-flight commit is a visible jump), with the scrol
 still moment. `ProjectHero` claims the run at first render, renders the exact URL the layer decoded
 (`projectHeroUrl` ladder), and calls `handoff()`; the provider refreshes ScrollTrigger, waits for
 smooth frames, then removes the layer and the hero's copy and the navbar enter. The hero image must
-stay 100% × 100svh object-cover with no transform/filter/dimming on arrival, or the handoff shows.
+stay 100% × 100dvh object-cover with no transform/filter/dimming on arrival, or the handoff shows.
 
 ### About page
 

@@ -14,6 +14,7 @@ export function initLenis(): Lenis {
     wheelMultiplier: 1,
     touchMultiplier: 2,
   });
+  if (document.documentElement.style.overflow === 'hidden') lenisInstance.stop();
 
   tickerCallback = (time: number) => {
     lenisInstance?.raf(time * 1000);

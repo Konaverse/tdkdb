@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import { CustomEase, gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { getLenis } from '@/lib/animations/lenis';
+import { lockPageScroll } from '@/lib/animations/scrollLock';
 import { projectHeroUrl, projectHeroWidthFor } from '@/lib/sanity/image';
 import type { SanityImage } from '@/lib/sanity/types';
 
@@ -166,6 +167,7 @@ export default function ProjectTransitionProvider({ children }: { children: Reac
   const loRef = useRef<HTMLImageElement>(null);
   const hiRef = useRef<HTMLImageElement>(null);
   const probeRef = useRef<HTMLDivElement>(null);
+  const unlockRef = useRef<(() => void) | null>(null);
 
   const runRef = useRef<Run | null>(null);
   const idRef = useRef(0);
@@ -211,7 +213,8 @@ export default function ProjectTransitionProvider({ children }: { children: Reac
       hi.removeAttribute('src');
     }
     if (lo) lo.removeAttribute('src');
-    getLenis()?.start();
+    unlockRef.current?.();
+    unlockRef.current = null;
   }, []);
 
   const start = useCallback<TransitionApi['start']>(
@@ -230,13 +233,12 @@ export default function ProjectTransitionProvider({ children }: { children: Reac
 
       gsapInit();
       router.prefetch(href);
-      getLenis()?.stop();
       const ease =
         CustomEase.get('projectExpand') || CustomEase.create('projectExpand', EXPAND_CURVE);
 
       const aspect = image.naturalWidth / image.naturalHeight;
       const vw = document.documentElement.clientWidth;
-      // 100svh, the hero's height, measured rather than assumed.
+      // Match the hero's dynamic viewport, including the current browser bars.
       const vh = probe.offsetHeight || window.innerHeight;
       const endWin: Box = { x: 0, y: 0, w: vw, h: vh };
       const endPic = coverBox(endWin, aspect);
@@ -246,6 +248,7 @@ export default function ProjectTransitionProvider({ children }: { children: Reac
 
       const startWin = toBox(frame.getBoundingClientRect());
       const startPic = coverBox(toBox(image.getBoundingClientRect()), aspect);
+      unlockRef.current = lockPageScroll();
 
       const id = ++idRef.current;
       let resolveExpanded!: () => void;
@@ -366,7 +369,7 @@ export default function ProjectTransitionProvider({ children }: { children: Reac
       await settled();
       if (runRef.current?.id !== id) return;
 
-      // The hero is 100svh by 100% — normally the box we opened to. If the
+      // The hero is 100dvh by 100% — normally the box we opened to. If the
       // browser chrome moved in the meantime, glide onto the real box.
       const target = toBox(hero.getBoundingClientRect());
       const off = Math.max(
@@ -457,7 +460,7 @@ export default function ProjectTransitionProvider({ children }: { children: Reac
         ref={probeRef}
         aria-hidden="true"
         className="pointer-events-none invisible fixed left-0 top-0 w-0"
-        style={{ height: '100svh' }}
+        style={{ height: '100dvh' }}
       />
     </TransitionContext.Provider>
   );

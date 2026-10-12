@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import RevealFrame from '@/components/animations/RevealFrame';
+import ArrowIcon from '@/components/ui/ArrowIcon';
 import { displayTitle, projectHref } from '@/lib/projects/display';
 import { imageSrcSet, imageUrl } from '@/lib/sanity/image';
 import type { Project } from '@/lib/sanity/types';
@@ -91,16 +92,14 @@ export default function FeaturedProject({ project, locale }: FeaturedProjectProp
               className="inline-flex min-h-12 w-full items-center justify-center gap-6 bg-threshold px-8 py-4 text-[13px] font-[600] uppercase tracking-[0.2em] text-white transition-colors duration-300 hover:bg-[#111111] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111111] sm:w-auto"
             >
               <span className="button-label">Register interest</span>
-              <span className="button-label" aria-hidden="true">
-                ↗
-              </span>
+              <ArrowIcon direction="up-right" className="button-label" />
             </Link>
             <Link
               href={href}
               prefetch
               className="inline-flex min-h-10 items-center gap-3 text-[15px] underline decoration-[#111111]/30 underline-offset-4 transition-colors duration-300 hover:text-threshold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111111] lg:min-h-12"
             >
-              Explore the residences <span aria-hidden="true">↗</span>
+              Explore the residences <ArrowIcon direction="up-right" />
             </Link>
           </div>
         </div>

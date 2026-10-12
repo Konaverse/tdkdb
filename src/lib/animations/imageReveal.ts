@@ -1,4 +1,5 @@
 import { gsap, ScrollTrigger } from './gsap';
+import { usesMobileMotion } from './mobile';
 
 /* ───────────────────────────────────────────────────────────────────────────
    imageReveal — THE entrance for every image that is not full bleed.
@@ -56,6 +57,7 @@ export function imageReveal(
   }: ImageRevealOptions = {},
 ): { tl: gsap.core.Timeline; revert: () => void } {
   const R = IMAGE_REVEAL;
+  const mobile = usesMobileMotion();
   if (getComputedStyle(frame).position === 'static') frame.style.position = 'relative';
 
   const veil = document.createElement('div');
@@ -74,8 +76,8 @@ export function imageReveal(
     paused: scroll,
     onComplete: () => veil.remove(),
   });
-  tl.to(veil, { scaleY: 0, duration: R.duration, ease: R.ease }, 0);
-  if (settle) {
+  tl.to(veil, { scaleY: 0, duration: mobile ? 0.85 : R.duration, ease: R.ease }, 0);
+  if (settle && !mobile) {
     tl.fromTo(
       settle,
       { scale: R.settleFrom, transformOrigin: '50% 100%' },

@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from '@/lib/animations/gsap';
-import { getLenis } from '@/lib/animations/lenis';
+import { lockPageScroll } from '@/lib/animations/scrollLock';
 import { useIntro } from './IntroProvider';
 import HeroTitleContent from './HeroTitleContent';
 
@@ -39,8 +39,7 @@ export default function HomeLoader() {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     // Lock interaction until the intro completes.
-    document.body.style.overflow = 'hidden';
-    getLenis()?.stop();
+    const unlock = lockPageScroll();
 
     let loaded = document.readyState === 'complete';
     const onLoad = () => {
@@ -66,8 +65,7 @@ export default function HomeLoader() {
         gsap
           .timeline({
             onComplete: () => {
-              document.body.style.overflow = '';
-              getLenis()?.start();
+              unlock();
               setPhase('reveal'); // fires the hero's entrance timeline
               setMounted(false);
             },
@@ -115,7 +113,7 @@ export default function HomeLoader() {
     return () => {
       ctx.revert();
       window.removeEventListener('load', onLoad);
-      document.body.style.overflow = '';
+      unlock();
     };
     // Runs once on mount; phase/setPhase captured intentionally.
     // eslint-disable-next-line react-hooks/exhaustive-deps

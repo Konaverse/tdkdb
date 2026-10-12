@@ -1,0 +1,23 @@
+.section {
+  --project-stage-height: 100svh;
+}
+
+.stage {
+  position: relative;
+  height: var(--project-stage-height);
+}
+
+@media (max-width: 1023px), (hover: none) and (pointer: coarse) {
+  .section {
+    height: calc(var(--project-stage-height) + var(--project-travel));
+  }
+
+  .stage {
+    position: sticky;
+    top: 0;
+  }
+
+  .pan {
+    will-change: auto;
+  }
+}

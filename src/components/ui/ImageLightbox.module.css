@@ -15,14 +15,17 @@
 
 .dialog {
   --caption-space: 50px;
-  --image-max-height: calc(100dvh - 124px - var(--caption-space));
-  --frame-width: min(calc(100vw - 232px), calc(var(--image-max-height) * 16 / 9));
+  --image-max-height: calc(var(--lightbox-height, 100dvh) - 124px - var(--caption-space));
+  --frame-width: min(
+    calc(var(--lightbox-width, 100vw) - 232px),
+    calc(var(--image-max-height) * 16 / 9)
+  );
 
   position: fixed;
-  inset: 0;
-  width: 100%;
+  inset: var(--lightbox-top, 0px) auto auto var(--lightbox-left, 0px);
+  width: var(--lightbox-width, 100%);
   max-width: none;
-  height: 100dvh;
+  height: var(--lightbox-height, 100dvh);
   max-height: none;
   margin: 0;
   padding: 0;
@@ -189,9 +192,10 @@
 @media (max-width: 767px), (pointer: coarse) {
   .dialog {
     --image-max-height: calc(
-      100dvh - 104px - var(--caption-space) - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+      var(--lightbox-height, 100dvh) - 104px - var(--caption-space) - env(safe-area-inset-top) -
+        env(safe-area-inset-bottom)
     );
-    --frame-width: min(100vw, calc(var(--image-max-height) * 16 / 9));
+    --frame-width: min(var(--lightbox-width, 100vw), calc(var(--image-max-height) * 16 / 9));
   }
 
   .shell {

@@ -104,10 +104,18 @@ export default function Interlude({ image }: { image?: SanityImage }) {
     const buildMobile = () => {
       if (reduced) return;
       gsap.utils.toArray<HTMLElement>('[data-m-beat]', scope).forEach((beat) => {
-        const words = maskChars(beat.querySelectorAll('[data-m-word]')).chars;
-        const copy = maskChars(beat.querySelectorAll('[data-m-copy]')).chars;
+        const heading = maskChars(beat.querySelectorAll('[data-m-word]'));
+        const body = maskChars(beat.querySelectorAll('[data-m-copy]'));
+        const words = heading.chars;
+        const copy = body.chars;
         gsap
-          .timeline({ scrollTrigger: { trigger: beat, start: 'top 82%', once: true } })
+          .timeline({
+            scrollTrigger: { trigger: beat, start: 'top 82%', once: true },
+            onComplete: () => {
+              heading.split.revert();
+              body.split.revert();
+            },
+          })
           .to(words, riseIn(words))
           .to(copy, riseIn(copy), 0.25);
       });

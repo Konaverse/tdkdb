@@ -7,7 +7,7 @@ import { usePathname, useParams } from 'next/navigation';
 
 import { gsap, gsapInit } from '@/lib/animations/gsap';
 import { maskChars, riseIn } from '@/lib/animations/text';
-import { getLenis } from '@/lib/animations/lenis';
+import { lockPageScroll } from '@/lib/animations/scrollLock';
 import { useIntro } from '@/components/homepage/IntroProvider';
 import SocialGlyph from '@/components/ui/SocialGlyph';
 import type { SiteSettings } from '@/lib/sanity/types';
@@ -220,12 +220,15 @@ export default function NavbarClient({ settings }: Props) {
 
   /* ── open / close ── */
   useEffect(() => {
+    if (open) return lockPageScroll();
+  }, [open]);
+
+  useEffect(() => {
     const tl = tlRef.current;
     if (!tl) return;
 
     if (open) {
       tl.timeScale(1).play();
-      getLenis()?.stop();
       wasOpenRef.current = true;
       const t = setTimeout(() => firstLinkRef.current?.focus({ preventScroll: true }), 350);
       return () => clearTimeout(t);
@@ -233,7 +236,6 @@ export default function NavbarClient({ settings }: Props) {
 
     if (wasOpenRef.current) {
       tl.timeScale(1.7).reverse();
-      getLenis()?.start();
       burgerRef.current?.focus({ preventScroll: true });
       wasOpenRef.current = false;
     }
@@ -252,10 +254,11 @@ export default function NavbarClient({ settings }: Props) {
     const right = rightRef.current;
     if (!left || !right) return;
 
-    const themeAt = (x: number, y: number): Theme => {
+    const regions = Array.from(document.querySelectorAll<HTMLElement>('[data-nav]'));
+    const themeAt = (x: number, y: number, boxes: DOMRect[]): Theme => {
       let theme: Theme = 'dark';
-      document.querySelectorAll<HTMLElement>('[data-nav]').forEach((el) => {
-        const r = el.getBoundingClientRect();
+      regions.forEach((el, index) => {
+        const r = boxes[index];
         if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
           theme = el.dataset.nav === 'light' ? 'light' : 'dark';
         }
@@ -273,17 +276,23 @@ export default function NavbarClient({ settings }: Props) {
     };
 
     let frame = 0;
+    let lastState = '';
     const tick = () => {
       if (++frame % 4) return;
+      const state = `${window.scrollY}:${window.innerWidth}:${window.innerHeight}:${openRef.current}`;
+      if (state === lastState) return;
+      lastState = state;
+      // Read both clusters and all regions before changing either theme.
       const l = left.getBoundingClientRect();
       const r = right.getBoundingClientRect();
+      const boxes = regions.map((region) => region.getBoundingClientRect());
       const y = l.top + l.height / 2;
-      apply(left, themeAt(l.left + l.width / 2, y));
-      apply(right, openRef.current ? 'light' : themeAt(r.left + r.width / 2, y));
+      apply(left, themeAt(l.left + l.width / 2, y, boxes));
+      apply(right, openRef.current ? 'light' : themeAt(r.left + r.width / 2, y, boxes));
     };
     gsap.ticker.add(tick);
     return () => gsap.ticker.remove(tick);
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
     openRef.current = open;

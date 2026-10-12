@@ -2,7 +2,7 @@
   --portrait-height: min(46svh, 34vw);
 
   position: relative;
-  height: 100svh;
+  height: 100dvh;
   overflow: hidden;
 }
 

@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef } from 'react';
 import { gsap, gsapInit } from '@/lib/animations/gsap';
 import Link from 'next/link';
 import { PrimaryButton } from '@/components/ui/Button';
+import ArrowIcon from '@/components/ui/ArrowIcon';
 
 export default function NotFoundAnimations() {
   const codeRef = useRef<HTMLParagraphElement>(null);
@@ -66,7 +67,7 @@ export default function NotFoundAnimations() {
           href="/en/projects"
           className="text-label text-stone transition-colors duration-fast ease-smooth hover:text-paper"
         >
-          VIEW OUR PROJECTS →
+          VIEW OUR PROJECTS <ArrowIcon />
         </Link>
       </div>
     </div>

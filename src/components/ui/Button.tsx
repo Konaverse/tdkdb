@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils/cn';
+import ArrowIcon from './ArrowIcon';
 
 export type ButtonVariant = 'primary' | 'ghost' | 'text';
 export type ButtonSize = 'sm' | 'md' | 'lg';
@@ -109,12 +110,10 @@ export default function Button({
     >
       {children}
       {variant === 'primary' && (
-        <span
+        <ArrowIcon
           className="inline-block transition-transform duration-fast ease-smooth group-hover:translate-x-1"
           aria-hidden="true"
-        >
-          →
-        </span>
+        />
       )}
       {variant === 'text' && (
         <span className="absolute bottom-0 left-0 h-px w-full origin-left scale-x-0 bg-current transition-transform duration-fast ease-smooth group-hover:scale-x-100" />

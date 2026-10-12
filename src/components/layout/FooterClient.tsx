@@ -8,6 +8,7 @@ import { useParams, usePathname } from 'next/navigation';
 
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { maskChars, riseIn, nearViewport } from '@/lib/animations/text';
+import { usesMobileMotion } from '@/lib/animations/mobile';
 import { LightboxTrigger } from '@/components/ui/ImageLightbox';
 import type { SiteSettings } from '@/lib/sanity/types';
 import SocialGlyph from '@/components/ui/SocialGlyph';
@@ -60,6 +61,7 @@ export default function FooterClient({ settings, backdrop }: Props) {
     let ctx: gsap.Context | null = null;
     let observer: ResizeObserver | null = null;
     let parallax: ScrollTrigger | null = null;
+    let motion: gsap.MatchMedia | null = null;
     let frame = 0;
     let travel = 0;
     let backgroundX = 0;
@@ -94,7 +96,7 @@ export default function FooterClient({ settings, backdrop }: Props) {
       const w = artRect.width;
       const h = artRect.height;
       const aspect = image.naturalWidth ? image.naturalWidth / image.naturalHeight : 16 / 9;
-      travel = reduced ? 0 : Math.min(220, Math.max(80, h * 0.32));
+      travel = reduced || usesMobileMotion() ? 0 : Math.min(220, Math.max(80, h * 0.32));
       // Extra image height covers the full motion range. It starts raised
       // behind the lettering, then travels down as the footer scrolls up.
       const imageWidth = Math.max(w, (h + travel) * aspect);
@@ -130,20 +132,32 @@ export default function FooterClient({ settings, backdrop }: Props) {
       ctx = gsap.context(() => {
         paint();
         if (!reduced) {
-          gsap.set(image, { y: 0, force3D: true });
-          const setImageY = gsap.quickSetter(image, 'y', 'px');
-          shiftImage = (offset) => setImageY(offset);
-          const syncScroll = (trigger: ScrollTrigger) => {
-            progress = trigger.progress;
-            render();
-          };
-          parallax = ScrollTrigger.create({
-            trigger: art,
-            start: 'top bottom',
-            end: 'bottom bottom',
-            onUpdate: syncScroll,
-            onRefresh: syncScroll,
+          motion = gsap.matchMedia();
+          motion.add('(min-width: 1024px) and (hover: hover) and (pointer: fine)', () => {
+            gsap.set(image, { y: 0, force3D: true });
+            const setImageY = gsap.quickSetter(image, 'y', 'px');
+            shiftImage = (offset) => setImageY(offset);
+            const syncScroll = (trigger: ScrollTrigger) => {
+              progress = trigger.progress;
+              render();
+            };
+            parallax = ScrollTrigger.create({
+              trigger: art,
+              start: 'top bottom',
+              end: 'bottom bottom',
+              onUpdate: syncScroll,
+              onRefresh: syncScroll,
+            });
+            paint();
+            return () => {
+              parallax = null;
+              progress = 0;
+              shiftImage = () => {};
+              paint();
+            };
           });
+        }
+        if (!reduced) {
           const q = gsap.utils.selector(root);
           q('[data-footer-column]').forEach((column) =>
             nearViewport(column, () => {
@@ -171,6 +185,7 @@ export default function FooterClient({ settings, backdrop }: Props) {
       cancelAnimationFrame(frame);
       observer?.disconnect();
       image.removeEventListener('load', schedulePaint);
+      motion?.revert();
       ctx?.revert();
     };
   }, [source, email, phone, address, pathname]);

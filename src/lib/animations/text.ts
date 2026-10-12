@@ -1,4 +1,5 @@
 import { gsap, SplitText, ScrollTrigger } from './gsap';
+import { usesMobileMotion } from './mobile';
 
 /** Cached fonts can initialize before the next paint; cold fonts wait once. */
 export function whenFontsReady(callback: () => void): () => void {
@@ -28,11 +29,15 @@ export function nearViewport(trigger: Element, prepare: () => void): void {
  * Create inside a GSAP context so route changes restore the original markup.
  */
 export function maskChars(target: gsap.DOMTarget) {
+  // One masked word instead of a layer per letter keeps touch entrances cheap
+  // and preserves natural wrapping when the browser chrome changes height.
+  const mobile = usesMobileMotion();
   const split = SplitText.create(target, {
-    type: 'words,chars',
-    mask: 'chars',
+    type: mobile ? 'words' : 'words,chars',
+    mask: mobile ? 'words' : 'chars',
     tag: 'span',
     charsClass: 'rise-char',
+    ignore: 'svg, [data-no-split]',
     smartWrap: true,
     // Keep nested links and their accessible names intact.
     aria: 'none',
@@ -46,8 +51,9 @@ export function maskChars(target: gsap.DOMTarget) {
     marginTop: '-0.2em',
     marginBottom: '-0.14em',
   });
-  gsap.set(split.chars, { display: 'inline-block', position: 'relative', ...CHAR_HIDDEN });
-  return { split, chars: split.chars };
+  const chars = mobile ? split.words : split.chars;
+  gsap.set(chars, { display: 'inline-block', position: 'relative', ...CHAR_HIDDEN });
+  return { split, chars };
 }
 
 export const CHAR_HIDDEN = { yPercent: 135, y: 0 };
@@ -57,7 +63,7 @@ export function riseIn(chars: Element[], overrides: gsap.TweenVars = {}): gsap.T
   return {
     yPercent: 0,
     y: 0,
-    duration: 0.95,
+    duration: usesMobileMotion() ? 0.65 : 0.95,
     ease: 'power4.out',
     stagger: Math.min(0.026, 0.45 / Math.max(1, chars.length - 1)),
     ...overrides,

@@ -4,6 +4,7 @@ import { useLayoutEffect, useRef } from 'react';
 
 import { gsap, gsapInit } from '@/lib/animations/gsap';
 import { CHAR_HIDDEN, maskChars, riseIn } from '@/lib/animations/text';
+import ArrowIcon from '@/components/ui/ArrowIcon';
 
 /* ───────────────────────────────────────────────────────────────────────────
    ProjectStory — what the building is, and how far along it is
@@ -191,7 +192,7 @@ export default function ProjectStory({
               rel="noopener noreferrer"
               className="inline-flex min-h-12 items-center gap-5 text-[17px] underline decoration-[#111111]/30 underline-offset-4 transition-colors duration-300 hover:text-threshold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111111]"
             >
-              View technical specifications <span aria-hidden="true">↗</span>
+              View technical specifications <ArrowIcon direction="up-right" />
               <span className="sr-only">(PDF, opens in a new tab)</span>
             </a>
           </div>

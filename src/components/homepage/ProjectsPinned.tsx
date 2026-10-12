@@ -7,11 +7,13 @@ import { useParams, useRouter } from 'next/navigation';
 
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { getLenis } from '@/lib/animations/lenis';
+import { MOBILE_MOTION_QUERY } from '@/lib/animations/mobile';
 import { imageReveal } from '@/lib/animations/imageReveal';
 import { imageUrl } from '@/lib/sanity/image';
 import { displayTitle, projectHref, STATUS_LABEL } from '@/lib/projects/display';
 import { useProjectTransition } from '@/components/transition/ProjectTransition';
 import type { Project } from '@/lib/sanity/types';
+import styles from './ProjectsPinned.module.css';
 
 /* ───────────────────────────────────────────────────────────────────────────
    ProjectsPinned — the projects as a passage
@@ -95,7 +97,7 @@ const INK = '#111111';
 const ACCENT = 'var(--color-threshold, #66979f)';
 
 /** Frame column width. Height, centring and step all derive from it. */
-const COLUMN_WIDTH = 'clamp(300px, 44vw, 900px)';
+const COLUMN_WIDTH = 'min(clamp(300px, 44vw, 900px), calc(100vw - 2 * var(--page-margin)))';
 /** Vertical gap between frames, in svh. */
 const GAP = 10;
 /** Viewport-heights of scroll per project. */
@@ -155,226 +157,244 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
     const marker = markerRef.current;
     if (!scope || !pinEl || !strip || N < 2) return;
 
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const media = gsap.matchMedia();
+    media.add(
+      {
+        mobile: MOBILE_MOTION_QUERY,
+        desktop: '(min-width: 1024px)',
+        reduced: '(prefers-reduced-motion: reduce)',
+      },
+      (context) => {
+        const mobile = !!context.conditions?.mobile;
 
-    const frames = gsap.utils.toArray<HTMLElement>('[data-frame]', scope);
-    const pans = gsap.utils.toArray<HTMLElement>('[data-pan]', scope);
-    const names = gsap.utils.toArray<HTMLElement>('[data-name]', scope);
-    const indexBtns = gsap.utils.toArray<HTMLElement>('[data-index]', scope);
-    const titles = gsap.utils.toArray<HTMLElement>('[data-project-title]', scope);
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Every layout read lives here, never in render().
-    let stepPx = 1;
-    let vh = window.innerHeight;
-    let indexPitch = 0;
-    const measure = () => {
-      vh = window.innerHeight;
-      const h = frames[0]?.offsetHeight ?? 1;
-      stepPx = h + (vh * GAP) / 100;
-      indexPitch = indexBtns.length > 1 ? indexBtns[1].offsetTop - indexBtns[0].offsetTop : 0;
-      if (marker && indexBtns[0]) marker.style.height = `${indexBtns[0].offsetHeight}px`;
-      titles.forEach((title) => {
-        title.style.fontSize = '';
-        const letters = title.querySelector('span') as HTMLElement;
-        const available = title.clientWidth;
-        const width = letters.getBoundingClientRect().width;
-        if (!width || !available) return;
-        const fontSize = parseFloat(getComputedStyle(title).fontSize);
-        if (width > available) title.style.fontSize = `${(fontSize * available) / width}px`;
-      });
-    };
-    measure();
+        const frames = gsap.utils.toArray<HTMLElement>('[data-frame]', scope);
+        const pans = gsap.utils.toArray<HTMLElement>('[data-pan]', scope);
+        const names = gsap.utils.toArray<HTMLElement>('[data-name]', scope);
+        const indexBtns = gsap.utils.toArray<HTMLElement>('[data-index]', scope);
+        const titles = gsap.utils.toArray<HTMLElement>('[data-project-title]', scope);
 
-    /* ──────────────────────────────────────────────────── the one writer */
+        // Every layout read lives here, never in render().
+        let stepPx = 1;
+        let vh = pinEl.clientHeight;
+        let indexPitch = 0;
+        const measure = () => {
+          vh = pinEl.clientHeight;
+          const h = frames[0]?.getBoundingClientRect().height ?? 1;
+          stepPx = h + parseFloat(getComputedStyle(strip).rowGap);
+          indexPitch = indexBtns.length > 1 ? indexBtns[1].offsetTop - indexBtns[0].offsetTop : 0;
+          if (marker && indexBtns[0]) marker.style.height = `${indexBtns[0].offsetHeight}px`;
+          titles.forEach((title) => {
+            title.style.fontSize = '';
+            const letters = title.querySelector('span') as HTMLElement;
+            const available = title.clientWidth;
+            const width = letters.getBoundingClientRect().width;
+            if (!width || !available) return;
+            const fontSize = parseFloat(getComputedStyle(title).fontSize);
+            if (width > available) title.style.fontSize = `${(fontSize * available) / width}px`;
+          });
+        };
+        measure();
 
-    let lastP = 0;
-    let lastActive = -1;
-    const render = (p: number) => {
-      lastP = p;
-      strip.style.transform = `translate3d(0, ${(-p * stepPx).toFixed(2)}px, 0)`;
+        /* ──────────────────────────────────────────────────── the one writer */
 
-      if (!reduced) {
-        // Slow pan: the picture drifts against the travel while its frame
-        // crosses the viewport. While pinned, frame j's centre sits (j − p)
-        // steps from the viewport centre — arithmetic, not a rect read.
-        for (let j = 0; j < pans.length; j++) {
-          const rel = Math.max(-1, Math.min(1, ((j - p) * stepPx) / vh));
-          pans[j].style.transform = `translate3d(0, ${(rel * PAN).toFixed(3)}%, 0)`;
-        }
-      }
+        let lastP = 0;
+        let lastActive = -1;
+        const render = (p: number) => {
+          lastP = p;
+          strip.style.transform = `translate3d(0, ${(-p * stepPx).toFixed(2)}px, 0)`;
 
-      if (marker) {
-        marker.style.transform = `translate3d(0, ${(p * indexPitch).toFixed(2)}px, 0)`;
-      }
+          if (!reduced && !mobile) {
+            // Slow pan: the picture drifts against the travel while its frame
+            // crosses the viewport. While pinned, frame j's centre sits (j − p)
+            // steps from the viewport centre — arithmetic, not a rect read.
+            for (let j = 0; j < pans.length; j++) {
+              const rel = Math.max(-1, Math.min(1, ((j - p) * stepPx) / vh));
+              pans[j].style.transform = `translate3d(0, ${(rel * PAN).toFixed(3)}%, 0)`;
+            }
+          }
 
-      const active = Math.round(Math.min(N - 1, Math.max(0, p)));
-      names.forEach((t, j) => {
-        if (reduced) {
-          t.style.opacity = j === active ? '1' : '0';
-          t.style.visibility = j === active ? 'visible' : 'hidden';
-          return;
-        }
-        const a = Math.abs(p - j);
-        const FADE = 0.42;
-        const vis = a >= FADE ? 0 : 1 - a / FADE;
-        t.style.opacity = String(vis);
-        t.style.visibility = vis > 0.02 ? 'visible' : 'hidden';
-        // The focus pull: out of focus is softened, in focus is sharp. Hidden
-        // or settled names carry no filter at all. The pull is gentle — 2.5px
-        // at most, was 7 — the client wants nothing that hits the eye.
-        t.style.filter =
-          vis >= 0.999 || vis <= 0.02 ? '' : `blur(${((1 - vis) * 2.5).toFixed(2)}px)`;
-      });
+          if (marker) {
+            marker.style.transform = `translate3d(0, ${(p * indexPitch).toFixed(2)}px, 0)`;
+          }
 
-      if (active !== lastActive) {
-        lastActive = active;
-        indexBtns.forEach((b, j) => {
-          b.style.opacity = j === active ? '1' : '0.38';
-        });
-      }
-    };
+          const active = Math.round(Math.min(N - 1, Math.max(0, p)));
+          names.forEach((t, j) => {
+            if (reduced) {
+              t.style.opacity = j === active ? '1' : '0';
+              t.style.visibility = j === active ? 'visible' : 'hidden';
+              return;
+            }
+            const a = Math.abs(p - j);
+            const FADE = 0.42;
+            const vis = a >= FADE ? 0 : 1 - a / FADE;
+            t.style.opacity = String(vis);
+            t.style.visibility = vis > 0.02 ? 'visible' : 'hidden';
+            // The focus pull: out of focus is softened, in focus is sharp. Hidden
+            // or settled names carry no filter at all. The pull is gentle — 2.5px
+            // at most, was 7 — the client wants nothing that hits the eye.
+            t.style.filter =
+              mobile || vis >= 0.999 || vis <= 0.02
+                ? ''
+                : `blur(${((1 - vis) * 2.5).toFixed(2)}px)`;
+          });
 
-    /* ──────────────────────────────────────────────────────── behaviours */
+          if (active !== lastActive) {
+            lastActive = active;
+            indexBtns.forEach((b, j) => {
+              b.style.opacity = j === active ? '1' : '0.38';
+            });
+          }
+        };
 
-    let trigger: ScrollTrigger | null = null;
-    const reveals: { revert: () => void }[] = [];
+        /* ──────────────────────────────────────────────────────── behaviours */
 
-    const scrollFor = (j: number) =>
-      trigger ? trigger.start + (j / (N - 1)) * (trigger.end - trigger.start) : 0;
+        let trigger: ScrollTrigger | null = null;
+        const reveals: { revert: () => void }[] = [];
 
-    const scrollToProject = (j: number) => {
-      if (!trigger) return;
-      const t = scrollFor(j);
-      const lenis = getLenis();
-      if (lenis && !reduced) lenis.scrollTo(t, { duration: 1.1 });
-      else window.scrollTo({ top: t, behavior: reduced ? 'auto' : 'smooth' });
-    };
-    const onIndexClick = (e: Event) => {
-      const j = Number((e.currentTarget as HTMLElement).dataset.index);
-      if (!Number.isNaN(j)) scrollToProject(j);
-    };
-    indexBtns.forEach((b) => b.addEventListener('click', onIndexClick));
+        const scrollFor = (j: number) =>
+          trigger ? trigger.start + (j / (N - 1)) * (trigger.end - trigger.start) : 0;
 
-    /* snap — through Lenis. Lenis is read lazily: the provider creates it in
+        const scrollToProject = (j: number) => {
+          if (!trigger) return;
+          const t = scrollFor(j);
+          const lenis = getLenis();
+          if (lenis && !reduced) lenis.scrollTo(t, { duration: 1.1 });
+          else window.scrollTo({ top: t, behavior: reduced ? 'auto' : 'smooth' });
+        };
+        const onIndexClick = (e: Event) => {
+          const j = Number((e.currentTarget as HTMLElement).dataset.index);
+          if (!Number.isNaN(j)) scrollToProject(j);
+        };
+        indexBtns.forEach((b) => b.addEventListener('click', onIndexClick));
+
+        /* snap — through Lenis. Lenis is read lazily: the provider creates it in
        a parent effect, which runs after this child's layout effect. The
        scroll TARGET only changes on input, so "target unchanged for
        SNAP_IDLE ms" means the reader has let go, even while Lenis is still
        gliding; retargeting that glide keeps the motion continuous. */
 
-    let lastTarget = NaN;
-    let lastDir = 1;
-    let snapTimer: ReturnType<typeof setTimeout> | undefined;
-    const settle = () => {
-      const lenis = getLenis();
-      if (!lenis || !trigger || lenis.isStopped || lenis.isLocked) return;
-      const { start, end } = trigger;
-      const t = scrollTargetOf(lenis);
-      // Outside the pin, or on its ends, the page scrolls freely.
-      if (t <= start + 1 || t >= end - 1) return;
-      const p = ((t - start) / (end - start)) * (N - 1);
-      const idx =
-        lastDir > 0
-          ? Math.min(N - 1, Math.ceil(p - SNAP_COMMIT))
-          : Math.max(0, Math.floor(p + SNAP_COMMIT));
-      const dest = scrollFor(idx);
-      if (Math.abs(dest - t) < 2) return;
-      lenis.scrollTo(dest, { duration: 0.9, easing: easeOutCubic });
-    };
-    const armSnap = () => {
-      if (reduced) return;
-      const lenis = getLenis();
-      if (!lenis) return;
-      const t = scrollTargetOf(lenis);
-      if (t === lastTarget) return;
-      if (!Number.isNaN(lastTarget)) lastDir = Math.sign(t - lastTarget) || lastDir;
-      lastTarget = t;
-      clearTimeout(snapTimer);
-      snapTimer = setTimeout(settle, SNAP_IDLE);
-    };
+        let lastTarget = NaN;
+        let lastDir = 1;
+        let snapTimer: ReturnType<typeof setTimeout> | undefined;
+        const settle = () => {
+          const lenis = getLenis();
+          if (!lenis || !trigger || lenis.isStopped || lenis.isLocked) return;
+          const { start, end } = trigger;
+          const t = scrollTargetOf(lenis);
+          // Outside the pin, or on its ends, the page scrolls freely.
+          if (t <= start + 1 || t >= end - 1) return;
+          const p = ((t - start) / (end - start)) * (N - 1);
+          const idx =
+            lastDir > 0
+              ? Math.min(N - 1, Math.ceil(p - SNAP_COMMIT))
+              : Math.max(0, Math.floor(p + SNAP_COMMIT));
+          const dest = scrollFor(idx);
+          if (Math.abs(dest - t) < 2) return;
+          lenis.scrollTo(dest, { duration: 0.9, easing: easeOutCubic });
+        };
+        const armSnap = () => {
+          if (reduced || mobile) return;
+          const lenis = getLenis();
+          if (!lenis) return;
+          const t = scrollTargetOf(lenis);
+          if (t === lastTarget) return;
+          if (!Number.isNaN(lastTarget)) lastDir = Math.sign(t - lastTarget) || lastDir;
+          lastTarget = t;
+          clearTimeout(snapTimer);
+          snapTimer = setTimeout(settle, SNAP_IDLE);
+        };
 
-    // Decode every render up front. Otherwise Chrome decodes a 1600px image
-    // on the frame it first comes into view — mid-travel, as a dropped frame.
-    scope.querySelectorAll<HTMLImageElement>('[data-pan] img').forEach((img) => {
-      img.decode?.().catch(() => {});
-    });
+        // Decode every render up front. Otherwise Chrome decodes a 1600px image
+        // on the frame it first comes into view — mid-travel, as a dropped frame.
+        scope.querySelectorAll<HTMLImageElement>('[data-pan] img').forEach((img) => {
+          img.decode?.().catch(() => {});
+        });
 
-    let resizeTimer: ReturnType<typeof setTimeout> | undefined;
-    const ro = new ResizeObserver(() => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => {
-        measure();
-        render(lastP);
-      }, 150);
-    });
-    ro.observe(pinEl);
-    let alive = true;
-    document.fonts.ready.then(() => {
-      if (!alive) return;
-      measure();
-      render(lastP);
-    });
-
-    /* ────────────────────────────────────────────────────────── timeline */
-
-    const ctx = gsap.context(() => {
-      trigger = ScrollTrigger.create({
-        trigger: scope,
-        start: 'top top',
-        end: () => `+=${(N - 1) * window.innerHeight * STEP}`,
-        pin: pinEl,
-        pinSpacing: true,
-        scrub: true,
-        invalidateOnRefresh: true,
-        onRefresh: () => {
+        let resizeTimer: ReturnType<typeof setTimeout> | undefined;
+        const ro = new ResizeObserver(() => {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(() => {
+            measure();
+            render(lastP);
+          }, 150);
+        });
+        ro.observe(pinEl);
+        let alive = true;
+        document.fonts.ready.then(() => {
+          if (!alive) return;
           measure();
           render(lastP);
-        },
-        onUpdate: (self) => {
-          render(self.progress * (N - 1));
-          armSnap();
-        },
-      });
-      if (process.env.NODE_ENV !== 'production') {
-        (window as unknown as { __projectsSt?: ScrollTrigger }).__projectsSt = trigger;
-      }
-
-      if (reduced) {
-        render(0);
-        return;
-      }
-
-      // The frames: the site's image entrance, one after the other. The name
-      // block simply fades up — the client found a blurred entrance too heavy.
-      const tl = gsap.timeline({
-        scrollTrigger: { trigger: scope, start: 'top 85%', once: true },
-      });
-      frames.forEach((frame, i) => {
-        const reveal = imageReveal(frame, {
-          scroll: false,
-          settle: frame.querySelector('[data-settle]'),
         });
-        reveals.push(reveal);
-        tl.add(reveal.tl, i * 0.18);
-      });
-      tl.from('[data-name-wrap]', { autoAlpha: 0, duration: 1.1, ease: 'power2.out' }, 0.35);
-      tl.from(
-        '[data-quiet]',
-        { autoAlpha: 0, duration: 0.7, stagger: 0.08, ease: 'power1.out' },
-        0.55,
-      );
 
-      render(0);
-    }, scope);
+        /* ────────────────────────────────────────────────────────── timeline */
 
-    return () => {
-      alive = false;
-      ctx.revert();
-      reveals.forEach((r) => r.revert());
-      ro.disconnect();
-      clearTimeout(resizeTimer);
-      clearTimeout(snapTimer);
-      indexBtns.forEach((b) => b.removeEventListener('click', onIndexClick));
-    };
+        const ctx = gsap.context(() => {
+          trigger = ScrollTrigger.create({
+            trigger: scope,
+            start: 'top top',
+            end: () => `+=${(N - 1) * pinEl.clientHeight * STEP}`,
+            pin: mobile ? false : pinEl,
+            pinSpacing: !mobile,
+            scrub: true,
+            invalidateOnRefresh: true,
+            onRefresh: (self) => {
+              measure();
+              render(self.progress * (N - 1));
+            },
+            onUpdate: (self) => {
+              render(self.progress * (N - 1));
+              armSnap();
+            },
+          });
+          if (process.env.NODE_ENV !== 'production') {
+            (window as unknown as { __projectsSt?: ScrollTrigger }).__projectsSt = trigger;
+          }
+
+          if (reduced) {
+            render(0);
+            return;
+          }
+
+          // The frames: the site's image entrance, one after the other. The name
+          // block simply fades up — the client found a blurred entrance too heavy.
+          const tl = gsap.timeline({
+            scrollTrigger: { trigger: scope, start: 'top 85%', once: true },
+          });
+          frames.forEach((frame, i) => {
+            // Later touch frames are already entering through the moving strip.
+            // Give only its first image a separate entrance cover.
+            if (mobile && i > 0) return;
+            const reveal = imageReveal(frame, {
+              scroll: false,
+              settle: frame.querySelector('[data-settle]'),
+            });
+            reveals.push(reveal);
+            tl.add(reveal.tl, i * 0.18);
+          });
+          tl.from('[data-name-wrap]', { autoAlpha: 0, duration: 1.1, ease: 'power2.out' }, 0.35);
+          tl.from(
+            '[data-quiet]',
+            { autoAlpha: 0, duration: 0.7, stagger: 0.08, ease: 'power1.out' },
+            0.55,
+          );
+
+          render(0);
+        }, scope);
+
+        return () => {
+          alive = false;
+          ctx.revert();
+          reveals.forEach((r) => r.revert());
+          ro.disconnect();
+          clearTimeout(resizeTimer);
+          clearTimeout(snapTimer);
+          indexBtns.forEach((b) => b.removeEventListener('click', onIndexClick));
+        };
+      },
+    );
+    return () => media.revert();
   }, [N, projects]);
 
   if (N === 0) return null;
@@ -386,15 +406,16 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
         id="projects"
         ref={rootRef}
         aria-label="Selected projects"
-        className="relative w-full"
+        className={`${styles.section} relative w-full`}
         style={{
           background: PAPER,
           color: INK,
           ['--col-w' as string]: COLUMN_WIDTH,
+          ['--project-travel' as string]: `${Math.max(0, N - 1) * STEP * 100}svh`,
           fontFamily: 'var(--font-josefin)',
         }}
       >
-        <div ref={pinRef} className="relative h-svh w-full overflow-hidden bg-white">
+        <div ref={pinRef} className={`${styles.stage} w-full overflow-hidden bg-white`}>
           {/* The filmstrip. First frame rests centred by construction. */}
           <div className="absolute inset-x-0 top-0 flex justify-center">
             <div
@@ -418,9 +439,16 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
                   style={{ aspectRatio: '3 / 2' }}
                 >
                   <div data-settle className="h-full w-full">
-                    <div data-pan className="relative h-full w-full will-change-transform">
+                    <div
+                      data-pan
+                      className={`${styles.pan} relative h-full w-full will-change-transform`}
+                    >
                       <img
                         src={imageUrl(p.heroImage, { width: 1600 })}
+                        srcSet={[600, 900, 1200, 1600]
+                          .map((width) => `${imageUrl(p.heroImage, { width })} ${width}w`)
+                          .join(', ')}
+                        sizes="(max-width: 681px) 300px, (max-width: 2045px) 44vw, 900px"
                         alt={displayTitle(p)}
                         loading="eager"
                         decoding="async"

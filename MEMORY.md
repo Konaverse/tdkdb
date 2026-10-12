@@ -6,6 +6,19 @@ Older master plans describe removed features and must not override the current s
 
 ## Current objective and state
 
+The latest user request addresses mobile scroll lag, emoji link arrows, and
+fullscreen sizing when Safari/Chrome toolbars appear or disappear. The fixes are
+implemented locally and are awaiting deployment/device review. Touch-only devices
+now use native scrolling; homepage projects retain their filmstrip with CSS sticky,
+stable small-viewport measurements, no automatic snapping, blur or inner-image pan.
+Mobile text entrances reveal words instead of individual letters, image covers run
+without a simultaneous scale, and About/project photo drift and footer parallax
+remain desktop-only. Shared scroll locks cover the loader, menu, lightbox and project
+transition even without Lenis. Link arrows use `ArrowIcon` SVGs. Fullscreen project
+and hub heroes and the mobile homepage hero use dynamic viewport height; the
+transition measures the same height, and the lightbox tracks `visualViewport` size
+and offset. Toolbar changes refresh scroll geometry after the gesture settles.
+
 Prepare the existing website for public launch, with Almond Suites as the main
 sales priority. The accepted layout and lightbox changes were pushed to `origin/main`
 through `8cce719`. The user is reviewing production at `https://tdkdb.vercel.app` and
@@ -142,6 +155,25 @@ They are production assets, not preview placeholders, and are not yet CMS-manage
 
 ## Verification completed
 
+- Mobile corrections: 12 behavior groups passed at 320, 390 and 768px, with
+  changing heights and landscape rotation: sticky alignment, centered projects,
+  no snap, dynamic heroes, visual-viewport lightbox bounds, SVG arrows and static
+  mobile photo treatments. Real synthesized touch gestures passed scrolling,
+  menu locking, project index jumps, project expansion, Back and breakpoint cleanup.
+  The six-size lightbox suite passed cycling all image orientations, swiping,
+  keyboard/focus/scroll restoration, separate gallery groups and preview fallback.
+  A production phone-emulation profile sampled 159 frames per section at normal
+  CPU speed: projects and footer averaged 16.67ms, with no frames over 34ms.
+  Slower-CPU traces improved but still drop frames; they are diagnostics, not a
+  claim about physical phone performance. Actual Safari/browser-toolbar hardware
+  review remains outstanding. Browser helpers/results are ignored under `.tmp/`.
+- The 18 existing layout/CTA checks also pass. Final production checks verified
+  lightbox bounds while the visual viewport shrinks independently of the layout
+  viewport, plus dynamic hero resizing and restored scrolling after closing.
+- Mobile changes pass TypeScript, full-project ESLint, formatting/whitespace and
+  a final production build using
+  the existing cached public CMS fixture. The 21st audit has zero errors and its
+  three pre-existing warnings; responsive browser checks show no page overflow.
 - Font packaging correction: production build succeeds without Google font mocks.
   Eight browser checks across four pages at desktop/mobile widths confirmed actual
   rendered Josefin glyphs and exact hashes matching the committed WOFF2, with no

@@ -114,6 +114,7 @@ export default function ProjectScenes({
 
     let alive = true;
     let ctx: gsap.Context | null = null;
+    let motion: gsap.MatchMedia | null = null;
 
     // Line splits need the real face.
     (document.fonts?.ready ?? Promise.resolve()).then(() => {
@@ -128,20 +129,23 @@ export default function ProjectScenes({
         });
 
         /* scroll motion */
-        q('[data-zoom]').forEach((zoom) => {
-          gsap.fromTo(
-            zoom,
-            { scale: 1.2 },
-            { scale: 1, ease: 'none', scrollTrigger: passage(zoom.parentElement!) },
-          );
-        });
-        q('[data-pan]').forEach((el) => {
-          const range = Number((el as HTMLElement).dataset.pan);
-          gsap.fromTo(
-            el,
-            { yPercent: -range },
-            { yPercent: range, ease: 'none', scrollTrigger: passage(el.parentElement!) },
-          );
+        motion = gsap.matchMedia();
+        motion.add('(min-width: 1024px) and (hover: hover) and (pointer: fine)', () => {
+          q('[data-zoom]').forEach((zoom) => {
+            gsap.fromTo(
+              zoom,
+              { scale: 1.2 },
+              { scale: 1, ease: 'none', scrollTrigger: passage(zoom.parentElement!) },
+            );
+          });
+          q('[data-pan]').forEach((el) => {
+            const range = Number((el as HTMLElement).dataset.pan);
+            gsap.fromTo(
+              el,
+              { yPercent: -range },
+              { yPercent: range, ease: 'none', scrollTrigger: passage(el.parentElement!) },
+            );
+          });
         });
         /* the side note's words */
         const quoteEl = q('[data-b-quote]')[0];
@@ -177,6 +181,7 @@ export default function ProjectScenes({
 
     return () => {
       alive = false;
+      motion?.revert();
       ctx?.revert();
       cleanupImgs();
     };

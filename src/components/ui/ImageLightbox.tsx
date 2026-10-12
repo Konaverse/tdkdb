@@ -16,6 +16,7 @@ import { usePathname } from 'next/navigation';
 
 import { gsap, gsapInit } from '@/lib/animations/gsap';
 import { getLenis } from '@/lib/animations/lenis';
+import { lockPageScroll } from '@/lib/animations/scrollLock';
 import styles from './ImageLightbox.module.css';
 
 interface Photograph {
@@ -164,16 +165,31 @@ function Lightbox({ gallery, close }: { gallery: Gallery; close: () => void }) {
     const dialog = dialogRef.current;
     if (!dialog) return;
     const body = document.body;
-    const previousOverflow = body.style.overflow;
     const previousPadding = body.style.paddingRight;
     const scrollPosition = { x: window.scrollX, y: window.scrollY };
     const gap = window.innerWidth - document.documentElement.clientWidth;
     const lenis = getLenis();
-    const wasStopped = lenis?.isStopped;
-    body.style.overflow = 'hidden';
+    const unlock = lockPageScroll();
     if (gap > 0)
       body.style.paddingRight = `${parseFloat(getComputedStyle(body).paddingRight) + gap}px`;
-    lenis?.stop();
+    // Safari can expose a visual viewport smaller than its layout viewport.
+    // Keep the dialog and controls inside the area above the browser toolbar.
+    const viewport = window.visualViewport;
+    let frame = 0;
+    const syncViewport = () => {
+      dialog.style.setProperty('--lightbox-height', `${viewport?.height ?? window.innerHeight}px`);
+      dialog.style.setProperty('--lightbox-width', `${viewport?.width ?? window.innerWidth}px`);
+      dialog.style.setProperty('--lightbox-top', `${viewport?.offsetTop ?? 0}px`);
+      dialog.style.setProperty('--lightbox-left', `${viewport?.offsetLeft ?? 0}px`);
+    };
+    const scheduleViewport = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(syncViewport);
+    };
+    syncViewport();
+    viewport?.addEventListener('resize', scheduleViewport);
+    viewport?.addEventListener('scroll', scheduleViewport);
+    window.addEventListener('resize', scheduleViewport);
     dialog.showModal();
     closeRef.current?.focus({ preventScroll: true });
 
@@ -189,10 +205,13 @@ function Lightbox({ gallery, close }: { gallery: Gallery; close: () => void }) {
 
     return () => {
       ctx.revert();
+      cancelAnimationFrame(frame);
+      viewport?.removeEventListener('resize', scheduleViewport);
+      viewport?.removeEventListener('scroll', scheduleViewport);
+      window.removeEventListener('resize', scheduleViewport);
       dialog.close();
-      body.style.overflow = previousOverflow;
+      unlock();
       body.style.paddingRight = previousPadding;
-      if (!wasStopped) lenis?.start();
       if (gallery.opener.isConnected && window.location.pathname === gallery.pathname) {
         gallery.opener.focus({ preventScroll: true });
         lenis?.scrollTo(scrollPosition.y, { immediate: true, force: true });

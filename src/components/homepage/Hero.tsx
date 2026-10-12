@@ -307,7 +307,7 @@ export default function Hero({
       style={{ backgroundColor: '#0e141c' }}
     >
       {/* ── Frame — plate coordinates ─────────────────────────────────────── */}
-      <div className="relative min-h-[100svh] w-full lg:min-h-0" style={FRAME_STYLE}>
+      <div className="relative min-h-[100dvh] w-full lg:min-h-0" style={FRAME_STYLE}>
         {/* 1 · back plate, and its temporary tiled entrance. */}
         <div ref={backRef} className="absolute inset-0" style={{ visibility: 'hidden' }}>
           <Image
