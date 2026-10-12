@@ -75,6 +75,9 @@ as navigation: do not place lightbox buttons over them. Hub hero portraits use t
 own group, and the footer photograph is a separate one-image group.
 
 The native modal dialog shows uncropped, responsive Sanity images or bundled WebPs.
+Fit every photograph inside the same responsive 16:9 landscape frame with `contain`.
+Reserve a fixed two-line caption area so cycling portrait/landscape images or captions
+never changes the frame dimensions or control positions.
 Desktop arrows are rectangular controls beside the image; mobile and coarse-pointer
 devices use transparent arrows inside it. Support swipe, keyboard arrows, Escape,
 focus trapping, scroll/focus restoration, reduced motion and preview fallback.

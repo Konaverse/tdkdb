@@ -14,7 +14,9 @@
 }
 
 .dialog {
-  --image-max-height: calc(100dvh - 156px);
+  --caption-space: 50px;
+  --image-max-height: calc(100dvh - 124px - var(--caption-space));
+  --frame-width: min(calc(100vw - 232px), calc(var(--image-max-height) * 16 / 9));
 
   position: fixed;
   inset: 0;
@@ -69,8 +71,8 @@
 
 .media {
   position: relative;
-  width: min(calc(100vw - 232px), calc(var(--image-max-height) * var(--image-aspect)));
-  aspect-ratio: var(--image-aspect);
+  width: var(--frame-width);
+  aspect-ratio: 16 / 9;
   overflow: hidden;
   background: #1a1a1a;
   touch-action: pan-y pinch-zoom;
@@ -105,11 +107,20 @@
   display: flex;
   justify-content: space-between;
   gap: 24px;
+  height: 36px;
   margin-top: 14px;
   font-size: 13px;
   font-weight: 300;
-  line-height: 1.4;
+  line-height: 18px;
   color: rgb(255 255 255 / 78%);
+}
+
+.caption > :first-child {
+  display: -webkit-box;
+  min-width: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .count {
@@ -128,7 +139,7 @@
   width: 64px;
   height: 80px;
   align-self: center;
-  margin-bottom: 32px;
+  margin-bottom: var(--caption-space);
   background: #1a1a1a;
   transition: background-color 180ms ease;
 }
@@ -178,8 +189,9 @@
 @media (max-width: 767px), (pointer: coarse) {
   .dialog {
     --image-max-height: calc(
-      100dvh - 136px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+      100dvh - 104px - var(--caption-space) - env(safe-area-inset-top) - env(safe-area-inset-bottom)
     );
+    --frame-width: min(100vw, calc(var(--image-max-height) * 16 / 9));
   }
 
   .shell {
@@ -188,18 +200,17 @@
 
   .gallery {
     display: block;
-    width: 100%;
+    width: var(--frame-width);
   }
 
   .media {
-    width: min(100vw, calc(var(--image-max-height) * var(--image-aspect)));
-    margin-inline: auto;
+    width: 100%;
   }
 
   .arrow {
     position: absolute;
     z-index: 2;
-    top: calc((100% - 32px) / 2);
+    top: calc((100% - var(--caption-space)) / 2);
     width: 48px;
     height: 56px;
     margin: 0;
@@ -213,16 +224,14 @@
   }
 
   .previous {
-    left: max(4px, calc((100vw - var(--image-max-height) * var(--image-aspect)) / 2 + 4px));
+    left: 4px;
   }
 
   .next {
-    right: max(4px, calc((100vw - var(--image-max-height) * var(--image-aspect)) / 2 + 4px));
+    right: 4px;
   }
 
   .caption {
-    max-width: min(100vw, calc(var(--image-max-height) * var(--image-aspect)));
-    margin-inline: auto;
     padding-inline: 16px;
     font-size: 12px;
     gap: 12px;

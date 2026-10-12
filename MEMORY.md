@@ -43,6 +43,9 @@ and verified locally. The user is reviewing the dev site at
   arrows, Escape, focus trapping, scroll/focus restoration, reduced motion and a
   preview fallback. Use full uncropped Sanity images sized for the device; prefetch
   only adjacent photos after opening. Triggers wait until their provider is active.
+- Lightbox sizing correction: keep every image inside one fixed 16:9 landscape
+  frame with `object-fit: contain`. Reserve a fixed caption area so the frame,
+  captions and arrows stay in place while cycling between image orientations.
 - Page navigation: hide font-dependent hero copy before its first paint, then
   show it after masks are prepared. Initialize cached fonts synchronously. Defer
   below-fold About, Projects and footer text splitting until near the viewport.
@@ -140,6 +143,10 @@ They are production assets, not preview placeholders, and are not yet CMS-manage
   Arrow placement, swiping, cycling, keyboard navigation, trapped focus, Escape,
   backdrop/close buttons, scroll restoration, full-image loading failure,
   individual gallery groups and preserved project navigation all passed.
+- Fixed landscape lightbox verification: all eight About photographs (both
+  portrait and landscape) keep identical frame, gallery, caption and arrow bounds
+  at those six viewport sizes. Swipe and keyboard checks still pass. The focused
+  21st review reports no errors or warnings.
 - Eight production navigation traces at desktop/mobile widths, including return
   visits and browser Back with deliberately delayed fonts, showed no premature
   hero copy and one continuous entrance. Two cold first-paint checks delayed

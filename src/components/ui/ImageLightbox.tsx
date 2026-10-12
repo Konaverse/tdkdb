@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { CSSProperties, PointerEvent } from 'react';
+import type { PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
 
@@ -23,7 +23,6 @@ interface Photograph {
   preview: string;
   alt: string;
   caption: string;
-  aspect: number;
 }
 
 interface Gallery {
@@ -67,7 +66,6 @@ function photograph(frame: HTMLElement): Photograph | null {
     preview: img.currentSrc || img.src,
     alt: img.alt || caption || 'TDK project photograph',
     caption,
-    aspect,
   };
 }
 
@@ -298,7 +296,7 @@ function Lightbox({ gallery, close }: { gallery: Gallery; close: () => void }) {
           </svg>
         </button>
         <h2 className="sr-only">TDK photographs</h2>
-        <div className={styles.gallery} style={{ '--image-aspect': image.aspect } as CSSProperties}>
+        <div className={styles.gallery}>
           {navigation('left')}
           <figure className={styles.figure}>
             <div
