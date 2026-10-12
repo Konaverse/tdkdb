@@ -4,9 +4,8 @@ import { useLayoutEffect, useRef, useState } from 'react';
 
 import { gsap, gsapInit } from '@/lib/animations/gsap';
 import { maskChars, riseIn } from '@/lib/animations/text';
-import ImageFootnote from '@/components/ui/ImageFootnote';
 import { projectHeroSrcSet, projectHeroUrl } from '@/lib/sanity/image';
-import { displayTitle, STATUS_LABEL } from '@/lib/projects/display';
+import { displayTitle } from '@/lib/projects/display';
 import { useProjectTransition } from '@/components/transition/ProjectTransition';
 import type { Project } from '@/lib/sanity/types';
 
@@ -26,8 +25,8 @@ import type { Project } from '@/lib/sanity/types';
    · DIRECT load or any other navigation. The photograph opens out of the
      dark ground, settling from a slight push-in, then the same copy entrance.
 
-   The copy: masked letters rising in, with the teal hairline drawing
-   alongside the status and project name; particulars follow shortly after.
+   The copy: masked letters rising in for the project name; particulars
+   follow shortly after.
    Start offsets are set by gsap.set, never by classes (see the transform
    pitfalls), and every animated node is visibility:hidden in markup.
    Nothing here moves on scroll.
@@ -42,7 +41,6 @@ interface ProjectHeroProps {
   project: HeroProject;
 }
 
-const TEAL = 'var(--color-threshold, #66979f)';
 const HIDDEN = { visibility: 'hidden' } as const;
 
 /** A text block whose letters rise through individual masks. */
@@ -89,27 +87,21 @@ export default function ProjectHero({ project }: ProjectHeroProps) {
       const q = gsap.utils.selector(root);
       const words = q('[data-word]');
       const reveals = q('[data-reveal]');
-      const rules = q('[data-rule]');
       const scrim = q('[data-scrim]');
 
       if (reduced) {
         gsap.set([img, ...words, ...reveals, ...scrim], { autoAlpha: 1 });
-        gsap.set(rules, { scaleX: 1 });
         if (arrival) transition.handoff(slug, root);
         return;
       }
 
       const titleText = maskChars(words).chars;
-      const statusText = maskChars(q('[data-status] [data-reveal]')).chars;
       const detailText = maskChars(q('[data-particulars] [data-reveal]')).chars;
       gsap.set([...words, ...reveals], { autoAlpha: 1 });
-      gsap.set(rules, { scaleX: 0, transformOrigin: '0% 50%' });
       gsap.set(scrim, { autoAlpha: 0 });
 
       const copy = gsap.timeline({ paused: true, defaults: { ease: 'power4.out' } });
       copy.to(scrim, { autoAlpha: 1, duration: 1.4, ease: 'power2.inOut' }, 0);
-      copy.to(rules, { scaleX: 1, duration: 0.9, ease: 'power3.inOut' }, 0.15);
-      copy.to(statusText, riseIn(statusText), 0.35);
       copy.to(titleText, riseIn(titleText), 0.4);
       copy.to(detailText, riseIn(detailText), 0.65);
 
@@ -186,18 +178,6 @@ export default function ProjectHero({ project }: ProjectHeroProps) {
       <div className="px-page absolute inset-x-0 bottom-0 pb-[max(28px,5.5svh)]">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
-            <div data-status className="mb-5 flex items-center gap-3 lg:mb-7">
-              <span
-                data-rule
-                aria-hidden="true"
-                className="block h-px w-10 shrink-0"
-                style={{ background: TEAL }}
-              />
-              <Reveal className="text-label uppercase">
-                <span style={{ letterSpacing: '0.24em' }}>{STATUS_LABEL[project.status]}</span>
-              </Reveal>
-            </div>
-
             <h1 className="text-[clamp(3.1rem,9.2vw,11.5rem)] font-[200] leading-[0.94] tracking-[-0.015em]">
               {words.map((word, i) => (
                 // Padding inside the mask keeps descenders and accents whole.
@@ -232,9 +212,6 @@ export default function ProjectHero({ project }: ProjectHeroProps) {
           </dl>
         </div>
       </div>
-      <ImageFootnote style={{ left: 'var(--page-margin)', bottom: '14px' }}>
-        {title} · exterior view
-      </ImageFootnote>
     </section>
   );
 }

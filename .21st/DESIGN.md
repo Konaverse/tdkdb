@@ -26,7 +26,7 @@ Generated from project sources at 2026-10-11T17:31:41.616Z.
 ## Tokens
 
 - Ground #ffffff, ink #111111, teal accent #66979f.
-- Josefin Sans for text; JetBrains Mono for figures.
+- Josefin Sans throughout, including figures, image footnotes and the loader.
 - 12 columns, var(--page-margin), var(--page-gutter).
 - GSAP motion and the shared RevealFrame image entrance; respect reduced motion.
 
@@ -45,9 +45,11 @@ Generated from project sources at 2026-10-11T17:31:41.616Z.
 
 ## Decisions
 
-- Feature Almond Suites immediately after the homepage hero on white, with a large
-  project render, availability count and construction progress. Use a teal filled
-  Register interest CTA that links directly to the existing project enquiry form.
+- Feature Almond Suites immediately after the homepage hero on white. Overlay
+  availability left, the selling line centered, and progress right on the desktop
+  photograph; fade the overlay on hover. On mobile, keep only the selling line over
+  the image, with concise copy and the CTA stacked to fit together in one viewport.
+  Use a teal Register interest button linked to the existing project enquiry form.
 
 
 - Reveal both homepage hero plates in paired tiles before the existing TDK
@@ -83,9 +85,16 @@ Generated from project sources at 2026-10-11T17:31:41.616Z.
   FormData values, viewport-aware placement and reduced-motion support.
 - Add eight optimized Almond interior photographs as staggered editorial spreads
   with RevealFrame entrances and inner-image drift. Put descriptive bottom-left
-  footnotes inside every project photograph; support optional CMS caption metadata.
+  Josefin Sans footnotes inside project scene photographs and all About photographs.
+  Keep project heroes free of status eyebrows and exterior footnotes. Remove the
+  visible PDF helper text and Pricing available on inquiry note.
 - Arrange the About process as Build, Draw, Hand over. Cap the first left portrait
   at 75svh height, with slower text right. Use a small faster Draw image right and
   text left, then a medium central Hand over photo with an overlapping blended
   heading and readable body text right. Stack the layout and remove outer parallax
   on smaller screens.
+- Remove the homepage About eyebrow on desktop and mobile.
+- Make the Projects hub hero one viewport tall, with its first portrait centered
+  on both axes and further portraits extending to the right beyond the viewport.
+  Set the title bottom-left and introduction bottom-right with page-grid padding.
+  Remove the hero counts and keep the two project ledgers below.

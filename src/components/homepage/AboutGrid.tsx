@@ -14,8 +14,7 @@ import type { SanityImage } from '@/lib/sanity/types';
    A ~130vh section, not a viewport. Two bands:
 
      · A header band whose headline is indented to column 4 of a 12-column
-       grid, leaving column 1–3 empty except for a sticky eyebrow that rides
-       the full height of the section. That empty column is half the
+       grid, leaving column 1–3 empty. That empty column is half the
        composition — it is held open on purpose.
 
      · A 4 × 2 cell grid below it, occupied in a checkerboard: six of eight
@@ -41,8 +40,6 @@ import type { SanityImage } from '@/lib/sanity/types';
    a Tailwind `translate-y-[110%]` computes to a pixel matrix that GSAP reads
    back as `y: 111px / yPercent: 0`, and the yPercent tween silently no-ops.
    ─────────────────────────────────────────────────────────────────────────── */
-
-const EYEBROW = '01 — ABOUT';
 
 // Three lines, long-long-short. The short last line is what leaves the stepped
 // rag and the pocket of space the paragraph then sits under — it is the
@@ -104,8 +101,6 @@ export default function AboutGrid({
 
   // Header — one exit node for the whole band; entrance lives on its children.
   const headerExitRef = useRef<HTMLDivElement>(null);
-  const eyebrowRuleRef = useRef<HTMLSpanElement>(null);
-  const eyebrowLabelRef = useRef<HTMLSpanElement>(null);
   const lineRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const paragraphRef = useRef<HTMLParagraphElement>(null);
 
@@ -147,8 +142,7 @@ export default function AboutGrid({
 
       if (reduced) {
         gsap.set(headlineLines, { yPercent: 0 });
-        gsap.set(eyebrowRuleRef.current, { scaleX: 1 });
-        gsap.set([eyebrowLabelRef.current, paragraphRef.current, ...micros], {
+        gsap.set([paragraphRef.current, ...micros], {
           autoAlpha: 1,
           y: 0,
         });
@@ -163,13 +157,6 @@ export default function AboutGrid({
         defaults: { ease: 'power3.out' },
         scrollTrigger: { trigger: section, start: 'top 85%', once: true },
       });
-
-      // Eyebrow — rule draws, then the label arrives on it.
-      tl.to(eyebrowRuleRef.current, { scaleX: 1, duration: 0.6, ease: 'power2.out' }, 0).to(
-        eyebrowLabelRef.current,
-        { autoAlpha: 1, duration: 0.5 },
-        0.1,
-      );
 
       // Headline — masked reveal, three lines cascading.
       tl.to(headlineLines, { yPercent: 0, duration: 0.95, stagger: 0.12 }, 0.15);
@@ -376,37 +363,9 @@ export default function AboutGrid({
       className="relative w-full"
       style={{ background: PAPER, color: INK }}
     >
-      {/* ── Sticky eyebrow rail ──────────────────────────────────────────────
-          Absolutely positioned to the full section height so the sticky child
-          has real travel — it rides the whole 130vh beside the composition. */}
-      <div className="pointer-events-none absolute left-0 top-0 hidden h-full w-[25%] pl-14 lg:block">
-        <div className="sticky top-32 flex items-center gap-3">
-          <span
-            ref={eyebrowRuleRef}
-            className="block h-px w-8 origin-left"
-            style={{ transform: 'scaleX(0)', background: CELL_BG }}
-          />
-          <span
-            ref={eyebrowLabelRef}
-            className="block text-label opacity-0"
-            style={{ color: INK_SOFT }}
-          >
-            {EYEBROW}
-          </span>
-        </div>
-      </div>
-
       <div className="mx-auto max-w-[1600px] px-4 pb-24 pt-24 sm:px-6 md:px-10 md:pb-28 md:pt-28 lg:px-14 lg:pb-28 lg:pt-32">
         {/* ── Header band ─────────────────────────────────────────────────── */}
         <div ref={headerExitRef} className="will-change-transform">
-          {/* Mobile keeps the eyebrow inline — the rail above is desktop-only. */}
-          <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <span className="block h-px w-8" style={{ background: CELL_BG }} />
-            <span className="block text-label" style={{ color: INK_SOFT }}>
-              {EYEBROW}
-            </span>
-          </div>
-
           <div className="lg:pl-[25%]">
             {/* Sized to fill the 75% column rather than to the display-md token:
                 what makes this composition read is the headline block spanning

@@ -149,7 +149,7 @@ export default function ProjectStory({
       <div className="flex flex-col lg:col-span-4 lg:col-start-9 lg:pt-[0.6vw]">
         {percent !== null && (
           <div data-rise>
-            <p className="font-mono text-[clamp(84px,9.5vw,180px)] leading-[0.8] tracking-[-0.06em]">
+            <p className="font-sans text-[clamp(84px,9.5vw,180px)] tabular-nums leading-[0.8] tracking-[-0.06em]">
               <span data-percent>{percent}</span>
               <span className="ml-2 font-sans text-[0.32em] font-[300] tracking-normal">%</span>
             </p>
@@ -194,9 +194,6 @@ export default function ProjectStory({
               View technical specifications <span aria-hidden="true">↗</span>
               <span className="sr-only">(PDF, opens in a new tab)</span>
             </a>
-            <p className="mt-2 text-[14px]" style={{ color: MUTED }}>
-              PDF · Opens in a new tab
-            </p>
           </div>
         )}
       </div>

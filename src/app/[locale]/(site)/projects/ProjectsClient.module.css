@@ -1,0 +1,45 @@
+.hero {
+  --portrait-height: min(46svh, 34vw);
+
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.strip {
+  position: absolute;
+  top: 50%;
+  left: calc(50% - var(--portrait-height) * 0.375);
+  display: flex;
+  width: max-content;
+  gap: var(--page-gutter);
+  transform: translateY(-50%);
+}
+
+.portrait {
+  flex: 0 0 auto;
+  width: calc(var(--portrait-height) * 0.75);
+  height: var(--portrait-height);
+}
+
+.copy {
+  position: absolute;
+  right: 0;
+  bottom: max(28px, 4svh);
+  left: 0;
+  display: grid;
+  grid-template-columns: 7fr 4fr;
+  align-items: end;
+  gap: var(--page-gutter);
+}
+
+@media (max-width: 639px) {
+  .hero {
+    --portrait-height: min(34svh, 56vw);
+  }
+
+  .copy {
+    bottom: max(20px, 3svh);
+    grid-template-columns: 1fr 1fr;
+  }
+}

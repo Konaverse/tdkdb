@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Josefin_Sans, JetBrains_Mono } from 'next/font/google';
+import { Josefin_Sans } from 'next/font/google';
 import SmoothScrollProvider from '@/components/animations/SmoothScrollProvider';
 import CustomCursor from '@/components/ui/CustomCursor';
 import '@/styles/globals.css';
@@ -9,13 +9,6 @@ const josefin = Josefin_Sans({
   weight: ['100', '200', '300', '400', '600'],
   display: 'swap',
   variable: '--font-josefin',
-});
-
-const jetbrains = JetBrains_Mono({
-  subsets: ['latin'],
-  weight: ['400'],
-  display: 'swap',
-  variable: '--font-jetbrains',
 });
 
 export const metadata: Metadata = {
@@ -29,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${josefin.variable} ${jetbrains.variable}`}>
+    <html lang="en" className={josefin.variable}>
       <body>
         <CustomCursor />
         <SmoothScrollProvider>{children}</SmoothScrollProvider>

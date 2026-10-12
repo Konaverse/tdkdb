@@ -9,17 +9,18 @@ import RevealFrame from '@/components/animations/RevealFrame';
 import { useProjectTransition } from '@/components/transition/ProjectTransition';
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { CHAR_HIDDEN, maskChars, riseIn } from '@/lib/animations/text';
-import { imageSrcSet, imageUrl } from '@/lib/sanity/image';
+import { imageSrcSet, imageUrl, portraitSrcSet, portraitUrl } from '@/lib/sanity/image';
 import { displayTitle, projectHref, projectScope, STATUS_LABEL } from '@/lib/projects/display';
 import type { Project, ProjectScope } from '@/lib/sanity/types';
+import styles from './ProjectsClient.module.css';
 
 /* ───────────────────────────────────────────────────────────────────────────
    Projects — the hub
 
    A ledger, not a gallery. No filters, no tabs, no cards: each building
-   stands at the page's full content width and states itself. The hero is
-   typographic — the page's photographs are the projects themselves, and the
-   first one arrives a scroll later.
+   stands at the page's full content width and states itself. The viewport
+   hero holds a centered portrait and a row continuing off the right edge,
+   with the title and introduction aligned along the bottom.
 
    Two ledgers, by scope (Sept 2026, at the client's request): what the
    studio drew AND built (Armonia, Almond Suites), and what it drew for
@@ -68,14 +69,10 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
   const locale = (params?.locale as string) ?? 'en';
   const transition = useProjectTransition();
 
-  const built = projects.filter((p) => projectScope(p) === 'design-build');
-  const units = built.flatMap((p) => p.units ?? []);
-  const available = units.filter((u) => u.status === 'available').length;
-  const figures = [
-    { value: built.length, label: 'Built' },
-    { value: projects.length, label: 'Designed' },
-    ...(units.length ? [{ value: available, label: available ? 'Available' : 'Sold out' }] : []),
-  ];
+  const featured = projects.find((p) => p.slug.current === 'almond-suites');
+  const heroProjects = featured
+    ? [featured, ...projects.filter((p) => p._id !== featured._id)]
+    : projects;
 
   const groups = GROUPS.map((g) => ({
     ...g,
@@ -115,7 +112,6 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
         const leadSplit = leadEl ? maskChars(leadEl) : null;
         const heroChars = maskChars(q('[data-hero-word]')).chars;
         if (leadSplit) gsap.set(leadSplit.chars, CHAR_HIDDEN);
-        gsap.set(q('[data-figure]'), { autoAlpha: 0, y: 18 });
 
         const hero = gsap
           .timeline({ delay: 0.15, onComplete: () => leadSplit?.split.revert() })
@@ -123,11 +119,6 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
         if (leadSplit) {
           hero.to(leadSplit.chars, riseIn(leadSplit.chars), 0.45);
         }
-        hero.to(
-          q('[data-figure]'),
-          { autoAlpha: 1, y: 0, duration: 0.9, ease: 'power3.out', stagger: 0.1 },
-          0.8,
-        );
 
         /* each ledger's heading and note rise letter by letter */
         q('[data-group]').forEach((group) => {
@@ -179,10 +170,35 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
       data-nav="light"
       style={{ background: '#ffffff', color: INK, fontFamily: 'var(--font-josefin)' }}
     >
-      {/* ── Hero — type only; the projects are the pictures ─────────────── */}
-      <section className="px-page flex min-h-[82svh] flex-col justify-end pb-[10svh] pt-[24svh]">
-        <div className="lg:gap-x-gutter grid items-end gap-y-12 lg:grid-cols-12">
-          <h1 className="text-[clamp(64px,10.5vw,200px)] font-[200] leading-[0.86] tracking-[-0.02em] lg:col-span-7">
+      {/* The first portrait is centered; the remaining frames bleed right. */}
+      <section data-projects-hero className={styles.hero} aria-labelledby="projects-heading">
+        <div data-projects-strip className={styles.strip}>
+          {heroProjects.map((p, index) => (
+            <RevealFrame
+              key={p._id}
+              nav="dark"
+              className={styles.portrait}
+              frameAttrs={{ 'data-hero-portrait': '' }}
+            >
+              <img
+                src={portraitUrl(p.heroImage, 900)}
+                srcSet={portraitSrcSet(p.heroImage, [450, 600, 900, 1200])}
+                sizes="(min-width: 640px) 26vw, 42vw"
+                alt={p.heroImage.alt || `${displayTitle(p)}, ${p.location}`}
+                loading={index < 2 ? 'eager' : 'lazy'}
+                fetchPriority={index === 0 ? 'high' : 'auto'}
+                decoding="async"
+                className="block h-full w-full object-cover"
+              />
+            </RevealFrame>
+          ))}
+        </div>
+
+        <div className={`px-page ${styles.copy}`}>
+          <h1
+            id="projects-heading"
+            className="text-[clamp(38px,12vw,72px)] font-[200] leading-[0.86] tracking-[-0.02em] sm:text-[clamp(64px,10.5vw,200px)]"
+          >
             {['Projects'].map((word) => (
               <span
                 key={word}
@@ -195,32 +211,17 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
             ))}
           </h1>
 
-          <div className="lg:col-span-4 lg:col-start-9">
-            <p
-              data-lead
-              className="max-w-[34ch] text-[clamp(18px,1.35vw,24px)] font-[300] leading-[1.45]"
-            >
-              {LEAD}
-            </p>
-
-            <dl className="gap-x-gutter mt-12 grid grid-cols-3">
-              {figures.map((f) => (
-                <div key={f.label} data-figure className="flex flex-col-reverse">
-                  <dt className="mt-2.5 text-[clamp(12px,0.9vw,15px)]" style={{ color: MUTED }}>
-                    {f.label}
-                  </dt>
-                  <dd className="font-mono text-[clamp(26px,2.6vw,46px)] leading-none tracking-[-0.04em]">
-                    {f.value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          </div>
+          <p
+            data-lead
+            className="max-w-[34ch] justify-self-end text-[clamp(13px,1.35vw,24px)] font-[300] leading-[1.45]"
+          >
+            {LEAD}
+          </p>
         </div>
       </section>
 
       {/* ── The ledgers ──────────────────────────────────────────────────── */}
-      <div className="px-page flex flex-col gap-[22svh] pb-[18svh]">
+      <div className="px-page flex flex-col gap-[22svh] pb-[18svh] pt-[12svh]">
         {groups.map((g) => (
           <section key={g.scope} data-group aria-labelledby={`projects-${g.scope}`}>
             <div className="lg:gap-x-gutter grid items-end gap-y-6 lg:grid-cols-12">

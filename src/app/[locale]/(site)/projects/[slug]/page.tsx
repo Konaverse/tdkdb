@@ -83,7 +83,16 @@ export default async function ProjectDetailPage({ params }: Props) {
         />
       )}
 
-      {units.length > 0 && <ProjectAvailability units={units} note={project.unitsNote} />}
+      {units.length > 0 && (
+        <ProjectAvailability
+          units={units}
+          note={
+            /^pricing available on (inquiry|enquiry)\.?$/i.test(project.unitsNote?.trim() ?? '')
+              ? undefined
+              : project.unitsNote
+          }
+        />
+      )}
 
       <ProjectStory
         paragraphs={paragraphsOf(project.description)}

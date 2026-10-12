@@ -86,7 +86,6 @@
 
     /* Typography */
     --font-primary: var(--font-josefin), sans-serif;
-    --font-mono: var(--font-jetbrains), monospace;
 
     /* Easing */
     --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
@@ -253,13 +252,6 @@
     line-height: 1.4;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-  }
-
-  .text-mono {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-weight: 400;
-    line-height: 1.4;
   }
 }
 

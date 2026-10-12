@@ -141,7 +141,7 @@ export default function HomeLoader() {
       >
         <div
           className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center lg:bottom-2 lg:left-auto lg:right-10 lg:top-auto lg:translate-x-0 lg:translate-y-0 lg:text-right"
-          style={{ fontFamily: 'var(--font-jetbrains)' }}
+          style={{ fontFamily: 'var(--font-josefin)' }}
         >
           <span
             ref={numRef}

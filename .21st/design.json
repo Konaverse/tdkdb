@@ -20,7 +20,7 @@
     },
     "typography": {
       "primary": "Josefin Sans",
-      "numbers": "JetBrains Mono"
+      "numbers": "Josefin Sans"
     },
     "spacing": {
       "margin": "var(--page-margin)",
@@ -51,7 +51,7 @@
     "avoid": ["Framer Motion", "Three.js", "Cloudinary", "Decorative nested cards"]
   },
   "decisions": [
-    "Feature Almond Suites immediately after the homepage hero on white, with a large project render, live availability count and construction progress. Use the teal filled Register interest CTA and route enquiries directly to the existing project form.",
+    "Feature Almond Suites immediately after the homepage hero on white. On desktop, overlay availability left, Now selling in Strovolos at the center, and construction progress right on the photograph; fade the overlay away on hover. On mobile, keep only the selling line over the photograph and stack concise copy and the teal Register interest CTA so the image and button fit together in one viewport.",
     "Reveal the homepage background and building plates together in fourteen paired tiles, then preserve the existing TDK glyph entrance. Replace sideways text entrances throughout the site with a masked per-letter rise.",
     "Match the supplied footer reference with a white four-column index, a rectangular teal Register interest button with white text, an oversized image-filled TDK DESIGN & BUILD wordmark and the same aligned photograph continuing full width below. Use the user-provided Modular two-bedroom sunset image, bundled as a local static asset. Scroll the white content and letter shapes normally while the photograph starts raised and moves more slowly, sharing one scroll offset through the wordmark and photograph. Cover the motion with image overscan; preserve a static reduced-motion view.",
     "Keep the homepage Contact introduction and photograph in their original positions. Replace the details grid and Write to us link with the shared ContactForm, using /api/contact. Apply the shared button-label optical offset to filled button labels.",
@@ -60,8 +60,10 @@
     "Match featured-project and footer filled CTAs to the site's rectangular buttons, with white text on teal, uppercase tracked labels, the shared optical label offset, and a dark hover state.",
     "Keep homepage project titles at their original clamp(1.9rem, 3.4vw, 4.2rem) size, on one line, shrinking only when needed to fit. Use white difference blending across photographs and remove project numbering and the circular next button.",
     "Share animated form controls across homepage, Contact and residence enquiries: smooth fill changes, drawn border edges, and a rectangular TDK-branded dropdown with keyboard navigation, native FormData values, viewport-aware placement and reduced-motion support.",
-    "Add eight optimized Almond apartment interior photographs in staggered editorial spreads using the existing RevealFrame and inner-image drift. Place descriptive bottom-left footnotes inside every project photograph, with optional CMS caption metadata for existing assets.",
-    "Extend the About process into Build, Draw, Hand over editorial spreads. Build uses a reduced left portrait capped at 75svh height with slower text on the right; Draw has text left and a small faster image right; Hand over uses a medium central photograph with an overlapping blended heading and readable body text to its right. Keep mobile layouts static and stacked."
+    "Add eight optimized Almond apartment interior photographs in staggered editorial spreads using the existing RevealFrame and inner-image drift. Place descriptive bottom-left Josefin Sans footnotes inside project scene photographs, with optional CMS caption metadata. Keep project heroes free of status eyebrows and exterior footnotes; remove the visible PDF helper line and Pricing available on inquiry note.",
+    "Extend the About process into Build, Draw, Hand over editorial spreads. Build uses a reduced left portrait capped at 75svh height with slower text on the right; Draw has text left and a small faster image right; Hand over uses a medium central photograph with an overlapping blended heading and readable body text to its right. Keep mobile layouts static and stacked. Put all About image footnotes inside the photographs and remove the homepage About eyebrow entirely.",
+    "Use Josefin Sans throughout the public site, including numbers, image footnotes and the loader. Do not load or render monospace fonts.",
+    "Make the Projects hub hero exactly one viewport tall. Center the first 3:4 portrait horizontally and vertically, then continue the row of project photographs to the right until it bleeds past the viewport. Keep Projects bottom-left and the introduction bottom-right with page-grid padding. Remove hero counts and preserve the separate designed-and-built and design-only ledgers below."
   ],
   "evidence": [
     {

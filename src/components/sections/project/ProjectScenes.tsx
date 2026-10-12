@@ -234,7 +234,7 @@ export default function ProjectScenes({
                 <li key={f} className="flex items-baseline gap-6">
                   <span
                     data-b-index
-                    className="w-6 shrink-0 font-mono text-[12px]"
+                    className="w-6 shrink-0 font-sans text-[12px] tabular-nums"
                     style={{ color: MUTED }}
                   >
                     {pad2(i + 1)}

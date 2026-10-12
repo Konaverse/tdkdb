@@ -1,0 +1,131 @@
+.section {
+  padding-top: clamp(24px, 4svh, 40px);
+  padding-bottom: clamp(24px, 4svh, 40px);
+}
+
+.frame {
+  height: min(36svh, 68vw);
+}
+
+.imageLink {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.imageLink:focus-visible {
+  outline: 3px solid white;
+  outline-offset: -6px;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: end;
+  justify-content: center;
+  padding: 24px;
+  color: white;
+  background: linear-gradient(to top, rgb(0 0 0 / 48%), transparent 55%);
+  pointer-events: none;
+  transition: opacity 400ms ease;
+}
+
+.selling {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.25;
+  text-align: center;
+  text-shadow: 0 1px 8px rgb(0 0 0 / 45%);
+}
+
+.stat {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .section {
+    padding-top: clamp(64px, 10svh, 120px);
+    padding-bottom: clamp(64px, 10svh, 120px);
+  }
+
+  .frame {
+    height: auto;
+    aspect-ratio: 4 / 3;
+  }
+
+  .overlay {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr 1fr;
+    align-items: center;
+    gap: clamp(12px, 1.5vw, 28px);
+    padding: clamp(20px, 2vw, 36px);
+    background: rgb(0 0 0 / 28%);
+    text-shadow: 0 1px 8px rgb(0 0 0 / 45%);
+  }
+
+  .selling {
+    max-width: 12ch;
+    justify-self: center;
+    font-size: clamp(18px, 1.5vw, 26px);
+    font-weight: 300;
+  }
+
+  .stat {
+    display: block;
+  }
+
+  .statLabel {
+    font-size: clamp(12px, 1vw, 16px);
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  .statValue {
+    margin-top: 12px;
+    font-size: clamp(36px, 3.3vw, 60px);
+    font-weight: 300;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .statSuffix {
+    margin-left: 8px;
+    font-size: 16px;
+  }
+
+  .percent {
+    margin-left: 3px;
+    font-size: 0.5em;
+  }
+
+  .progress {
+    text-align: right;
+  }
+
+  .track {
+    height: 3px;
+    margin-top: 14px;
+    background: rgb(255 255 255 / 30%);
+  }
+
+  .fill {
+    height: 100%;
+    background: white;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .imageLink:hover .overlay,
+  .imageLink:focus-visible .overlay {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    transition: none;
+  }
+}

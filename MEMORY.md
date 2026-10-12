@@ -20,6 +20,21 @@ and verified locally. The user is reviewing the dev site at
   the primary CTA, including the navbar and footer, and leads to the project form.
   The supplied technical specifications PDF is bundled under `public/documents/`
   and opens from the Almond page.
+- Projects hub: one full viewport, no hero counts. Center the first 3:4 portrait
+  on both axes and extend further project images horizontally to its right,
+  clipping at the viewport edge. Keep Projects bottom-left and the introduction
+  bottom-right with page-grid padding. Preserve the two project ledgers below.
+- Use Josefin Sans everywhere, including numerals, image footnotes and the loader.
+  JetBrains Mono and its tokens are removed.
+- Featured Almond: overlay availability left, Now selling in Strovolos centered,
+  and construction progress right over the desktop image. Fade the overlay on
+  hover and keyboard focus. Mobile keeps only the selling line inside the image,
+  concise copy below, and the Register interest CTA within the same viewport.
+- Project heroes have no status eyebrow or exterior footnote. The technical
+  specifications link still works; its visible helper line and the CMS-supplied
+  Pricing available on inquiry note are removed.
+- Every About photograph now has a Josefin Sans footnote inside its image frame.
+  The homepage About eyebrow is removed entirely on desktop and mobile.
 - Hero entrance: the background and building appear together in fourteen paired
   tiles, then the existing TDK entrance follows. Other text uses a masked rising
   character reveal instead of the previous sideways reveal.
@@ -48,8 +63,8 @@ and verified locally. The user is reviewing the dev site at
   frame 2's settled edges. All finish before the image visually settles, by 78%
   of the pullback. Keep the existing mobile vertical sequence.
 - Almond interiors: eight supplied photographs are added in four staggered
-  editorial spreads with the existing reveal and image drift. Every project photo,
-  including the hero, has a small descriptive bottom-left inside-image footnote.
+  editorial spreads with the existing reveal and image drift. Every project scene
+  photo has a descriptive bottom-left inside-image footnote; heroes have none.
   The CMS image fields also support optional alt text and captions.
 - About process: the user authorized choosing suitable existing TDK assets.
   Order is Build, Draw, Hand over. Build uses the window-installation photo left
@@ -90,10 +105,21 @@ They are production assets, not preview placeholders, and are not yet CMS-manage
   single FormData values and reduced-motion styling passed.
 - Project titles fit on one line at 1440, 1024, 768, 390 and 320px. About layout,
   parallax speeds, responsive stacking and reduced motion passed. All eight Almond
-  interiors loaded with contained captions; the Almond page has 14 image footnotes.
+  interiors loaded with contained captions; the Almond page now has 13 image footnotes.
 - Footer checks passed for slower photo movement, aligned image through letters,
   coverage, reverse scroll, resize, route cleanup and reduced motion. The glass
   frames finish in sequence before the interlude photograph settles.
+- Latest page refinements: 18 browser layout checks passed across 1440×900,
+  1280×720, 1024×768, 768×1024, 390×844 and 320×568. The hub portrait is centered
+  and its row clips right without page overflow; bottom copy remains clear.
+  The mobile featured photograph and CTA fit together. All eight About captions
+  stay inside their photographs and all Almond scene captions use Josefin Sans.
+- Desktop hover fading, restored overlay on pointer leave, reduced motion,
+  project expansion/navigation, direct register hash reload and a real touch
+  viewport's CTA navigation passed without browser errors. The PDF still returns
+  200, and both requested helper lines are absent.
+- The 21st review reported no errors. Its two width warnings refer to existing
+  max-width constraints; browser checks confirmed no horizontal overflow.
 
 ## Working context
 
@@ -101,6 +127,11 @@ The stack is Next.js 14, React, TypeScript, Tailwind, Sanity, GSAP and Lenis.
 Use existing primitives and the page grid. Import GSAP from the shared module;
 use context cleanup, `scrub: true`, and separate entrance/scroll ownership.
 Respect reduced motion. Do not bring back Three.js, Framer Motion or Cloudinary.
+
+Create image reveal, availability and register ScrollTriggers only after their
+timelines are populated, then refresh them immediately. This prevents an initial
+hash jump to the register form from recursively refreshing unfinished triggers
+and leaving enquiry fields hidden.
 
 Normal startup is `npm run dev -- --hostname 127.0.0.1 --port 3008`.
 The running preview uses ignored `.tmp/offline-preview.cjs` with cached CMS reads

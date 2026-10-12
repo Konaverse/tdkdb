@@ -10,7 +10,6 @@ const config: Config = {
     extend: {
       fontFamily: {
         sans: ['var(--font-josefin)', 'sans-serif'],
-        mono: ['var(--font-jetbrains)', 'monospace'],
       },
       colors: {
         void: 'var(--color-void)',
@@ -49,7 +48,6 @@ const config: Config = {
         'body-lg': ['18px', { lineHeight: '1.7', fontWeight: '300' }],
         body: ['16px', { lineHeight: '1.6', fontWeight: '400' }],
         label: ['11px', { lineHeight: '1.4', letterSpacing: '0.2em', fontWeight: '600' }],
-        mono: ['13px', { lineHeight: '1.4', fontWeight: '400' }],
       },
       transitionTimingFunction: {
         smooth: 'var(--ease-smooth)',

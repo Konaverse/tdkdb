@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 
-import { gsap, gsapInit } from '@/lib/animations/gsap';
+import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { maskChars, riseIn } from '@/lib/animations/text';
 import TDKSelect from '@/components/forms/TDKSelect';
 import controls from '@/components/forms/FormControls.module.css';
@@ -58,10 +58,16 @@ export default function ProjectRegister({
       const words = maskChars(gsap.utils.toArray<HTMLElement>('[data-word]')).chars;
       const rise = gsap.utils.toArray<HTMLElement>('[data-rise]');
       gsap.set(rise, { autoAlpha: 0, y: 24 });
-      gsap
-        .timeline({ scrollTrigger: { trigger: root, start: 'top 80%', once: true } })
+      const tl = gsap
+        .timeline({ paused: true })
         .to(words, riseIn(words), 0)
         .to(rise, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'power3.out', stagger: 0.07 }, 0.35);
+      ScrollTrigger.create({
+        trigger: root,
+        start: 'top 80%',
+        once: true,
+        animation: tl,
+      }).refresh();
     }, root);
 
     return () => ctx.revert();

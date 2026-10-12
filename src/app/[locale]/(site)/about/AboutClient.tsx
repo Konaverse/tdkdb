@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import RevealFrame from '@/components/animations/RevealFrame';
 import AboutProcess from '@/components/about/AboutProcess';
+import ImageFootnote from '@/components/ui/ImageFootnote';
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { CHAR_HIDDEN, maskChars, riseIn } from '@/lib/animations/text';
 import { imageSrcSet, imageUrl } from '@/lib/sanity/image';
@@ -111,14 +112,6 @@ function Picture({
       className="block h-full w-full object-cover"
       style={position ? { objectPosition: position } : undefined}
     />
-  );
-}
-
-function Caption({ children }: { children: React.ReactNode }) {
-  return (
-    <p data-rise className="mt-4 text-[clamp(12px,0.9vw,15px)]" style={{ color: MUTED }}>
-      {children}
-    </p>
   );
 }
 
@@ -296,6 +289,7 @@ export default function AboutClient({ images }: { images: SiteImages }) {
               sizes="(min-width: 1024px) 100vw, 180vw"
             />
           </Drift>
+          <ImageFootnote>An Armonia facade at dusk</ImageFootnote>
         </RevealFrame>
       </section>
 
@@ -355,8 +349,8 @@ export default function AboutClient({ images }: { images: SiteImages }) {
                   sizes="(min-width: 1024px) 70vw, 100vw"
                 />
               </Drift>
+              <ImageFootnote>Armonia, Lakatamia — the living space onto the terrace</ImageFootnote>
             </RevealFrame>
-            <Caption>Armonia, Lakatamia — the living space onto the terrace</Caption>
           </div>
         </div>
 
@@ -369,8 +363,8 @@ export default function AboutClient({ images }: { images: SiteImages }) {
                 alt="Armonia from the street"
                 sizes="(min-width: 1024px) 28vw, 100vw"
               />
+              <ImageFootnote>Armonia, Lakatamia — completed 2025</ImageFootnote>
             </RevealFrame>
-            <Caption>Armonia, Lakatamia — completed 2025</Caption>
           </div>
 
           <div className="lg:col-span-4 lg:mt-[9svh]">
@@ -380,8 +374,8 @@ export default function AboutClient({ images }: { images: SiteImages }) {
                 alt="An Armonia interior"
                 sizes="(min-width: 1024px) 36vw, 100vw"
               />
+              <ImageFootnote>Interior, as delivered</ImageFootnote>
             </RevealFrame>
-            <Caption>Interior, as delivered</Caption>
           </div>
 
           <div className="lg:col-span-4 lg:col-start-9 lg:self-end">
@@ -417,7 +411,7 @@ export default function AboutClient({ images }: { images: SiteImages }) {
             }}
           />
 
-          <div className="lg:gap-x-gutter absolute inset-x-0 bottom-0 grid gap-y-8 p-[max(20px,3vw)] text-white lg:grid-cols-12">
+          <div className="lg:gap-x-gutter absolute inset-x-0 bottom-12 grid gap-y-8 p-[max(20px,3vw)] text-white lg:grid-cols-12">
             <h2
               data-heading
               className="text-[clamp(26px,3.2vw,58px)] font-[300] leading-[1.1] tracking-[-0.01em] lg:col-span-6"
@@ -441,6 +435,7 @@ export default function AboutClient({ images }: { images: SiteImages }) {
               {STANDARD_BODY}
             </p>
           </div>
+          <ImageFootnote>Almond Suites at dusk</ImageFootnote>
         </RevealFrame>
       </section>
 

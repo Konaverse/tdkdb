@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef } from 'react';
 
-import { gsap, gsapInit } from '@/lib/animations/gsap';
+import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { maskChars, riseIn } from '@/lib/animations/text';
 import { bedroomsLabel, floorLabel, UNIT_STATUS_LABEL } from '@/lib/projects/display';
 import type { ProjectUnit } from '@/lib/sanity/types';
@@ -13,7 +13,7 @@ import type { ProjectUnit } from '@/lib/sanity/types';
    The fast part of the page. A large "Availability" and three figures
    (residences, available now, the size range) answer the first questions
    before the table is read at all. The table is set like a price list, not a
-   spreadsheet: no rules, rows banded in the faintest grey, numbers in mono,
+   spreadsheet: no rules, rows banded in the faintest grey, Josefin numerals,
    sold residences stepped back. Available ones carry the teal mark.
 
    MOTION — once, on arrival
@@ -72,9 +72,7 @@ export default function ProjectAvailability({ units, note }: ProjectAvailability
       gsap.set(rows, { autoAlpha: 0, y: 22 });
       counters.forEach((el) => (el.textContent = '0'));
 
-      const tl = gsap.timeline({
-        scrollTrigger: { trigger: root, start: 'top 85%', once: true },
-      });
+      const tl = gsap.timeline({ paused: true });
       tl.to(heading, riseIn(heading), 0);
       tl.to(
         q('[data-figure]'),
@@ -98,6 +96,12 @@ export default function ProjectAvailability({ units, note }: ProjectAvailability
         );
       });
       tl.to(rows, { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.out', stagger: 0.06 }, 0.55);
+      ScrollTrigger.create({
+        trigger: root,
+        start: 'top 85%',
+        once: true,
+        animation: tl,
+      }).refresh();
     }, root);
 
     return () => ctx.revert();
@@ -127,7 +131,7 @@ export default function ProjectAvailability({ units, note }: ProjectAvailability
               <dt className="mt-3 text-[clamp(13px,0.95vw,16px)]" style={{ color: MUTED }}>
                 {f.label}
               </dt>
-              <dd className="whitespace-nowrap font-mono text-[clamp(30px,3.2vw,60px)] leading-none tracking-[-0.04em]">
+              <dd className="whitespace-nowrap font-sans text-[clamp(30px,3.2vw,60px)] tabular-nums leading-none tracking-[-0.04em]">
                 <span data-count={f.value}>{f.value}</span>
                 {f.to !== undefined && (
                   <>
@@ -181,7 +185,7 @@ export default function ProjectAvailability({ units, note }: ProjectAvailability
                 style={{ background: i % 2 === 0 ? BAND : 'transparent' }}
               >
                 <td
-                  className="px-2.5 py-[clamp(16px,2svh,24px)] font-mono text-[0.9em] sm:px-4 lg:px-6"
+                  className="px-2.5 py-[clamp(16px,2svh,24px)] font-sans text-[0.9em] tabular-nums sm:px-4 lg:px-6"
                   style={{ opacity: sold ? 0.45 : 1 }}
                 >
                   {u.floor}
@@ -202,7 +206,7 @@ export default function ProjectAvailability({ units, note }: ProjectAvailability
                   <span className="hidden sm:inline">{bedroomsLabel(u.unitType)}</span>
                 </td>
                 <td
-                  className="whitespace-nowrap px-2.5 font-mono text-[0.9em] sm:px-4 lg:px-6"
+                  className="whitespace-nowrap px-2.5 font-sans text-[0.9em] tabular-nums sm:px-4 lg:px-6"
                   style={{ opacity: sold ? 0.45 : 1 }}
                 >
                   {u.sizeM2}

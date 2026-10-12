@@ -68,6 +68,12 @@ grid and motion, teal stat cells), and replaced the site-wide footer (the old da
 `FeaturedResidence` spotlight was removed at the user's request), and everything after the hero is on a
 WHITE ground with the teal accent.
 
+`FeaturedProject.tsx` overlays availability on the left, the selling line in the center,
+and progress on the right of the desktop photograph. The overlay fades on mouse hover
+and keyboard focus; touch keeps it visible. Below lg, only the selling line overlays
+the image, with concise copy and the Register interest CTA stacked to fit one viewport.
+`AboutGrid` has no eyebrow on desktop or mobile; preserve its open left columns.
+
 `ProjectsPinned` scrolls under Lenis, so it uses `scrub: true` and snaps by retargeting Lenis
 once input stops — never ScrollTrigger's own `snap`, which fights Lenis at the pin's ends.
 
@@ -175,6 +181,9 @@ asked for it removed (the bios are still in Sanity; `portraitUrl()` with Cloudin
 remains in transforms for whenever portraits are wanted again). NO invented numbers: the old
 page claimed 15 years and 8 deliveries; the dataset says 2 buildings.
 
+All eight About photographs use the shared `ImageFootnote` inside their frames.
+Keep captions outside image pan nodes so they stay in place while photographs drift.
+
 `AboutProcess.tsx` uses a left Build portrait capped at 75svh height with slower text on
 the right, a small faster Draw portrait on the right with text left, and a medium central
 Hand over photo with a blended overlapping heading and its paragraph to the right.
@@ -201,13 +210,13 @@ entrances with CSS; respect reduced motion. Keep the existing delivery and retry
 
 ### Projects hub
 
-`projects/page.tsx` + `ProjectsClient.tsx` (Sept 2026) — white, editorial, no eyebrows, no
-filters/tabs/cards (the old FilterTabs, ProjectCard and masonry grid are gone). A typographic
-hero — "Projects", a lead, and three mono figures counted from Sanity (buildings, residences,
-available) — then one entry per project: the project page's plate (content width, 16:9, render
-pulling back on scroll, `RevealFrame` entrance) with the name and particulars under it on the
-page grid. A plain click opens the project through `ProjectTransition`, as on the homepage;
-`getProjectsForIndex()` supplies the units the figures need.
+`projects/page.tsx` + `ProjectsClient.tsx` — white, editorial, no eyebrows, filters,
+tabs or cards. A full-viewport hero centers the first 3:4 project portrait on both
+axes; further portraits continue right and clip at the viewport edge. Projects sits
+bottom-left and the lead bottom-right with page-grid padding. No hero counts.
+Keep the separate designed-and-built and design-only ledgers below. Each entry has
+the project plate with a `RevealFrame` entrance, name and particulars. A plain click
+opens the project through `ProjectTransition`, as on the homepage.
 
 ### Project page
 
@@ -223,7 +232,9 @@ C diptych (8 + 4 cols, same height, renders drift at different rates inside thei
 D plate (the aperture again — the sequence opens and closes on the same plate; it replaced a
 panorama band the user found ugly). Almond adds eight apartment interiors between C and D
 in four staggered spreads with the same RevealFrame entrance and inner-image drift.
-All project photographs, including the hero, carry bottom-left inside-image descriptions.
+Project scene photographs carry bottom-left inside-image descriptions in Josefin Sans.
+Project heroes have no status eyebrow or exterior footnote. The technical specifications
+link still opens its PDF; omit the visible helper line and Pricing available on inquiry note.
 Frames never move or scale on scroll —
 only the render inside them does, so the grid stays exact. Availability is a rule-less banded table with three counting figures; Story is
 the description lead + percentage/bar + specs; Register is the one teal section and posts to
@@ -267,9 +278,9 @@ CSS custom properties are defined in `src/styles/globals.css`. Tailwind config (
 
 - **Colors**: `void`, `surface`, `paper`, `stone`, `threshold`, `glass`, `border` — all reference CSS vars.
 - **Accent**: teal/slate blue `#66979f` (not amber — accent was changed from `#F5A623`).
-- **Fonts**: Josefin Sans (`--font-josefin`, `font-sans`) + JetBrains Mono (`--font-jetbrains`, `font-mono`).
-- **Font variable for JetBrains Mono** is `--font-jetbrains`, not `--font-mono` (the design token `--font-mono` references `var(--font-jetbrains)` to avoid circular reference).
-- Typography scale: `text-display-xl`, `text-display-lg`, `text-display-md`, `text-heading`, `text-body-lg`, `text-body`, `text-label`, `text-mono`.
+- **Fonts**: Josefin Sans (`--font-josefin`, `font-sans`) throughout, including figures,
+  image footnotes and the loader. Do not load or use monospace fonts.
+- Typography scale: `text-display-xl`, `text-display-lg`, `text-display-md`, `text-heading`, `text-body-lg`, `text-body`, `text-label`.
 - Tailwind `cn()` helper: `src/lib/utils/cn.ts` (clsx + tailwind-merge).
 
 ### i18n

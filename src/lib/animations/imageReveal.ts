@@ -1,4 +1,4 @@
-import { gsap } from './gsap';
+import { gsap, ScrollTrigger } from './gsap';
 
 /* ───────────────────────────────────────────────────────────────────────────
    imageReveal — THE entrance for every image that is not full bleed.
@@ -71,7 +71,7 @@ export function imageReveal(
   frame.appendChild(veil);
 
   const tl = gsap.timeline({
-    scrollTrigger: scroll ? { trigger, start, once: true } : undefined,
+    paused: scroll,
     onComplete: () => veil.remove(),
   });
   tl.to(veil, { scaleY: 0, duration: R.duration, ease: R.ease }, 0);
@@ -83,6 +83,11 @@ export function imageReveal(
       0,
     );
   }
+
+  // Initialize the trigger after the timeline has its full duration. A hash
+  // navigation can otherwise refresh and complete an empty timeline while
+  // later project triggers are still being created.
+  if (scroll) ScrollTrigger.create({ trigger, start, once: true, animation: tl }).refresh();
 
   return {
     tl,
