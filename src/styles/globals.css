@@ -253,6 +253,16 @@
     letter-spacing: 0.2em;
     text-transform: uppercase;
   }
+
+  /* Font-dependent entrances start hidden in the server markup as well.
+     Reveal only once the masks exist, so navigation never paints full copy
+     and then hides it again. Reduced motion uses the resting text. */
+  @media (prefers-reduced-motion: no-preference) {
+    [data-hero-copy],
+    [data-image-entrance] {
+      visibility: hidden;
+    }
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

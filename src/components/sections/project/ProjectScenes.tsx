@@ -32,7 +32,7 @@ import { imageCaption } from '@/lib/content/image-captions';
                   rates, so the pair has depth without breaking the grid.
    D · PLATE      The aperture again, closing the sequence.
 
-   ENTRANCE — every picture uses <RevealFrame> (imageReveal), the site's one
+   ENTRANCE — every picture uses <RevealFrame lightbox> (imageReveal), the site's one
    image entrance. Only the text entrances and the scroll motion live here.
 
    LAYERS — one node, one property
@@ -192,7 +192,7 @@ export default function ProjectScenes({
       {/* ── A · Aperture ─────────────────────────────────────────────────── */}
       {imgA && (
         <section aria-label={`${title}, the building`}>
-          <RevealFrame nav="dark" className="aspect-[4/5] w-full lg:aspect-[16/9]">
+          <RevealFrame lightbox nav="dark" className="aspect-[4/5] w-full lg:aspect-[16/9]">
             <div data-zoom className="h-full w-full">
               <Render
                 id={imgA}
@@ -208,7 +208,7 @@ export default function ProjectScenes({
       {/* ── B · Side note ────────────────────────────────────────────────── */}
       <section className="lg:gap-x-gutter grid grid-cols-1 gap-y-12 pb-8 lg:grid-cols-12 lg:pb-0">
         {imgB && (
-          <RevealFrame nav="dark" className="aspect-[4/5] w-full lg:col-span-6">
+          <RevealFrame lightbox nav="dark" className="aspect-[4/5] w-full lg:col-span-6">
             <Drift range={6}>
               <Render
                 id={imgB}
@@ -259,7 +259,7 @@ export default function ProjectScenes({
           className="gap-page lg:gap-x-gutter grid grid-cols-1 lg:grid-cols-12 lg:gap-y-0"
         >
           {imgC1 && (
-            <RevealFrame nav="dark" className="aspect-[3/2] w-full lg:col-span-8">
+            <RevealFrame lightbox nav="dark" className="aspect-[3/2] w-full lg:col-span-8">
               <Drift range={5}>
                 <Render
                   id={imgC1}
@@ -272,7 +272,11 @@ export default function ProjectScenes({
           )}
           {imgC2 && (
             // Stretches to the row: the same height as its neighbour.
-            <RevealFrame nav="dark" className="aspect-[4/5] w-full lg:col-span-4 lg:aspect-auto">
+            <RevealFrame
+              lightbox
+              nav="dark"
+              className="aspect-[4/5] w-full lg:col-span-4 lg:aspect-auto"
+            >
               <Drift range={11}>
                 <Render
                   id={imgC2}
@@ -314,6 +318,7 @@ export default function ProjectScenes({
                     className={layouts[spread % layouts.length][index]}
                   >
                     <RevealFrame
+                      lightbox
                       nav="dark"
                       className={`w-full ${index === 1 && spread % 2 === 0 ? 'aspect-[4/5]' : 'aspect-[3/2]'}`}
                     >
@@ -347,7 +352,7 @@ export default function ProjectScenes({
       {/* ── D · Plate ────────────────────────────────────────────────────── */}
       {imgD && (
         <section aria-label={`${title}, a closer view`}>
-          <RevealFrame nav="dark" className="aspect-[4/5] w-full lg:aspect-[16/9]">
+          <RevealFrame lightbox nav="dark" className="aspect-[4/5] w-full lg:aspect-[16/9]">
             <div data-zoom className="h-full w-full">
               <Render
                 id={imgD}

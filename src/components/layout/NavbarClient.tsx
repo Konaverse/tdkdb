@@ -319,6 +319,7 @@ export default function NavbarClient({ settings }: Props) {
           <Link
             ref={leftRef}
             href={href('')}
+            prefetch
             className="pointer-events-auto flex items-center"
             style={DARK_VARS}
           >
@@ -340,6 +341,7 @@ export default function NavbarClient({ settings }: Props) {
           >
             <Link
               data-step-back
+              prefetch
               href={
                 showInterest
                   ? `${href('projects/almond-suites')}#register-interest`
@@ -447,6 +449,7 @@ export default function NavbarClient({ settings }: Props) {
                       <Link
                         ref={i === 0 ? firstLinkRef : undefined}
                         href={href(p.path)}
+                        prefetch
                         onClick={() => setOpen(false)}
                         aria-label={p.label}
                         aria-current={current ? 'page' : undefined}

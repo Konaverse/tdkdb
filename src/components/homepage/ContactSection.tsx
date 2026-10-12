@@ -7,6 +7,7 @@ import { maskChars, riseIn } from '@/lib/animations/text';
 import { imageReveal } from '@/lib/animations/imageReveal';
 import { imageUrl } from '@/lib/sanity/image';
 import type { SanityImage } from '@/lib/sanity/types';
+import { LightboxTrigger } from '@/components/ui/ImageLightbox';
 
 const INTRO =
   'For a new home, a question about a residence, or simply to say hello, we would like to hear from you.';
@@ -98,7 +99,7 @@ export default function ContactSection({ plate }: { plate?: SanityImage }) {
           data-nav="dark"
           className="relative aspect-[3/2] w-full overflow-hidden sm:aspect-[4/3] lg:aspect-auto"
         >
-          <div data-plate className="absolute inset-0 overflow-hidden">
+          <div data-plate data-lightbox="page" className="absolute inset-0 overflow-hidden">
             <div data-settle className="absolute inset-0 will-change-transform">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -110,6 +111,7 @@ export default function ContactSection({ plate }: { plate?: SanityImage }) {
                 style={{ objectPosition: '10% 50%' }}
               />
             </div>
+            <LightboxTrigger label="View Armonia terrace photograph" />
           </div>
         </div>
       </div>

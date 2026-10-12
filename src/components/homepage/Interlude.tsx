@@ -7,6 +7,7 @@ import { CHAR_HIDDEN, maskChars, riseIn } from '@/lib/animations/text';
 import { imageUrl } from '@/lib/sanity/image';
 import type { SanityImage } from '@/lib/sanity/types';
 import InterludeGlass, { GLASS_INSETS } from './InterludeGlass';
+import { LightboxTrigger } from '@/components/ui/ImageLightbox';
 import styles from './Interlude.module.css';
 
 /**
@@ -584,15 +585,19 @@ export default function Interlude({ image }: { image?: SanityImage }) {
         className="relative text-white lg:hidden"
         style={{ background: '#0d0d0d' }}
       >
-        <div aria-hidden="true" className="sticky top-0 -mb-[100svh] h-svh w-full overflow-hidden">
+        <div
+          data-lightbox="page"
+          className="sticky top-0 -mb-[100svh] h-svh w-full overflow-hidden"
+        >
           <img
             src={image ? imageUrl(image, { width: 1400 }) : ''}
-            alt=""
+            alt="Armonia apartment kitchen and dining room"
             loading="lazy"
             decoding="async"
             className="h-full w-full object-cover"
           />
           <div className="absolute inset-0" style={{ background: 'rgba(0, 0, 0, 0.58)' }} />
+          <LightboxTrigger label="View Armonia kitchen and dining room" />
         </div>
 
         <div className="relative px-5 pb-[30svh] pt-[30svh] sm:px-8">
@@ -644,7 +649,7 @@ export default function Interlude({ image }: { image?: SanityImage }) {
 
         {/* ── The render ── */}
         <div data-shrink data-nav="dark" className="absolute inset-0 will-change-transform">
-          <div data-clip className="absolute inset-0 overflow-hidden">
+          <div data-clip data-lightbox="page" className="absolute inset-0 overflow-hidden">
             <div data-zoom className="absolute inset-0 will-change-transform">
               <div
                 data-parallax
@@ -661,6 +666,7 @@ export default function Interlude({ image }: { image?: SanityImage }) {
             </div>
             <div data-dim className="absolute inset-0" style={{ background: '#000000' }} />
             <InterludeGlass />
+            <LightboxTrigger label="View Armonia kitchen and dining room" />
           </div>
         </div>
 

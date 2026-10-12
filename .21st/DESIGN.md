@@ -21,7 +21,7 @@ Generated from project sources at 2026-10-11T17:31:41.616Z.
 ## Components
 
 - Installed: Button, CustomCursor, SocialGlyph
-- Preferred primitives: RevealFrame, TDKSelect, ImageFootnote
+- Preferred primitives: RevealFrame, TDKSelect, ImageFootnote, LightboxTrigger
 
 ## Tokens
 
@@ -98,3 +98,12 @@ Generated from project sources at 2026-10-11T17:31:41.616Z.
   on both axes and further portraits extending to the right beyond the viewport.
   Set the title bottom-left and introduction bottom-right with page-grid padding.
   Remove the hero counts and keep the two project ledgers below.
+- Open gallery and editorial photographs in a shared dark lightbox. Keep linked
+  project images as project-page navigation. Desktop arrows use rectangles outside
+  the image; mobile and touch arrows sit inside with transparent backgrounds.
+  Use uncropped photographs, swipe and keyboard navigation, restored scroll/focus,
+  reduced motion and a preview fallback on image-loading errors.
+- Keep hero text hidden until its font-dependent masks are prepared, with visible
+  reduced-motion and no-JavaScript fallbacks. Initialize cached fonts immediately.
+  Prepare below-fold About, Projects and footer text near the viewport. Prefetch
+  primary routes and project pages without changing the accepted expansion motion.

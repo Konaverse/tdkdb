@@ -1,4 +1,28 @@
-import { gsap, SplitText } from './gsap';
+import { gsap, SplitText, ScrollTrigger } from './gsap';
+
+/** Cached fonts can initialize before the next paint; cold fonts wait once. */
+export function whenFontsReady(callback: () => void): () => void {
+  let cancelled = false;
+  const run = () => {
+    if (!cancelled) callback();
+  };
+  if (!document.fonts || document.fonts.status === 'loaded') run();
+  else document.fonts.ready.then(run);
+  return () => {
+    cancelled = true;
+  };
+}
+
+/** Prepare below-fold text shortly before it can enter the screen. */
+export function nearViewport(trigger: Element, prepare: () => void): void {
+  const context = gsap.context();
+  const bounds = trigger.getBoundingClientRect();
+  // An anchor jump has already passed these blocks; their resting copy stays.
+  if (bounds.bottom < 0) return;
+  const run = () => context.add(prepare);
+  if (bounds.top <= window.innerHeight * 1.25) run();
+  else ScrollTrigger.create({ trigger, start: 'top 125%', once: true, onEnter: run });
+}
 
 /** Per-letter masks retain word wrapping and the original accessible text.
  * Create inside a GSAP context so route changes restore the original markup.

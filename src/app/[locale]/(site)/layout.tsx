@@ -3,20 +3,23 @@ import Footer from '@/components/layout/Footer';
 import NavGuard from '@/components/layout/NavGuard';
 import IntroProvider from '@/components/homepage/IntroProvider';
 import ProjectTransitionProvider from '@/components/transition/ProjectTransition';
+import ImageLightboxProvider from '@/components/ui/ImageLightbox';
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <IntroProvider>
       <ProjectTransitionProvider>
-        <NavGuard>
-          <Navbar />
-        </NavGuard>
+        <ImageLightboxProvider>
+          <NavGuard>
+            <Navbar />
+          </NavGuard>
 
-        {children}
+          {children}
 
-        <NavGuard>
-          <Footer />
-        </NavGuard>
+          <NavGuard>
+            <Footer />
+          </NavGuard>
+        </ImageLightboxProvider>
       </ProjectTransitionProvider>
     </IntroProvider>
   );

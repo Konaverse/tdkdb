@@ -7,7 +7,13 @@ import RevealFrame from '@/components/animations/RevealFrame';
 import AboutProcess from '@/components/about/AboutProcess';
 import ImageFootnote from '@/components/ui/ImageFootnote';
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
-import { CHAR_HIDDEN, maskChars, riseIn } from '@/lib/animations/text';
+import {
+  CHAR_HIDDEN,
+  maskChars,
+  riseIn,
+  whenFontsReady,
+  nearViewport,
+} from '@/lib/animations/text';
 import { imageSrcSet, imageUrl } from '@/lib/sanity/image';
 import type { SanityImage, SiteImages } from '@/lib/sanity/types';
 
@@ -129,7 +135,7 @@ export default function AboutClient({ images }: { images: SiteImages }) {
     let ctx: gsap.Context | null = null;
     let processMotion: gsap.MatchMedia | null = null;
 
-    (document.fonts?.ready ?? Promise.resolve()).then(() => {
+    const cancelFonts = whenFontsReady(() => {
       if (!alive) return;
       ctx = gsap.context(() => {
         const q = gsap.utils.selector(root);
@@ -139,6 +145,7 @@ export default function AboutClient({ images }: { images: SiteImages }) {
         const leadSplit = leadEl ? maskChars(leadEl) : null;
         const heroChars = maskChars(q('[data-hero-line]')).chars;
         if (leadSplit) gsap.set(leadSplit.chars, CHAR_HIDDEN);
+        gsap.set(q('[data-hero-copy]'), { autoAlpha: 1 });
 
         const hero = gsap
           .timeline({ delay: 0.15, onComplete: () => leadSplit?.split.revert() })
@@ -148,23 +155,27 @@ export default function AboutClient({ images }: { images: SiteImages }) {
         }
 
         /* heading letters rise through their masks as they arrive */
-        q('[data-heading]').forEach((heading) => {
-          const chars = maskChars(heading.querySelectorAll('[data-heading-line]')).chars;
-          gsap.to(chars, {
-            ...riseIn(chars),
-            scrollTrigger: { trigger: heading, start: 'top 88%', once: true },
-          });
-        });
+        q('[data-heading]').forEach((heading) =>
+          nearViewport(heading, () => {
+            const chars = maskChars(heading.querySelectorAll('[data-heading-line]')).chars;
+            gsap.to(chars, {
+              ...riseIn(chars),
+              scrollTrigger: { trigger: heading, start: 'top 88%', once: true },
+            });
+          }),
+        );
 
         /* paragraph letters rise through masks; other blocks rise together */
-        q('[data-write]').forEach((el) => {
-          const { split, chars } = maskChars(el);
-          gsap.to(chars, {
-            ...riseIn(chars),
-            scrollTrigger: { trigger: el, start: 'top 88%', once: true },
-            onComplete: () => split.revert(),
-          });
-        });
+        q('[data-write]').forEach((el) =>
+          nearViewport(el, () => {
+            const { split, chars } = maskChars(el);
+            gsap.to(chars, {
+              ...riseIn(chars),
+              scrollTrigger: { trigger: el, start: 'top 88%', once: true },
+              onComplete: () => split.revert(),
+            });
+          }),
+        );
 
         q('[data-rise]').forEach((el) => {
           gsap.fromTo(
@@ -227,6 +238,7 @@ export default function AboutClient({ images }: { images: SiteImages }) {
 
     return () => {
       alive = false;
+      cancelFonts();
       processMotion?.revert();
       ctx?.revert();
     };
@@ -247,7 +259,7 @@ export default function AboutClient({ images }: { images: SiteImages }) {
       <section className="px-page pb-[9svh] pt-[22svh]">
         <div className="lg:gap-x-gutter grid items-end gap-y-12 lg:grid-cols-12">
           {/* Two sets of breaks, one per width — see HEAD_WIDE / HEAD_NARROW. */}
-          <h1 className="lg:col-span-9">
+          <h1 data-hero-copy className="lg:col-span-9">
             <span className="hidden text-[clamp(30px,4.9vw,92px)] font-[200] leading-[1.06] tracking-[-0.015em] sm:block">
               {HEAD_WIDE.map((line) => (
                 <span key={line} className={heroLine}>
@@ -271,6 +283,7 @@ export default function AboutClient({ images }: { images: SiteImages }) {
 
           <p
             data-lead
+            data-hero-copy
             className="max-w-[36ch] text-[clamp(17px,1.25vw,22px)] font-[300] leading-[1.5] lg:col-span-3 lg:col-start-10"
             style={{ color: BODY }}
           >
@@ -281,7 +294,7 @@ export default function AboutClient({ images }: { images: SiteImages }) {
 
       {/* ── The plate ────────────────────────────────────────────────────── */}
       <section className="px-page">
-        <RevealFrame nav="dark" className="aspect-[4/5] w-full lg:aspect-[16/9]">
+        <RevealFrame lightbox nav="dark" className="aspect-[4/5] w-full lg:aspect-[16/9]">
           <Drift range={5}>
             <Picture
               id={img('hero')}
@@ -341,7 +354,7 @@ export default function AboutClient({ images }: { images: SiteImages }) {
           </div>
 
           <div className="lg:col-span-8 lg:col-start-5">
-            <RevealFrame nav="dark" className="aspect-[4/5] w-full lg:aspect-[3/2]">
+            <RevealFrame lightbox nav="dark" className="aspect-[4/5] w-full lg:aspect-[3/2]">
               <Drift range={6}>
                 <Picture
                   id={img('spread')}
@@ -357,7 +370,7 @@ export default function AboutClient({ images }: { images: SiteImages }) {
         {/* the staggered row, and the quote held in the margin */}
         <div className="lg:gap-x-gutter mt-[10svh] grid gap-y-12 lg:grid-cols-12">
           <div className="lg:col-span-3">
-            <RevealFrame nav="dark" className="aspect-[4/5] w-full">
+            <RevealFrame lightbox nav="dark" className="aspect-[4/5] w-full">
               <Picture
                 id={img('small1')}
                 alt="Armonia from the street"
@@ -368,7 +381,7 @@ export default function AboutClient({ images }: { images: SiteImages }) {
           </div>
 
           <div className="lg:col-span-4 lg:mt-[9svh]">
-            <RevealFrame nav="dark" className="aspect-[3/2] w-full">
+            <RevealFrame lightbox nav="dark" className="aspect-[3/2] w-full">
               <Picture
                 id={img('small2')}
                 alt="An Armonia interior"
@@ -392,7 +405,7 @@ export default function AboutClient({ images }: { images: SiteImages }) {
 
       {/* ── The standard — one picture, the text laid inside it ───────── */}
       <section className="px-page pt-[20svh]">
-        <RevealFrame nav="dark" className="h-[78svh] w-full lg:h-[92svh]">
+        <RevealFrame lightbox nav="dark" className="h-[78svh] w-full lg:h-[92svh]">
           <Drift range={5}>
             <Picture
               id={img('standard')}

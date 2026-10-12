@@ -7,6 +7,7 @@ import { gsap, ScrollTrigger, gsapInit } from '@/lib/animations/gsap';
 import { imageReveal } from '@/lib/animations/imageReveal';
 import { imageUrl } from '@/lib/sanity/image';
 import type { SanityImage } from '@/lib/sanity/types';
+import { LightboxTrigger } from '@/components/ui/ImageLightbox';
 
 /* ───────────────────────────────────────────────────────────────────────────
    AboutGrid — the architectural plate
@@ -638,6 +639,7 @@ function ImageCell({
           ref={self}
           onPointerEnter={() => onHover(self.current, true)}
           onPointerLeave={() => onHover(self.current, false)}
+          data-lightbox="page"
           className="absolute inset-0 overflow-hidden"
         >
           {/* Entrance scale and hover scale get separate nodes — one element,
@@ -681,6 +683,7 @@ function ImageCell({
               </span>
             </span>
           </div>
+          <LightboxTrigger label={`View ${alt}`} />
         </div>
       </div>
     </div>

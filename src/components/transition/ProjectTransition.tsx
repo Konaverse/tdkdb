@@ -229,6 +229,7 @@ export default function ProjectTransitionProvider({ children }: { children: Reac
       if (!image.naturalWidth || !image.naturalHeight) return false;
 
       gsapInit();
+      router.prefetch(href);
       getLenis()?.stop();
       const ease =
         CustomEase.get('projectExpand') || CustomEase.create('projectExpand', EXPAND_CURVE);

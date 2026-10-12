@@ -7,7 +7,8 @@ import type { StaticImageData } from 'next/image';
 import { useParams, usePathname } from 'next/navigation';
 
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
-import { maskChars, riseIn } from '@/lib/animations/text';
+import { maskChars, riseIn, nearViewport } from '@/lib/animations/text';
+import { LightboxTrigger } from '@/components/ui/ImageLightbox';
 import type { SiteSettings } from '@/lib/sanity/types';
 import SocialGlyph from '@/components/ui/SocialGlyph';
 import styles from './FooterClient.module.css';
@@ -144,16 +145,18 @@ export default function FooterClient({ settings, backdrop }: Props) {
             onRefresh: syncScroll,
           });
           const q = gsap.utils.selector(root);
-          q('[data-footer-column]').forEach((column) => {
-            const text = maskChars(column.querySelectorAll('[data-footer-text]'));
-            gsap.to(
-              text.chars,
-              riseIn(text.chars, {
-                scrollTrigger: { trigger: column, start: 'top 92%', once: true },
-                onComplete: () => text.split.revert(),
-              }),
-            );
-          });
+          q('[data-footer-column]').forEach((column) =>
+            nearViewport(column, () => {
+              const text = maskChars(column.querySelectorAll('[data-footer-text]'));
+              gsap.to(
+                text.chars,
+                riseIn(text.chars, {
+                  scrollTrigger: { trigger: column, start: 'top 92%', once: true },
+                  onComplete: () => text.split.revert(),
+                }),
+              );
+            }),
+          );
         }
         paint();
       }, root);
@@ -298,7 +301,13 @@ export default function FooterClient({ settings, backdrop }: Props) {
           </div>
         </div>
         {source && (
-          <div ref={photoRef} data-nav="dark" data-footer-photo className={styles.photo}>
+          <div
+            ref={photoRef}
+            data-nav="dark"
+            data-footer-photo
+            data-lightbox="footer"
+            className={styles.photo}
+          >
             <Image
               ref={imageRef}
               src={source}
@@ -310,6 +319,7 @@ export default function FooterClient({ settings, backdrop }: Props) {
               decoding="async"
               className={styles.image}
             />
+            <LightboxTrigger label="View Modular residence photograph" />
           </div>
         )}
       </div>

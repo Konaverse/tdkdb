@@ -5,7 +5,7 @@ import ContactForm from '@/components/contact/ContactForm';
 
 import RevealFrame from '@/components/animations/RevealFrame';
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
-import { CHAR_HIDDEN, maskChars, riseIn } from '@/lib/animations/text';
+import { CHAR_HIDDEN, maskChars, riseIn, whenFontsReady } from '@/lib/animations/text';
 import { imageSrcSet, imageUrl } from '@/lib/sanity/image';
 import type { SanityImage, SiteSettings } from '@/lib/sanity/types';
 
@@ -66,7 +66,7 @@ export default function ContactClient({ settings, plate }: ContactClientProps) {
     let alive = true;
     let ctx: gsap.Context | null = null;
 
-    (document.fonts?.ready ?? Promise.resolve()).then(() => {
+    const cancelFonts = whenFontsReady(() => {
       if (!alive) return;
       ctx = gsap.context(() => {
         const q = gsap.utils.selector(root);
@@ -75,6 +75,7 @@ export default function ContactClient({ settings, plate }: ContactClientProps) {
 
         const heroChars = maskChars(q('[data-hero-word]')).chars;
         if (leadSplit) gsap.set(leadSplit.chars, CHAR_HIDDEN);
+        gsap.set(q('[data-hero-copy]'), { autoAlpha: 1 });
         gsap.set(q('[data-rise]'), { autoAlpha: 0, y: 20 });
 
         const hero = gsap
@@ -99,6 +100,7 @@ export default function ContactClient({ settings, plate }: ContactClientProps) {
 
     return () => {
       alive = false;
+      cancelFonts();
       ctx?.revert();
     };
   }, []);
@@ -115,7 +117,10 @@ export default function ContactClient({ settings, plate }: ContactClientProps) {
       {/* ── Hero — type only ─────────────────────────────────────────────── */}
       <section className="px-page flex min-h-[72svh] flex-col justify-end pb-[9svh] pt-[24svh]">
         <div className="lg:gap-x-gutter grid items-end gap-y-12 lg:grid-cols-12">
-          <h1 className="-mb-[0.1em] -mt-[0.18em] overflow-hidden pb-[0.1em] pt-[0.18em] text-[clamp(64px,10.5vw,200px)] font-[200] leading-[0.86] tracking-[-0.02em] lg:col-span-7">
+          <h1
+            data-hero-copy
+            className="-mb-[0.1em] -mt-[0.18em] overflow-hidden pb-[0.1em] pt-[0.18em] text-[clamp(64px,10.5vw,200px)] font-[200] leading-[0.86] tracking-[-0.02em] lg:col-span-7"
+          >
             <span data-hero-word className="block">
               Contact
             </span>
@@ -123,6 +128,7 @@ export default function ContactClient({ settings, plate }: ContactClientProps) {
 
           <p
             data-lead
+            data-hero-copy
             className="max-w-[34ch] text-[clamp(18px,1.35vw,24px)] font-[300] leading-[1.45] lg:col-span-4 lg:col-start-9"
           >
             {LEAD}
@@ -181,7 +187,7 @@ export default function ContactClient({ settings, plate }: ContactClientProps) {
             )}
           </dl>
 
-          <RevealFrame nav="dark" className="mt-16 aspect-[4/5] w-full">
+          <RevealFrame lightbox nav="dark" className="mt-16 aspect-[4/5] w-full">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={plate ? imageUrl(plate, { width: 1200 }) : ''}

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import type { CSSProperties, MouseEvent } from 'react';
 
 import { gsap, gsapInit, ScrollTrigger, SplitText } from '@/lib/animations/gsap';
-import { maskChars, riseIn } from '@/lib/animations/text';
+import { maskChars, riseIn, whenFontsReady } from '@/lib/animations/text';
 import { getLenis } from '@/lib/animations/lenis';
 import SocialGlyph from '@/components/ui/SocialGlyph';
 import type { SocialLink } from '@/lib/sanity/types';
@@ -110,7 +110,7 @@ export default function Hero({
     // Line splitting needs the final font, so the whole sequence waits on it.
     // Anything created inside ctx.add() is tracked by the context.
     let cancelled = false;
-    document.fonts.ready.then(() => {
+    const cancelFonts = whenFontsReady(() => {
       if (cancelled) return;
       ctx.add(() => {
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -163,6 +163,7 @@ export default function Hero({
         const ctaSets = ctas.map((cta) => {
           const { split, chars } = maskChars(cta.querySelector('[data-cta-label]'));
           splits.push(split);
+          gsap.set(cta.querySelector('[data-cta-label]'), { visibility: 'visible' });
           return { cta, split, chars };
         });
 
@@ -257,6 +258,7 @@ export default function Hero({
 
     return () => {
       cancelled = true;
+      cancelFonts();
       ctx.revert();
       splits.forEach((s) => s.revert());
     };
@@ -291,7 +293,7 @@ export default function Hero({
         data-bracket
         className="absolute bottom-0 right-0 h-[0.8em] w-[0.8em] origin-bottom-right border-b border-r border-white transition-[width,height] duration-medium ease-smooth group-hover:h-full group-hover:w-full"
       />
-      <span data-cta-label className="block">
+      <span data-cta-label data-hero-copy className="block">
         {ctaLabel}
       </span>
     </Link>

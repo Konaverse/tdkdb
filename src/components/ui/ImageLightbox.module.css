@@ -1,0 +1,241 @@
+.trigger {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+.trigger:focus-visible {
+  outline: 2px solid white;
+  outline-offset: -6px;
+  box-shadow: inset 0 0 0 8px rgb(0 0 0 / 35%);
+}
+
+.dialog {
+  --image-max-height: calc(100dvh - 156px);
+
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: #0d0d0d;
+  color: white;
+  font-family: var(--font-josefin), sans-serif;
+  overscroll-behavior: contain;
+}
+
+.dialog::backdrop {
+  background: #0d0d0d;
+}
+
+.dialog,
+.dialog * {
+  cursor: auto !important;
+}
+
+.dialog button {
+  cursor: pointer !important;
+}
+
+.shell {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  padding: 76px 32px 48px;
+}
+
+.gallery {
+  position: relative;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 64px;
+  align-items: center;
+  gap: 20px;
+  max-width: 100%;
+}
+
+.figure {
+  min-width: 0;
+  margin: 0;
+}
+
+.media {
+  position: relative;
+  width: min(calc(100vw - 232px), calc(var(--image-max-height) * var(--image-aspect)));
+  aspect-ratio: var(--image-aspect);
+  overflow: hidden;
+  background: #1a1a1a;
+  touch-action: pan-y pinch-zoom;
+}
+
+.image,
+.preview {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.preview {
+  position: absolute;
+  inset: 0;
+}
+
+.image {
+  position: relative;
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.image[data-loaded] {
+  opacity: 1;
+}
+
+.caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.4;
+  color: rgb(255 255 255 / 78%);
+}
+
+.count {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.arrow,
+.close {
+  display: grid;
+  place-items: center;
+  color: white;
+}
+
+.arrow {
+  width: 64px;
+  height: 80px;
+  align-self: center;
+  margin-bottom: 32px;
+  background: #1a1a1a;
+  transition: background-color 180ms ease;
+}
+
+.arrow:hover {
+  background: var(--color-threshold);
+}
+
+.arrow:disabled {
+  opacity: 0.3;
+  cursor: default !important;
+}
+
+.arrow svg {
+  width: 30px;
+  height: 24px;
+}
+
+.close {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  right: max(24px, env(safe-area-inset-right));
+  width: 48px;
+  height: 48px;
+  background: transparent;
+}
+
+.close svg {
+  width: 24px;
+  height: 24px;
+}
+
+.dialog button:focus-visible {
+  outline: 2px solid var(--color-threshold);
+  outline-offset: 4px;
+}
+
+.error {
+  position: absolute;
+  inset: auto 16px 16px;
+  padding: 12px;
+  background: #0d0d0d;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+@media (max-width: 767px), (pointer: coarse) {
+  .dialog {
+    --image-max-height: calc(
+      100dvh - 136px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+    );
+  }
+
+  .shell {
+    padding: calc(64px + env(safe-area-inset-top)) 0 calc(40px + env(safe-area-inset-bottom));
+  }
+
+  .gallery {
+    display: block;
+    width: 100%;
+  }
+
+  .media {
+    width: min(100vw, calc(var(--image-max-height) * var(--image-aspect)));
+    margin-inline: auto;
+  }
+
+  .arrow {
+    position: absolute;
+    z-index: 2;
+    top: calc((100% - 32px) / 2);
+    width: 48px;
+    height: 56px;
+    margin: 0;
+    transform: translateY(-50%);
+    background: transparent;
+    filter: drop-shadow(0 1px 3px rgb(0 0 0 / 90%));
+  }
+
+  .arrow:hover {
+    background: transparent;
+  }
+
+  .previous {
+    left: max(4px, calc((100vw - var(--image-max-height) * var(--image-aspect)) / 2 + 4px));
+  }
+
+  .next {
+    right: max(4px, calc((100vw - var(--image-max-height) * var(--image-aspect)) / 2 + 4px));
+  }
+
+  .caption {
+    max-width: min(100vw, calc(var(--image-max-height) * var(--image-aspect)));
+    margin-inline: auto;
+    padding-inline: 16px;
+    font-size: 12px;
+    gap: 12px;
+  }
+
+  .close {
+    right: max(12px, env(safe-area-inset-right));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image,
+  .arrow {
+    transition: none;
+  }
+}

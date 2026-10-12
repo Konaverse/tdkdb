@@ -8,7 +8,13 @@ import { useParams, useRouter } from 'next/navigation';
 import RevealFrame from '@/components/animations/RevealFrame';
 import { useProjectTransition } from '@/components/transition/ProjectTransition';
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
-import { CHAR_HIDDEN, maskChars, riseIn } from '@/lib/animations/text';
+import {
+  CHAR_HIDDEN,
+  maskChars,
+  riseIn,
+  whenFontsReady,
+  nearViewport,
+} from '@/lib/animations/text';
 import { imageSrcSet, imageUrl, portraitSrcSet, portraitUrl } from '@/lib/sanity/image';
 import { displayTitle, projectHref, projectScope, STATUS_LABEL } from '@/lib/projects/display';
 import type { Project, ProjectScope } from '@/lib/sanity/types';
@@ -102,7 +108,7 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
     let alive = true;
     let ctx: gsap.Context | null = null;
 
-    (document.fonts?.ready ?? Promise.resolve()).then(() => {
+    const cancelFonts = whenFontsReady(() => {
       if (!alive) return;
       ctx = gsap.context(() => {
         const q = gsap.utils.selector(root);
@@ -112,6 +118,7 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
         const leadSplit = leadEl ? maskChars(leadEl) : null;
         const heroChars = maskChars(q('[data-hero-word]')).chars;
         if (leadSplit) gsap.set(leadSplit.chars, CHAR_HIDDEN);
+        gsap.set(q('[data-hero-copy]'), { autoAlpha: 1 });
 
         const hero = gsap
           .timeline({ delay: 0.15, onComplete: () => leadSplit?.split.revert() })
@@ -121,38 +128,42 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
         }
 
         /* each ledger's heading and note rise letter by letter */
-        q('[data-group]').forEach((group) => {
-          const title = group.querySelector('[data-group-title]');
-          const noteEl = group.querySelector<HTMLElement>('[data-group-note]');
-          const note = noteEl ? maskChars(noteEl) : null;
-          const titleChars = maskChars(title).chars;
-          if (note) gsap.set(note.chars, CHAR_HIDDEN);
-          const tl = gsap
-            .timeline({
-              scrollTrigger: { trigger: group, start: 'top 82%', once: true },
-              onComplete: () => note?.split.revert(),
-            })
-            .to(titleChars, riseIn(titleChars), 0);
-          if (note) {
-            tl.to(note.chars, riseIn(note.chars), 0.3);
-          }
-        });
+        q('[data-group]').forEach((group) =>
+          nearViewport(group, () => {
+            const title = group.querySelector('[data-group-title]');
+            const noteEl = group.querySelector<HTMLElement>('[data-group-note]');
+            const note = noteEl ? maskChars(noteEl) : null;
+            const titleChars = maskChars(title).chars;
+            if (note) gsap.set(note.chars, CHAR_HIDDEN);
+            const tl = gsap
+              .timeline({
+                scrollTrigger: { trigger: group, start: 'top 82%', once: true },
+                onComplete: () => note?.split.revert(),
+              })
+              .to(titleChars, riseIn(titleChars), 0);
+            if (note) {
+              tl.to(note.chars, riseIn(note.chars), 0.3);
+            }
+          }),
+        );
 
         /* each entry: the name and particulars arrive under the plate */
-        q('[data-entry]').forEach((entry) => {
-          const name = entry.querySelector('[data-name]');
-          const rows = entry.querySelectorAll('[data-detail]');
-          const nameChars = maskChars(name).chars;
-          gsap.set(rows, { autoAlpha: 0, y: 16 });
-          gsap
-            .timeline({ scrollTrigger: { trigger: entry, start: 'top 72%', once: true } })
-            .to(nameChars, riseIn(nameChars), 0)
-            .to(
-              rows,
-              { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.out', stagger: 0.08 },
-              0.2,
-            );
-        });
+        q('[data-entry]').forEach((entry) =>
+          nearViewport(entry, () => {
+            const name = entry.querySelector('[data-name]');
+            const rows = entry.querySelectorAll('[data-detail]');
+            const nameChars = maskChars(name).chars;
+            gsap.set(rows, { autoAlpha: 0, y: 16 });
+            gsap
+              .timeline({ scrollTrigger: { trigger: entry, start: 'top 72%', once: true } })
+              .to(nameChars, riseIn(nameChars), 0)
+              .to(
+                rows,
+                { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.out', stagger: 0.08 },
+                0.2,
+              );
+          }),
+        );
 
         ScrollTrigger.refresh();
       }, root);
@@ -160,6 +171,7 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
 
     return () => {
       alive = false;
+      cancelFonts();
       ctx?.revert();
     };
   }, []);
@@ -175,6 +187,7 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
         <div data-projects-strip className={styles.strip}>
           {heroProjects.map((p, index) => (
             <RevealFrame
+              lightbox="hub-portraits"
               key={p._id}
               nav="dark"
               className={styles.portrait}
@@ -196,6 +209,7 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
 
         <div className={`px-page ${styles.copy}`}>
           <h1
+            data-hero-copy
             id="projects-heading"
             className="text-[clamp(38px,12vw,72px)] font-[200] leading-[0.86] tracking-[-0.02em] sm:text-[clamp(64px,10.5vw,200px)]"
           >
@@ -212,6 +226,7 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
           </h1>
 
           <p
+            data-hero-copy
             data-lead
             className="max-w-[34ch] justify-self-end text-[clamp(13px,1.35vw,24px)] font-[300] leading-[1.45]"
           >
@@ -273,6 +288,7 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
                   <article key={p._id} data-entry>
                     <Link
                       href={projectHref(locale, p.slug.current)}
+                      prefetch
                       onClick={(e) => open(e, p)}
                       aria-label={`${title}, ${STATUS_LABEL[p.status].toLowerCase()}`}
                       className="group block"

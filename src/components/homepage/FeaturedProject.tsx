@@ -30,7 +30,7 @@ export default function FeaturedProject({ project, locale }: FeaturedProjectProp
     >
       <div className="gap-x-gutter grid items-center gap-y-5 lg:grid-cols-12">
         <RevealFrame className={`${styles.frame} lg:col-span-7`} nav="dark">
-          <Link href={href} aria-label={`Explore ${title}`} className={styles.imageLink}>
+          <Link href={href} prefetch aria-label={`Explore ${title}`} className={styles.imageLink}>
             <img
               src={imageUrl(image, { width: 1600 })}
               srcSet={imageSrcSet(image, [600, 900, 1200, 1600, 2000])}
@@ -87,6 +87,7 @@ export default function FeaturedProject({ project, locale }: FeaturedProjectProp
           <div className="mt-6 flex flex-wrap items-center gap-x-7 gap-y-2 lg:mt-10 lg:gap-y-5">
             <Link
               href={`${href}#register-interest`}
+              prefetch
               className="inline-flex min-h-12 w-full items-center justify-center gap-6 bg-threshold px-8 py-4 text-[13px] font-[600] uppercase tracking-[0.2em] text-white transition-colors duration-300 hover:bg-[#111111] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111111] sm:w-auto"
             >
               <span className="button-label">Register interest</span>
@@ -96,6 +97,7 @@ export default function FeaturedProject({ project, locale }: FeaturedProjectProp
             </Link>
             <Link
               href={href}
+              prefetch
               className="inline-flex min-h-10 items-center gap-3 text-[15px] underline decoration-[#111111]/30 underline-offset-4 transition-colors duration-300 hover:text-threshold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111111] lg:min-h-12"
             >
               Explore the residences <span aria-hidden="true">↗</span>

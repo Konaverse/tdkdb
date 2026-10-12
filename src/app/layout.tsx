@@ -24,6 +24,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={josefin.variable}>
       <body>
+        <noscript>
+          <style>
+            {'[data-hero-copy], [data-image-entrance] { visibility: visible !important; }'}
+          </style>
+        </noscript>
         <CustomCursor />
         <SmoothScrollProvider>{children}</SmoothScrollProvider>
       </body>

@@ -5,6 +5,7 @@ import type { CSSProperties, ReactNode } from 'react';
 
 import { gsapInit } from '@/lib/animations/gsap';
 import { imageReveal } from '@/lib/animations/imageReveal';
+import { LightboxTrigger } from '@/components/ui/ImageLightbox';
 
 /**
  * A picture frame that enters with the site's image entrance. Size it with
@@ -19,6 +20,7 @@ export default function RevealFrame({
   cover = '#ffffff',
   nav,
   frameAttrs,
+  lightbox = false,
   children,
 }: {
   className?: string;
@@ -29,6 +31,8 @@ export default function RevealFrame({
   /** Extra attributes on the frame itself, e.g. the `data-frame` the project
       transition opens from. */
   frameAttrs?: Record<string, string>;
+  /** Editorial photographs share a page gallery; project navigation links opt out. */
+  lightbox?: boolean | string;
   children: ReactNode;
 }) {
   const frameRef = useRef<HTMLDivElement>(null);
@@ -41,7 +45,14 @@ export default function RevealFrame({
     if (!frame || !settle) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    return imageReveal(frame, { cover, settle }).revert;
+    const reveal = imageReveal(frame, { cover, settle });
+    // The cover is now in place; release the server-rendered image only after
+    // its entrance owns the frame, avoiding a visible photo followed by a wipe.
+    settle.style.visibility = 'visible';
+    return () => {
+      reveal.revert();
+      settle.style.removeProperty('visibility');
+    };
   }, [cover]);
 
   return (
@@ -49,12 +60,14 @@ export default function RevealFrame({
       ref={frameRef}
       {...frameAttrs}
       data-nav={nav}
+      data-lightbox={lightbox ? (typeof lightbox === 'string' ? lightbox : 'page') : undefined}
       className={`relative overflow-hidden ${className}`}
       style={style}
     >
-      <div ref={settleRef} className="absolute inset-0">
+      <div ref={settleRef} data-image-entrance className="absolute inset-0">
         {children}
       </div>
+      {lightbox && <LightboxTrigger />}
     </div>
   );
 }

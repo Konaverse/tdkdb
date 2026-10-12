@@ -57,6 +57,32 @@ CMS images are **Sanity image fields**, uploaded in the Studio (Cloudinary was r
 - GSAP is the animation library for all new work. Three.js and Framer Motion are gone from
   the project entirely. `SplitText` is registered in `gsap.ts` alongside ScrollTrigger.
 
+Font-dependent hero copy has `data-hero-copy`: CSS hides it before hydration, and
+the page reveals it only after character masks are ready. Reduced motion and the
+root noscript fallback show resting text. Use `whenFontsReady` to initialize cached
+fonts synchronously and cancel pending work on unmount. `nearViewport` prepares
+below-fold About, Projects and footer text shortly before it reaches the screen;
+create it inside a GSAP context so deferred work is owned by that context.
+`RevealFrame` likewise hides `data-image-entrance` until its white entrance cover
+is installed, preventing a photograph from appearing and then wiping in again.
+
+### Image lightbox
+
+`ImageLightboxProvider` lives in the site layout. Editorial `RevealFrame`s opt in
+with `lightbox` (one page gallery) or a group name. Custom image frames declare
+`data-lightbox="page"` and include `LightboxTrigger`. Keep project-page image links
+as navigation: do not place lightbox buttons over them. Hub hero portraits use their
+own group, and the footer photograph is a separate one-image group.
+
+The native modal dialog shows uncropped, responsive Sanity images or bundled WebPs.
+Desktop arrows are rectangular controls beside the image; mobile and coarse-pointer
+devices use transparent arrows inside it. Support swipe, keyboard arrows, Escape,
+focus trapping, scroll/focus restoration, reduced motion and preview fallback.
+Triggers stay disabled until the provider is active. Only adjacent large images
+are prefetched after opening; no gallery decoding work happens during route entry.
+Close and restore scrolling on navigation. Native cursor styles stay visible inside
+the top-layer dialog, where the custom cursor cannot render.
+
 ### Homepage
 
 The homepage (`src/app/[locale]/(site)/page.tsx`) is a small server component that fetches
@@ -222,8 +248,8 @@ opens the project through `ProjectTransition`, as on the homepage.
 
 `projects/[slug]/page.tsx` (Sept 2026 redesign) is, in order: `ProjectHero` (full bleed, settled)
 → `ProjectScenes` → `ProjectAvailability` → `ProjectStory` → `ProjectRegister`, white ground,
-Josefin light, NO eyebrows and no decorative hairlines (user's request). Everything is scroll:
-no galleries, lightboxes, tabs or draggable strips. `ProjectScenes` is four editorial spreads
+Josefin light, NO eyebrows and no decorative hairlines (user's request). The page remains
+scroll-based with editorial spreads; image clicks open the shared lightbox. `ProjectScenes` is four editorial spreads
 fed exactly five images by `sceneImages()` (galleries de-duplicated, hero only as a fallback,
 then cycled), stacked on the page grid with `gap-page` between them — the user wants ONE measure
 of white around every picture, section heights don't matter: A aperture (content-width 16:9,

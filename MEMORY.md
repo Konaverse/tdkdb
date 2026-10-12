@@ -35,6 +35,21 @@ and verified locally. The user is reviewing the dev site at
   Pricing available on inquiry note are removed.
 - Every About photograph now has a Josefin Sans footnote inside its image frame.
   The homepage About eyebrow is removed entirely on desktop and mobile.
+- Shared lightbox: enable gallery/editorial photos, including project heroes and
+  scenes, About photos, hub portraits, homepage editorial photos, Contact and the
+  footer photograph. Keep project-page image links as navigation (confirmed by the
+  user). Desktop arrows use rectangles outside the photograph; phone and touch
+  arrows are transparent and sit inside it. The dialog supports swiping, keyboard
+  arrows, Escape, focus trapping, scroll/focus restoration, reduced motion and a
+  preview fallback. Use full uncropped Sanity images sized for the device; prefetch
+  only adjacent photos after opening. Triggers wait until their provider is active.
+- Page navigation: hide font-dependent hero copy before its first paint, then
+  show it after masks are prepared. Initialize cached fonts synchronously. Defer
+  below-fold About, Projects and footer text splitting until near the viewport.
+  Main navigation and project links prefetch complete routes; the project expansion
+  also warms its destination. Preserve all accepted layouts and motion.
+  RevealFrame photographs also start hidden until their entrance cover is ready,
+  so hero images cannot paint and then disappear into an entrance wipe.
 - Hero entrance: the background and building appear together in fourteen paired
   tiles, then the existing TDK entrance follows. Other text uses a masked rising
   character reveal instead of the previous sideways reveal.
@@ -120,6 +135,20 @@ They are production assets, not preview placeholders, and are not yet CMS-manage
   200, and both requested helper lines are absent.
 - The 21st review reported no errors. Its two width warnings refer to existing
   max-width constraints; browser checks confirmed no horizontal overflow.
+- Lightbox verification passed in dev and production at 1440×900, 1024×768,
+  768×1024, 390×844, 320×568 and 844×390. Phone checks used real touch events.
+  Arrow placement, swiping, cycling, keyboard navigation, trapped focus, Escape,
+  backdrop/close buttons, scroll restoration, full-image loading failure,
+  individual gallery groups and preserved project navigation all passed.
+- Eight production navigation traces at desktop/mobile widths, including return
+  visits and browser Back with deliberately delayed fonts, showed no premature
+  hero copy and one continuous entrance. Two cold first-paint checks delayed
+  application JavaScript and verified neither text nor images flash before their
+  entrance is prepared. Reduced-motion and no-JavaScript fallbacks stay visible.
+  The prior 18 layout and CTA checks also passed. No browser errors were observed.
+- Final changed-file lint, TypeScript, formatting, whitespace and isolated
+  production build checks passed. The latest 21st review has no errors and one
+  existing max-width warning in AboutGrid, covered by responsive browser checks.
 
 ## Working context
 
@@ -138,6 +167,10 @@ The running preview uses ignored `.tmp/offline-preview.cjs` with cached CMS read
 and `.tmp/font-preview.cjs` for fonts because network access is restricted. These
 local helpers and screenshots remain available in this workspace but are not
 committed or part of production. Do not introduce their mocks into application code.
+
+An isolated production preview is available at `http://127.0.0.1:3010/en`, built
+under ignored `.tmp/build-check/` with the same cached public CMS content and font
+fixtures. Use it to assess navigation without dev compilation and Fast Refresh.
 
 There is no outstanding requested implementation work at this checkpoint.
 Continue from the user's next feedback, preserving the accepted motion and sizes.

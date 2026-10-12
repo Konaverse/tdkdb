@@ -8,7 +8,7 @@ import styles from './AboutProcess.module.css';
 function Plate({ image, range, sizes }: { image: RequestedImage; range: number; sizes: string }) {
   const over = range * 2 + 4;
   return (
-    <RevealFrame nav="dark" className={styles.frame}>
+    <RevealFrame lightbox nav="dark" className={styles.frame}>
       <div
         data-pan={range}
         className="absolute inset-x-0"

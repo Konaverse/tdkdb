@@ -3,11 +3,12 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 
 import { gsap, gsapInit } from '@/lib/animations/gsap';
-import { maskChars, riseIn } from '@/lib/animations/text';
+import { maskChars, riseIn, whenFontsReady } from '@/lib/animations/text';
 import { projectHeroSrcSet, projectHeroUrl } from '@/lib/sanity/image';
 import { displayTitle } from '@/lib/projects/display';
 import { useProjectTransition } from '@/components/transition/ProjectTransition';
 import type { Project } from '@/lib/sanity/types';
+import { LightboxTrigger } from '@/components/ui/ImageLightbox';
 
 /* ───────────────────────────────────────────────────────────────────────────
    ProjectHero — the photograph, full bleed, and the project's name on it.
@@ -83,59 +84,63 @@ export default function ProjectHero({ project }: ProjectHeroProps) {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let alive = true;
 
-    const ctx = gsap.context(() => {
-      const q = gsap.utils.selector(root);
-      const words = q('[data-word]');
-      const reveals = q('[data-reveal]');
-      const scrim = q('[data-scrim]');
+    let ctx: gsap.Context | null = null;
+    const cancelFonts = whenFontsReady(() => {
+      ctx = gsap.context(() => {
+        const q = gsap.utils.selector(root);
+        const words = q('[data-word]');
+        const reveals = q('[data-reveal]');
+        const scrim = q('[data-scrim]');
 
-      if (reduced) {
-        gsap.set([img, ...words, ...reveals, ...scrim], { autoAlpha: 1 });
-        if (arrival) transition.handoff(slug, root);
-        return;
-      }
+        if (reduced) {
+          gsap.set([img, ...words, ...reveals, ...scrim], { autoAlpha: 1 });
+          if (arrival) transition.handoff(slug, root);
+          return;
+        }
 
-      const titleText = maskChars(words).chars;
-      const detailText = maskChars(q('[data-particulars] [data-reveal]')).chars;
-      gsap.set([...words, ...reveals], { autoAlpha: 1 });
-      gsap.set(scrim, { autoAlpha: 0 });
+        const titleText = maskChars(words).chars;
+        const detailText = maskChars(q('[data-particulars] [data-reveal]')).chars;
+        gsap.set([...words, ...reveals], { autoAlpha: 1 });
+        gsap.set(scrim, { autoAlpha: 0 });
 
-      const copy = gsap.timeline({ paused: true, defaults: { ease: 'power4.out' } });
-      copy.to(scrim, { autoAlpha: 1, duration: 1.4, ease: 'power2.inOut' }, 0);
-      copy.to(titleText, riseIn(titleText), 0.4);
-      copy.to(detailText, riseIn(detailText), 0.65);
+        const copy = gsap.timeline({ paused: true, defaults: { ease: 'power4.out' } });
+        copy.to(scrim, { autoAlpha: 1, duration: 1.4, ease: 'power2.inOut' }, 0);
+        copy.to(titleText, riseIn(titleText), 0.4);
+        copy.to(detailText, riseIn(detailText), 0.65);
 
-      const decoded =
-        img.complete && img.naturalWidth > 0 ? Promise.resolve() : img.decode().catch(() => {});
+        const decoded =
+          img.complete && img.naturalWidth > 0 ? Promise.resolve() : img.decode().catch(() => {});
 
-      if (arrival) {
-        // The layer is showing this picture already; ours stays visible
-        // underneath it and simply takes over.
-        decoded
-          .then(() => (alive ? transition.handoff(slug, root) : undefined))
-          .then(() => {
-            if (alive) copy.play();
-          });
-        return;
-      }
+        if (arrival) {
+          // The layer is showing this picture already; ours stays visible
+          // underneath it and simply takes over.
+          decoded
+            .then(() => (alive ? transition.handoff(slug, root) : undefined))
+            .then(() => {
+              if (alive) copy.play();
+            });
+          return;
+        }
 
-      const open = gsap.timeline({ paused: true });
-      // Out of the section's near-black ground by opacity, not a filter: a
-      // live filter on a full-bleed photograph re-rasterises every frame.
-      gsap.set(img, { scale: 1.12, autoAlpha: 0 });
-      open.to(img, { scale: 1, duration: 2.2, ease: 'expo.out', clearProps: 'transform' }, 0);
-      open.to(img, { autoAlpha: 1, duration: 1.2, ease: 'power2.out' }, 0);
-      open.add(() => {
-        copy.play();
-      }, 0.35);
-      decoded.then(() => {
-        if (alive) open.play();
-      });
-    }, root);
+        const open = gsap.timeline({ paused: true });
+        // Out of the section's near-black ground by opacity, not a filter: a
+        // live filter on a full-bleed photograph re-rasterises every frame.
+        gsap.set(img, { scale: 1.12, autoAlpha: 0 });
+        open.to(img, { scale: 1, duration: 2.2, ease: 'expo.out', clearProps: 'transform' }, 0);
+        open.to(img, { autoAlpha: 1, duration: 1.2, ease: 'power2.out' }, 0);
+        open.add(() => {
+          copy.play();
+        }, 0.35);
+        decoded.then(() => {
+          if (alive) open.play();
+        });
+      }, root);
+    });
 
     return () => {
       alive = false;
-      ctx.revert();
+      cancelFonts();
+      ctx?.revert();
     };
     // Built once per mount; `arrival` is fixed at first render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -145,6 +150,7 @@ export default function ProjectHero({ project }: ProjectHeroProps) {
     <section
       ref={rootRef}
       data-nav="dark"
+      data-lightbox="page"
       aria-label={title}
       className="relative w-full overflow-hidden bg-[#0d0d0d] text-white"
       style={{ height: '100svh', fontFamily: 'var(--font-josefin)' }}
@@ -175,7 +181,7 @@ export default function ProjectHero({ project }: ProjectHeroProps) {
         }}
       />
 
-      <div className="px-page absolute inset-x-0 bottom-0 pb-[max(28px,5.5svh)]">
+      <div className="px-page pointer-events-none absolute inset-x-0 bottom-0 pb-[max(28px,5.5svh)]">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0">
             <h1 className="text-[clamp(3.1rem,9.2vw,11.5rem)] font-[200] leading-[0.94] tracking-[-0.015em]">
@@ -212,6 +218,7 @@ export default function ProjectHero({ project }: ProjectHeroProps) {
           </dl>
         </div>
       </div>
+      <LightboxTrigger label={`View ${title} photographs`} />
     </section>
   );
 }
