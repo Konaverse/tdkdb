@@ -106,6 +106,13 @@ credentials or env values in memory or Git. Live email delivery remains unverifi
 outbound provider access returned EACCES in this environment. Tests use substitutes
 and browser API interception; no external test messages were sent.
 
+Latest Resend audit: all four mail settings are present locally. The 31 isolated
+delivery checks and six browser form checks (three placements at desktop/mobile
+widths) pass. A read-only Resend domain check still returns EACCES, so API-key
+validity, sender-domain verification and inbox delivery remain unconfirmed.
+The isolated production preview now starts with `--env-file=../../.env.local`
+from `.tmp/build-check` so it loads the same mail settings as the development site.
+
 Sanity uploads also returned EACCES. The eight new interiors and three About
 process photos therefore use optimized responsive WebPs in
 `public/images/requested/`, with their typed manifest in `src/lib/content/`.
@@ -178,6 +185,8 @@ committed or part of production. Do not introduce their mocks into application c
 An isolated production preview is available at `http://127.0.0.1:3010/en`, built
 under ignored `.tmp/build-check/` with the same cached public CMS content and font
 fixtures. Use it to assess navigation without dev compilation and Fast Refresh.
+When restarting this isolated preview, pass `--env-file=../../.env.local` before
+`--require ../offline-preview.cjs` so runtime form credentials are loaded too.
 
 There is no outstanding requested implementation work at this checkpoint.
 Continue from the user's next feedback, preserving the accepted motion and sizes.
