@@ -1,0 +1,227 @@
+.light {
+  --control-fill: #f4f4f1;
+  --control-hover: #eeefeb;
+  --control-active: #edf3f1;
+  --control-ink: var(--color-ink, #111111);
+  --control-active-ink: var(--color-ink, #111111);
+  --control-edge: var(--color-threshold);
+  --control-placeholder: rgba(17, 17, 17, 0.4);
+}
+
+.teal {
+  --control-fill: rgba(255, 255, 255, 0.14);
+  --control-hover: rgba(255, 255, 255, 0.22);
+  --control-active: #ffffff;
+  --control-ink: #ffffff;
+  --control-active-ink: var(--color-ink, #111111);
+  --control-edge: #ffffff;
+  --control-placeholder: rgba(255, 255, 255, 0.55);
+}
+
+.shell {
+  position: relative;
+}
+
+.shell::before,
+.shell::after {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  border: 0 solid var(--control-edge);
+  content: '';
+  pointer-events: none;
+  opacity: 0;
+  transition:
+    transform 480ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease;
+}
+
+.shell::before {
+  border-top-width: 1px;
+  border-bottom-width: 1px;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.shell::after {
+  border-right-width: 1px;
+  border-left-width: 1px;
+  transform: scaleY(0);
+  transform-origin: top;
+}
+
+.shell:focus-within::before,
+.shell:focus-within::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.shell:focus-within::after {
+  transition-delay: 80ms;
+}
+
+.control {
+  display: block;
+  width: 100%;
+  min-height: 54px;
+  border: 1px solid transparent;
+  border-radius: 0;
+  padding: 14px 18px;
+  outline: none;
+  background: var(--control-fill);
+  color: var(--control-ink);
+  font-family: var(--font-josefin), sans-serif;
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.5;
+  transition:
+    background-color 480ms cubic-bezier(0.22, 1, 0.36, 1),
+    color 300ms ease,
+    border-color 300ms ease;
+}
+
+.teal .control {
+  padding: 16px 20px;
+  font-size: 17px;
+}
+
+.control::placeholder {
+  color: var(--control-placeholder);
+  transition: color 300ms ease;
+}
+
+@media (hover: hover) {
+  .control:hover {
+    background: var(--control-hover);
+  }
+}
+
+.control:focus,
+.trigger[aria-expanded='true'] {
+  background: var(--control-active);
+  color: var(--control-active-ink);
+}
+
+.control:focus::placeholder {
+  color: rgba(17, 17, 17, 0.4);
+}
+
+.control[aria-invalid='true'] {
+  border-color: var(--control-edge);
+}
+
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.trigger svg {
+  flex-shrink: 0;
+  width: 14px;
+  height: 10px;
+  transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.trigger[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
+.trigger[data-empty='true'] .value {
+  opacity: 0.6;
+}
+
+.menu {
+  position: fixed;
+  z-index: 250;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-threshold);
+  background: #ffffff;
+  color: var(--color-ink, #111111);
+  font-family: var(--font-josefin), sans-serif;
+  box-shadow: 0 12px 32px rgba(17, 17, 17, 0.12);
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+  transition:
+    opacity 200ms ease,
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.menu[data-visible='true'] {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.menuBrand {
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(102, 151, 159, 0.2);
+  padding: 15px 18px 12px;
+  color: var(--color-threshold);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  line-height: 1.2;
+}
+
+.list {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 5px 0;
+  scrollbar-color: var(--color-threshold) transparent;
+  scrollbar-width: thin;
+}
+
+.option {
+  display: flex;
+  width: 100%;
+  min-height: 46px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-left: 2px solid transparent;
+  padding: 11px 18px 10px 16px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 300;
+  line-height: 1.4;
+  text-align: left;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.option[data-active='true'] {
+  border-left-color: var(--color-threshold);
+  background: #edf3f1;
+}
+
+.option[aria-selected='true'] {
+  color: var(--color-threshold);
+  font-weight: 400;
+}
+
+.option svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell::before,
+  .shell::after,
+  .control,
+  .control::placeholder,
+  .trigger svg,
+  .menu,
+  .option {
+    transition: none;
+  }
+}

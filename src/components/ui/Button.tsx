@@ -102,7 +102,7 @@ export default function Button({
   const inner = (
     <span
       className={cn(
-        'inline-flex items-center',
+        'button-label inline-flex items-center',
         variant === 'primary' && 'gap-2',
         variant === 'text' && 'relative pb-px',
       )}

@@ -1,0 +1,88 @@
+[
+  {
+    "key": "almond-one-bedroom-kitchen",
+    "src": "/images/requested/almond-one-bedroom-kitchen.webp",
+    "srcSet": "/images/requested/almond-one-bedroom-kitchen-900.webp 900w, /images/requested/almond-one-bedroom-kitchen.webp 2000w",
+    "width": 2000,
+    "height": 1125,
+    "caption": "1-bedroom apartment · kitchen and dining"
+  },
+  {
+    "key": "almond-one-bedroom-dining",
+    "src": "/images/requested/almond-one-bedroom-dining.webp",
+    "srcSet": "/images/requested/almond-one-bedroom-dining-900.webp 900w, /images/requested/almond-one-bedroom-dining.webp 2000w",
+    "width": 2000,
+    "height": 1125,
+    "caption": "1-bedroom apartment · dining and living room"
+  },
+  {
+    "key": "almond-one-bedroom-open-plan",
+    "src": "/images/requested/almond-one-bedroom-open-plan.webp",
+    "srcSet": "/images/requested/almond-one-bedroom-open-plan-900.webp 900w, /images/requested/almond-one-bedroom-open-plan.webp 2000w",
+    "width": 2000,
+    "height": 1125,
+    "caption": "1-bedroom apartment · open-plan kitchen"
+  },
+  {
+    "key": "almond-one-bedroom-living",
+    "src": "/images/requested/almond-one-bedroom-living.webp",
+    "srcSet": "/images/requested/almond-one-bedroom-living-900.webp 900w, /images/requested/almond-one-bedroom-living.webp 2000w",
+    "width": 2000,
+    "height": 1125,
+    "caption": "1-bedroom apartment · living room"
+  },
+  {
+    "key": "almond-two-bedroom-kitchen",
+    "src": "/images/requested/almond-two-bedroom-kitchen.webp",
+    "srcSet": "/images/requested/almond-two-bedroom-kitchen-900.webp 900w, /images/requested/almond-two-bedroom-kitchen.webp 1672w",
+    "width": 1672,
+    "height": 941,
+    "caption": "2-bedroom apartment · kitchen and dining"
+  },
+  {
+    "key": "almond-two-bedroom-dining",
+    "src": "/images/requested/almond-two-bedroom-dining.webp",
+    "srcSet": "/images/requested/almond-two-bedroom-dining-900.webp 900w, /images/requested/almond-two-bedroom-dining.webp 1672w",
+    "width": 1672,
+    "height": 941,
+    "caption": "2-bedroom apartment · dining and living room"
+  },
+  {
+    "key": "almond-two-bedroom-open-plan",
+    "src": "/images/requested/almond-two-bedroom-open-plan.webp",
+    "srcSet": "/images/requested/almond-two-bedroom-open-plan-900.webp 900w, /images/requested/almond-two-bedroom-open-plan.webp 1672w",
+    "width": 1672,
+    "height": 941,
+    "caption": "2-bedroom apartment · open-plan kitchen"
+  },
+  {
+    "key": "almond-two-bedroom-living",
+    "src": "/images/requested/almond-two-bedroom-living.webp",
+    "srcSet": "/images/requested/almond-two-bedroom-living-900.webp 900w, /images/requested/almond-two-bedroom-living.webp 1672w",
+    "width": 1672,
+    "height": 941,
+    "caption": "2-bedroom apartment · living room"
+  },
+  {
+    "key": "process-build",
+    "src": "/images/requested/process-build.webp",
+    "width": 896,
+    "height": 1200,
+    "caption": "Aligning a window on site"
+  },
+  {
+    "key": "process-draw",
+    "src": "/images/requested/process-draw.webp",
+    "width": 896,
+    "height": 1200,
+    "caption": "Architectural plans and details"
+  },
+  {
+    "key": "process-handover",
+    "src": "/images/requested/process-handover.webp",
+    "srcSet": "/images/requested/process-handover-900.webp 900w, /images/requested/process-handover.webp 1920w",
+    "width": 1920,
+    "height": 1080,
+    "caption": "Armonia · the finished terrace"
+  }
+]

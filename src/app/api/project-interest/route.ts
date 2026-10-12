@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { Resend } from 'resend';
 import { serverClient } from '@/lib/sanity/client';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { escapeHtml, mailSettings, sendEnquiry } from '@/lib/contact/delivery';
 
 // In-memory rate limiter: IP → timestamps
 const rateLimitMap = new Map<string, number[]>();
@@ -19,13 +17,13 @@ function isRateLimited(ip: string): boolean {
 }
 
 const schema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().optional(),
-  unitPreference: z.string().optional(),
-  message: z.string().optional(),
-  projectSlug: z.string().min(1),
-  projectName: z.string().min(1),
+  name: z.string().trim().min(1, 'Name is required').max(200),
+  email: z.string().trim().email('Invalid email address').max(320),
+  phone: z.string().trim().max(80).optional(),
+  unitPreference: z.string().trim().max(200).optional(),
+  message: z.string().trim().max(10000).optional(),
+  projectSlug: z.string().trim().min(1).max(200),
+  projectName: z.string().trim().min(1).max(200),
   _honeypot: z.string().optional(),
 });
 
@@ -66,48 +64,63 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const toEmail = process.env.INTEREST_FORM_TO_EMAIL;
-  if (!toEmail) {
-    console.error('INTEREST_FORM_TO_EMAIL not configured');
+  const mail = mailSettings('interest');
+  if (!mail) {
+    console.error('Project interest email delivery is not configured');
     return NextResponse.json(
-      { success: false, error: 'Server configuration error' },
-      { status: 500 },
+      { success: false, error: 'We could not send your enquiry. Please try again later.' },
+      { status: 503 },
     );
   }
 
   try {
     // Send notification to TDK team
-    await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL ?? 'noreply@tdkdb.com',
-      to: toEmail,
-      subject: `New Interest: ${projectName}`,
-      html: `
-        <h2>New Project Interest — ${projectName}</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phone ?? 'Not provided'}</p>
-        <p><strong>Unit Preference:</strong> ${unitPreference ?? 'Not specified'}</p>
-        <p><strong>Message:</strong> ${message ?? 'None'}</p>
-        <p><strong>Project Slug:</strong> ${projectSlug}</p>
+    await sendEnquiry(
+      mail.apiKey,
+      {
+        from: mail.from,
+        to: mail.to,
+        replyTo: email,
+        subject: `New Interest: ${projectName}`,
+        html: `
+        <h2>New Project Interest — ${escapeHtml(projectName)}</h2>
+        <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+        <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+        <p><strong>Phone:</strong> ${escapeHtml(phone || 'Not provided')}</p>
+        <p><strong>Unit Preference:</strong> ${escapeHtml(unitPreference || 'Any residence')}</p>
+        <p><strong>Message:</strong> ${escapeHtml(message || 'None').replace(/\n/g, '<br/>')}</p>
+        <p><strong>Project Slug:</strong> ${escapeHtml(projectSlug)}</p>
       `,
-    });
-
-    // Auto-reply to lead
-    await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL ?? 'noreply@tdkdb.com',
-      to: email,
-      subject: `Thank you for your interest in ${projectName}`,
-      html: `
-        <p>Dear ${name},</p>
-        <p>Thank you for registering your interest in <strong>${projectName}</strong>.</p>
+      },
+      {
+        from: mail.from,
+        to: email,
+        replyTo: mail.to,
+        subject: `Thank you for your interest in ${projectName}`,
+        html: `
+        <p>Dear ${escapeHtml(name)},</p>
+        <p>Thank you for registering your interest in <strong>${escapeHtml(projectName)}</strong>.</p>
         <p>We have received your enquiry and a member of our team will be in touch shortly.</p>
-        <p>Best regards,<br/>TDK Design & Build</p>
+        <p>Best regards,<br/>TDK Design &amp; Build</p>
       `,
-    });
+      },
+    );
+  } catch (err) {
+    console.error(
+      'Interest form error:',
+      err instanceof Error ? err.message : 'Unknown mail error',
+    );
+    return NextResponse.json(
+      { success: false, error: 'Failed to send your enquiry. Please try again.' },
+      { status: 500 },
+    );
+  }
 
-    // Write lead document to Sanity
+  // The email is already accepted. Archiving must not turn it into a failed
+  // submission and cause the visitor to send the same enquiry again.
+  try {
     await serverClient.create({
-      _type: 'projectLead',
+      _type: 'lead',
       name,
       email,
       phone: phone ?? '',
@@ -116,12 +129,12 @@ export async function POST(req: NextRequest) {
       projectSlug,
       projectName,
       submittedAt: new Date().toISOString(),
+      status: 'new',
     });
   } catch (err) {
-    console.error('Interest form error:', err);
-    return NextResponse.json(
-      { success: false, error: 'Failed to process your request. Please try again.' },
-      { status: 500 },
+    console.error(
+      'Project lead archive failed:',
+      err instanceof Error ? err.message : 'Unknown archive error',
     );
   }
 

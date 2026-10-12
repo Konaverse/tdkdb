@@ -3,6 +3,8 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 
 import { gsap, gsapInit } from '@/lib/animations/gsap';
+import { maskChars, riseIn } from '@/lib/animations/text';
+import ImageFootnote from '@/components/ui/ImageFootnote';
 import { projectHeroSrcSet, projectHeroUrl } from '@/lib/sanity/image';
 import { displayTitle, STATUS_LABEL } from '@/lib/projects/display';
 import { useProjectTransition } from '@/components/transition/ProjectTransition';
@@ -24,8 +26,8 @@ import type { Project } from '@/lib/sanity/types';
    · DIRECT load or any other navigation. The photograph opens out of the
      dark ground, settling from a slight push-in, then the same copy entrance.
 
-   The copy: the site's side reveal (each line slides sideways into its own
-   mask), the teal hairline drawing before the status, particulars last.
+   The copy: masked letters rising in, with the teal hairline drawing
+   alongside the status and project name; particulars follow shortly after.
    Start offsets are set by gsap.set, never by classes (see the transform
    pitfalls), and every animated node is visibility:hidden in markup.
    Nothing here moves on scroll.
@@ -43,7 +45,7 @@ interface ProjectHeroProps {
 const TEAL = 'var(--color-threshold, #66979f)';
 const HIDDEN = { visibility: 'hidden' } as const;
 
-/** A line that slides sideways into its own mask. */
+/** A text block whose letters rise through individual masks. */
 function Reveal({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
     <span className={`block overflow-hidden ${className}`}>
@@ -97,21 +99,19 @@ export default function ProjectHero({ project }: ProjectHeroProps) {
         return;
       }
 
-      gsap.set(words, { xPercent: -104, x: 0, autoAlpha: 1 });
-      gsap.set(reveals, { xPercent: -104, x: 0, autoAlpha: 1 });
+      const titleText = maskChars(words).chars;
+      const statusText = maskChars(q('[data-status] [data-reveal]')).chars;
+      const detailText = maskChars(q('[data-particulars] [data-reveal]')).chars;
+      gsap.set([...words, ...reveals], { autoAlpha: 1 });
       gsap.set(rules, { scaleX: 0, transformOrigin: '0% 50%' });
       gsap.set(scrim, { autoAlpha: 0 });
 
       const copy = gsap.timeline({ paused: true, defaults: { ease: 'power4.out' } });
       copy.to(scrim, { autoAlpha: 1, duration: 1.4, ease: 'power2.inOut' }, 0);
       copy.to(rules, { scaleX: 1, duration: 0.9, ease: 'power3.inOut' }, 0.15);
-      copy.to('[data-status] [data-reveal]', { xPercent: 0, x: 0, duration: 1 }, 0.35);
-      copy.to(words, { xPercent: 0, x: 0, duration: 1.35, stagger: 0.09 }, 0.4);
-      copy.to(
-        '[data-particulars] [data-reveal]',
-        { xPercent: 0, x: 0, duration: 1, stagger: 0.06 },
-        0.8,
-      );
+      copy.to(statusText, riseIn(statusText), 0.35);
+      copy.to(titleText, riseIn(titleText), 0.4);
+      copy.to(detailText, riseIn(detailText), 0.65);
 
       const decoded =
         img.complete && img.naturalWidth > 0 ? Promise.resolve() : img.decode().catch(() => {});
@@ -232,6 +232,9 @@ export default function ProjectHero({ project }: ProjectHeroProps) {
           </dl>
         </div>
       </div>
+      <ImageFootnote style={{ left: 'var(--page-margin)', bottom: '14px' }}>
+        {title} · exterior view
+      </ImageFootnote>
     </section>
   );
 }

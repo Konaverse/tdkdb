@@ -4,10 +4,19 @@ import Interlude from '@/components/homepage/Interlude';
 import ContactSection from '@/components/homepage/ContactSection';
 import HomeLoader from '@/components/homepage/HomeLoader';
 import Hero from '@/components/homepage/Hero';
-import { getProjectsForHomepageReel, getSiteImages, getSiteSettings } from '@/lib/sanity/queries';
-import { displayTitle, projectScope } from '@/lib/projects/display';
+import FeaturedProject from '@/components/homepage/FeaturedProject';
+import {
+  getProjectBySlug,
+  getProjectsForHomepageReel,
+  getSiteImages,
+  getSiteSettings,
+} from '@/lib/sanity/queries';
+import { displayTitle, projectHref, projectScope } from '@/lib/projects/display';
+import { ALMOND_SLUG } from '@/lib/projects/updates';
 import type { AboutPlate } from '@/components/homepage/AboutGrid';
 import type { Project } from '@/lib/sanity/types';
+
+export const revalidate = 60;
 
 const HERO_PARAGRAPHS: [string, string] = [
   'TDK is a design-and-build studio in Nicosia. The architects who draw a residence are the same people who build it and hand over the keys — one team, accountable from the first sketch to the last fitting.',
@@ -26,20 +35,35 @@ function aboutPlate(p: Project | undefined): AboutPlate | undefined {
   };
 }
 
-export default async function HomePage() {
-  const [projects, settings, images] = await Promise.all([
+export default async function HomePage({ params }: { params: { locale: string } }) {
+  const [projects, settings, images, almond] = await Promise.all([
     getProjectsForHomepageReel(),
     getSiteSettings(),
     getSiteImages(),
+    getProjectBySlug(ALMOND_SLUG),
   ]);
   const built = projects.filter((p) => projectScope(p) === 'design-build');
+  const interestHref = `${projectHref(params.locale, ALMOND_SLUG)}#register-interest`;
+  const paragraphs: [string, string] = [
+    HERO_PARAGRAPHS[0],
+    almond
+      ? `${displayTitle(almond)} in ${almond.location.split(',')[0].trim()}: ${almond.units?.length ?? 8} residences, ${almond.progressPercent}% built. Discover the available apartments and register your interest for plans, prices and a viewing.`
+      : HERO_PARAGRAPHS[1],
+  ];
 
   return (
     <main className="relative">
       {/* First-load intro overlay (homepage only) */}
       <HomeLoader />
 
-      <Hero paragraphs={HERO_PARAGRAPHS} socials={settings?.socialLinks ?? []} />
+      <Hero
+        paragraphs={paragraphs}
+        socials={settings?.socialLinks ?? []}
+        ctaLabel="Register interest"
+        ctaHref={interestHref}
+      />
+
+      {almond && <FeaturedProject project={almond} locale={params.locale} />}
 
       {/* Projects — one project per screen, pinned. */}
       <ProjectsPinned projects={projects} />
@@ -52,8 +76,8 @@ export default async function HomePage() {
           shrinks to a frame under "We House Your Dream". */}
       <Interlude image={images['home-interlude']} />
 
-      {/* Contact — the board's layout: CONTACT, intro, details, tall render. */}
-      <ContactSection settings={settings} plate={images['home-contact-plate']} />
+      {/* Contact — CONTACT, the original intro, enquiry form and tall render. */}
+      <ContactSection plate={images['home-contact-plate']} />
     </main>
   );
 }

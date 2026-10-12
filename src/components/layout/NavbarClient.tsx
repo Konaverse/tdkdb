@@ -5,7 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useParams } from 'next/navigation';
 
-import { gsap } from '@/lib/animations/gsap';
+import { gsap, gsapInit } from '@/lib/animations/gsap';
+import { maskChars, riseIn } from '@/lib/animations/text';
 import { getLenis } from '@/lib/animations/lenis';
 import { useIntro } from '@/components/homepage/IntroProvider';
 import SocialGlyph from '@/components/ui/SocialGlyph';
@@ -35,9 +36,9 @@ import type { SiteSettings } from '@/lib/sanity/types';
    the bar in z-order, so the X stays on top of it; Contact and the language
    switcher step back while it is open.
 
-   Inside, everything arrives by the side reveal (a line sliding sideways into
-   its own mask, as in the hero): the pages first, large, then a hairline
-   draws, then the contact details and socials. Closing plays the same
+   Inside, text rises letter by letter through individual masks: the pages
+   first, large, with hairlines and contact details following shortly after.
+   Closing plays the same
    timeline backwards, faster.
 
    One timeline, built once. The page you are on is set in teal; the others
@@ -85,7 +86,7 @@ interface Props {
   settings: SiteSettings | null;
 }
 
-/** A line that slides sideways into its own mask. */
+/** A text block whose letters rise through individual masks. */
 function Reveal({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
     <span className={`block overflow-hidden ${className}`}>
@@ -108,6 +109,7 @@ export default function NavbarClient({ settings }: Props) {
     path
       ? pathname.startsWith(`/${locale}/${path}`)
       : pathname === `/${locale}` || pathname === `/${locale}/`;
+  const showInterest = isCurrent('') || pathname === href('projects/almond-suites');
 
   const headerRef = useRef<HTMLElement>(null);
   const burgerRef = useRef<HTMLButtonElement>(null);
@@ -155,6 +157,7 @@ export default function NavbarClient({ settings }: Props) {
 
   /* ── the menu timeline, built once ── */
   useLayoutEffect(() => {
+    gsapInit();
     const panel = panelRef.current;
     const burger = burgerRef.current;
     const header = headerRef.current;
@@ -173,7 +176,8 @@ export default function NavbarClient({ settings }: Props) {
       const detailReveals = reveals.filter((el) => !pageReveals.includes(el));
 
       gsap.set(panel, { autoAlpha: 0 });
-      gsap.set(reveals, { xPercent: -104, x: 0 });
+      const pageText = reduced ? null : maskChars(pageReveals);
+      const detailText = reduced ? null : maskChars(detailReveals);
       gsap.set(rules, { scaleX: 0 });
 
       const tl = gsap.timeline({
@@ -200,18 +204,10 @@ export default function NavbarClient({ settings }: Props) {
       tl.to(lineBottom, { y: -3, rotation: -45, duration: 0.55 }, 0);
       tl.to(stepBack, { autoAlpha: 0, duration: 0.3, ease: 'power1.out' }, 0);
 
-      // The side reveal.
-      tl.to(
-        pageReveals,
-        { xPercent: 0, x: 0, duration: 0.95, ease: 'power4.out', stagger: 0.07 },
-        0.32,
-      );
+      // Keep the masks for the reverse entrance when closing the menu.
+      if (pageText) tl.to(pageText.chars, riseIn(pageText.chars), 0.32);
       tl.to(rules, { scaleX: 1, duration: 0.8, stagger: 0.1 }, 0.5);
-      tl.to(
-        detailReveals,
-        { xPercent: 0, x: 0, duration: 0.85, ease: 'power4.out', stagger: 0.035 },
-        0.58,
-      );
+      if (detailText) tl.to(detailText.chars, riseIn(detailText.chars), 0.48);
 
       tlRef.current = tl;
     }, panel);
@@ -344,15 +340,19 @@ export default function NavbarClient({ settings }: Props) {
           >
             <Link
               data-step-back
-              href={href('contact')}
-              className="hidden border px-5 py-2.5 text-label transition-colors duration-300 hover:!bg-transparent hover:!text-[color:var(--nav-ink)] sm:block"
+              href={
+                showInterest
+                  ? `${href('projects/almond-suites')}#register-interest`
+                  : href('contact')
+              }
+              className={`${showInterest ? 'block' : 'hidden sm:block'} whitespace-nowrap border px-3 py-2.5 text-label transition-colors duration-300 hover:!bg-transparent hover:!text-[color:var(--nav-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 sm:px-5`}
               style={{
                 background: 'var(--nav-ink)',
                 borderColor: 'var(--nav-ink)',
                 color: 'var(--nav-ground)',
               }}
             >
-              Contact
+              <span className="button-label">{showInterest ? 'Register interest' : 'Contact'}</span>
             </Link>
 
             <span
@@ -364,7 +364,7 @@ export default function NavbarClient({ settings }: Props) {
 
             <div
               data-step-back
-              className="flex items-center gap-3 text-label transition-colors duration-300"
+              className={`${showInterest ? 'hidden sm:flex' : 'flex'} items-center gap-3 text-label transition-colors duration-300`}
               style={{ color: 'var(--nav-ink)' }}
             >
               <span className="border-b border-current pb-px">EN</span>
@@ -408,7 +408,13 @@ export default function NavbarClient({ settings }: Props) {
 
       {/* Click-away catcher, only while open. */}
       {open && (
-        <div aria-hidden="true" className="fixed inset-0 z-[80]" onClick={() => setOpen(false)} />
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label="Close menu"
+          className="fixed inset-0 z-[80]"
+          onClick={() => setOpen(false)}
+        />
       )}
 
       {/* ── The menu ── */}
@@ -442,6 +448,7 @@ export default function NavbarClient({ settings }: Props) {
                         ref={i === 0 ? firstLinkRef : undefined}
                         href={href(p.path)}
                         onClick={() => setOpen(false)}
+                        aria-label={p.label}
                         aria-current={current ? 'page' : undefined}
                         className={`inline-block text-[clamp(34px,4.2vw,46px)] font-[300] leading-[1.12] transition-colors duration-300 ${
                           current ? '' : 'hover:text-threshold'

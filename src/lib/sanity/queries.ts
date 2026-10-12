@@ -1,5 +1,6 @@
 // src/lib/sanity/queries.ts
 import { client } from './client';
+import { applyProjectUpdates } from '@/lib/projects/updates';
 import type { Project, SiteImages, SiteSettings, TeamMember } from './types';
 
 // --- PROJECT QUERIES ---
@@ -11,7 +12,7 @@ export async function getAllProjects(): Promise<Project[]> {
 
   try {
     const data = await client.fetch<Project[]>(query);
-    return data || [];
+    return (data || []).map(applyProjectUpdates);
   } catch (error) {
     console.error('Error fetching all projects:', error);
     return [];
@@ -27,7 +28,7 @@ export async function getProjectsForIndex(): Promise<Project[]> {
 
   try {
     const data = await client.fetch<Project[]>(query);
-    return data || [];
+    return (data || []).map(applyProjectUpdates);
   } catch (error) {
     console.error('Error fetching projects for index:', error);
     return [];
@@ -45,7 +46,7 @@ export async function getProjectsForHomepageReel(): Promise<Project[]> {
 
   try {
     const data = await client.fetch<Project[]>(query);
-    return data || [];
+    return (data || []).map(applyProjectUpdates);
   } catch (error) {
     console.error('Error fetching homepage projects:', error);
     return [];
@@ -71,7 +72,7 @@ export async function getProjectBySlug(slug: string): Promise<Project | null> {
 
   try {
     const data = await client.fetch<Project | null>(query, { slug });
-    return data || null;
+    return data ? applyProjectUpdates(data) : null;
   } catch (error) {
     console.error(`Error fetching project by slug (${slug}):`, error);
     return null;

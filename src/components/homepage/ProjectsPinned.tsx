@@ -24,11 +24,11 @@ import type { Project } from '@/lib/sanity/types';
    A white, editorial ledger where the portfolio drifts through the viewport
    as a vertical filmstrip: the current render centred, the previous one's
    lower edge still leaving at the top, the next one's upper edge already
-   arriving below. The project's name stands large on the left, overlapping
+   arriving below. The project's name stays at its original size on the left, overlapping
    the photograph; when the strip moves on, the old name loses focus (a soft
    blur + fade, a gentle lens pull, never a slide) and the new one sharpens in. A stacked
-   project index lower left and a circular next button lower right both jump
-   the scroll, snapped to whole projects. Inside each frame the photograph
+   project index lower left jumps the scroll, snapped to whole projects.
+   Inside each frame the photograph
    pans slowly against the travel.
 
    THE GEOMETRY
@@ -42,8 +42,10 @@ import type { Project } from '@/lib/sanity/types';
    TDK ADAPTATIONS
    · Josefin, light, for the names; the site's label style for the index.
    · No wordmark and no menu circle — the site's navbar holds the corners.
-   · Each name carries its particulars: a counter above, location and status
-     below. They focus-pull with the name as one block.
+   · Names stay on one line, shrinking only when needed to fit the viewport.
+     White difference-blended text remains readable across paper and photographs.
+   · Each name carries its location and status below. They focus-pull as one block.
+     Project numbering and the circular next button were removed at the user's request.
    · A hairline track beside the index with a teal marker that travels with
      the scroll — the section's one touch of the accent.
    · Clicking a frame or a name opens the project's page through
@@ -106,17 +108,10 @@ const SNAP_IDLE = 140;
     carries on to the next one instead of settling back. */
 const SNAP_COMMIT = 0.12;
 
-/** One line per word: "Almond Suites" → ["Almond", "Suites"]. */
-function titleLines(p: Project): string[] {
-  return displayTitle(p).split(' ');
-}
-
 /** The index label: the first word. */
 function shortName(p: Project): string {
   return displayTitle(p).split(' ')[0];
 }
-
-const pad2 = (n: number) => String(n).padStart(2, '0');
 
 const easeOutCubic = (x: number) => 1 - Math.pow(1 - x, 3);
 
@@ -166,6 +161,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
     const pans = gsap.utils.toArray<HTMLElement>('[data-pan]', scope);
     const names = gsap.utils.toArray<HTMLElement>('[data-name]', scope);
     const indexBtns = gsap.utils.toArray<HTMLElement>('[data-index]', scope);
+    const titles = gsap.utils.toArray<HTMLElement>('[data-project-title]', scope);
 
     // Every layout read lives here, never in render().
     let stepPx = 1;
@@ -177,6 +173,15 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
       stepPx = h + (vh * GAP) / 100;
       indexPitch = indexBtns.length > 1 ? indexBtns[1].offsetTop - indexBtns[0].offsetTop : 0;
       if (marker && indexBtns[0]) marker.style.height = `${indexBtns[0].offsetHeight}px`;
+      titles.forEach((title) => {
+        title.style.fontSize = '';
+        const letters = title.querySelector('span') as HTMLElement;
+        const available = title.clientWidth;
+        const width = letters.getBoundingClientRect().width;
+        if (!width || !available) return;
+        const fontSize = parseFloat(getComputedStyle(title).fontSize);
+        if (width > available) title.style.fontSize = `${(fontSize * available) / width}px`;
+      });
     };
     measure();
 
@@ -248,11 +253,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
       const j = Number((e.currentTarget as HTMLElement).dataset.index);
       if (!Number.isNaN(j)) scrollToProject(j);
     };
-    const onNext = () => scrollToProject(Math.min(N - 1, Math.round(lastP) + 1));
-
     indexBtns.forEach((b) => b.addEventListener('click', onIndexClick));
-    const nextBtn = scope.querySelector<HTMLElement>('[data-next]');
-    nextBtn?.addEventListener('click', onNext);
 
     /* snap — through Lenis. Lenis is read lazily: the provider creates it in
        a parent effect, which runs after this child's layout effect. The
@@ -306,6 +307,12 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
       }, 150);
     });
     ro.observe(pinEl);
+    let alive = true;
+    document.fonts.ready.then(() => {
+      if (!alive) return;
+      measure();
+      render(lastP);
+    });
 
     /* ────────────────────────────────────────────────────────── timeline */
 
@@ -360,13 +367,13 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
     }, scope);
 
     return () => {
+      alive = false;
       ctx.revert();
       reveals.forEach((r) => r.revert());
       ro.disconnect();
       clearTimeout(resizeTimer);
       clearTimeout(snapTimer);
       indexBtns.forEach((b) => b.removeEventListener('click', onIndexClick));
-      nextBtn?.removeEventListener('click', onNext);
     };
   }, [N, projects]);
 
@@ -387,7 +394,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
           fontFamily: 'var(--font-josefin)',
         }}
       >
-        <div ref={pinRef} className="relative h-svh w-full overflow-hidden">
+        <div ref={pinRef} className="relative h-svh w-full overflow-hidden bg-white">
           {/* The filmstrip. First frame rests centred by construction. */}
           <div className="absolute inset-x-0 top-0 flex justify-center">
             <div
@@ -430,35 +437,25 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
               pull only. */}
           <div
             data-name-wrap
-            className="pointer-events-none absolute left-[5.5vw] top-1/2 z-10 -translate-y-1/2"
+            className="pointer-events-none absolute inset-x-[5.5vw] top-1/2 z-10 text-white mix-blend-difference"
           >
             {projects.map((p, j) => (
               <div
                 key={p._id}
                 data-name
-                className={j === 0 ? 'relative' : 'absolute left-0 top-0'}
+                className="absolute inset-x-0 top-0 -translate-y-1/2"
                 style={{ opacity: j === 0 ? 1 : 0, visibility: j === 0 ? 'visible' : 'hidden' }}
               >
-                <p
-                  className="mb-5 font-mono text-[12px] tracking-[0.08em]"
-                  style={{ color: 'rgba(17, 17, 17, 0.5)' }}
+                <h3
+                  data-project-title
+                  className="w-full whitespace-nowrap text-[clamp(1.9rem,3.4vw,4.2rem)] font-[300] leading-[1.14] tracking-[0.01em]"
                 >
-                  <span style={{ color: INK }}>{pad2(j + 1)}</span>
-                  <span className="mx-2">/</span>
-                  {pad2(N)}
-                </p>
-
-                <h3 className="text-[clamp(1.9rem,3.4vw,4.2rem)] font-[300] leading-[1.14] tracking-[0.01em]">
                   <Link
                     href={projectHref(locale, p.slug.current)}
                     onClick={(e) => openProject(e, j)}
                     className="pointer-events-auto block cursor-pointer text-left"
                   >
-                    {titleLines(p).map((line, i) => (
-                      <span key={i} className="block">
-                        {line}
-                      </span>
-                    ))}
+                    <span className="inline-block w-max">{displayTitle(p)}</span>
                   </Link>
                 </h3>
 
@@ -466,22 +463,18 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
                   <span
                     aria-hidden="true"
                     className="mt-[0.45em] block h-px w-8 shrink-0"
-                    style={{ background: ACCENT }}
+                    style={{ background: 'currentColor' }}
                   />
                   <div className="text-label uppercase" style={{ letterSpacing: '0.24em' }}>
                     <p>{STATUS_LABEL[p.status]}</p>
-                    {p.location && (
-                      <p className="mt-1.5" style={{ color: 'rgba(17, 17, 17, 0.5)' }}>
-                        {p.location}
-                      </p>
-                    )}
+                    {p.location && <p className="mt-1.5 text-white/70">{p.location}</p>}
                   </div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Chrome: the index with its marker, and next. */}
+          {/* Project index and its scroll marker. */}
           <nav
             data-quiet
             aria-label="Projects"
@@ -513,23 +506,6 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
               ))}
             </div>
           </nav>
-
-          <button
-            data-quiet
-            data-next
-            type="button"
-            aria-label="Next project"
-            className="group absolute bottom-10 right-[3.5vw] z-10 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-solid transition-colors duration-300 hover:bg-[#111111]"
-            style={{ borderColor: 'rgba(17, 17, 17, 0.7)' }}
-          >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 10 12"
-              className="h-3 w-3 fill-current transition-colors duration-300 group-hover:fill-white"
-            >
-              <path d="M0 0 L10 6 L0 12 Z" />
-            </svg>
-          </button>
         </div>
       </section>
     </>

@@ -3,7 +3,7 @@
 import { useLayoutEffect, useRef } from 'react';
 
 import { gsap, gsapInit } from '@/lib/animations/gsap';
-import { LINE_HIDDEN, LINE_SHOWN, maskLines } from '@/lib/animations/lines';
+import { CHAR_HIDDEN, maskChars, riseIn } from '@/lib/animations/text';
 
 /* ───────────────────────────────────────────────────────────────────────────
    ProjectStory — what the building is, and how far along it is
@@ -15,7 +15,7 @@ import { LINE_HIDDEN, LINE_SHOWN, maskLines } from '@/lib/animations/lines';
    that, whatever specifications the project carries, as plain pairs.
 
    MOTION — once, on arrival
-   · The lead is written on line by line; the body follows as a whole.
+   · The lead rises letter by letter; the body follows as a whole.
    · The percentage counts up while the bar fills to it, the same tween.
    · The specification pairs rise in.
    ─────────────────────────────────────────────────────────────────────────── */
@@ -26,6 +26,7 @@ interface ProjectStoryProps {
   /** "Delivery 2026" / "Completed 2025". */
   milestone: { label: string; value: string };
   specs: { key: string; value: string }[];
+  technicalSpecificationsHref?: string;
 }
 
 const INK = '#111111';
@@ -38,6 +39,7 @@ export default function ProjectStory({
   progress,
   milestone,
   specs,
+  technicalSpecificationsHref,
 }: ProjectStoryProps) {
   const rootRef = useRef<HTMLElement>(null);
   const [lead, ...body] = paragraphs;
@@ -57,11 +59,11 @@ export default function ProjectStory({
       ctx = gsap.context(() => {
         const q = gsap.utils.selector(root);
         const leadEl = q('[data-lead]')[0];
-        const leadSplit = leadEl ? maskLines(leadEl) : null;
+        const leadSplit = leadEl ? maskChars(leadEl) : null;
         const counter = q('[data-percent]')[0] as HTMLElement | undefined;
         const fill = q('[data-fill]')[0];
 
-        if (leadSplit) gsap.set(leadSplit.lines, { clipPath: LINE_HIDDEN });
+        if (leadSplit) gsap.set(leadSplit.chars, CHAR_HIDDEN);
         gsap.set(q('[data-body]'), { autoAlpha: 0, y: 20 });
         gsap.set(q('[data-rise]'), { autoAlpha: 0, y: 20 });
         if (fill) gsap.set(fill, { scaleX: 0, transformOrigin: '0% 50%' });
@@ -73,11 +75,7 @@ export default function ProjectStory({
         });
 
         if (leadSplit) {
-          tl.to(
-            leadSplit.lines,
-            { clipPath: LINE_SHOWN, duration: 1, ease: 'power2.inOut', stagger: 0.12 },
-            0,
-          );
+          tl.to(leadSplit.chars, riseIn(leadSplit.chars), 0);
         }
         tl.to(
           q('[data-body]'),
@@ -184,6 +182,23 @@ export default function ProjectStory({
             </div>
           ))}
         </dl>
+
+        {technicalSpecificationsHref && (
+          <div data-rise className="mt-10">
+            <a
+              href={technicalSpecificationsHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-12 items-center gap-5 text-[17px] underline decoration-[#111111]/30 underline-offset-4 transition-colors duration-300 hover:text-threshold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#111111]"
+            >
+              View technical specifications <span aria-hidden="true">↗</span>
+              <span className="sr-only">(PDF, opens in a new tab)</span>
+            </a>
+            <p className="mt-2 text-[14px]" style={{ color: MUTED }}>
+              PDF · Opens in a new tab
+            </p>
+          </div>
+        )}
       </div>
     </section>
   );

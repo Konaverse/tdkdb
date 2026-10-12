@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef } from 'react';
 import { gsap, gsapInit } from '@/lib/animations/gsap';
+import { maskChars, riseIn } from '@/lib/animations/text';
 import { cn } from '@/lib/utils/cn';
 
 type Tag = 'h1' | 'h2' | 'h3' | 'p';
@@ -22,32 +23,34 @@ export default function TextReveal({ children, tag = 'p', delay = 0, className }
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
 
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        ref.current,
-        { clipPath: 'inset(0 100% 0 0)' },
-        {
-          clipPath: 'inset(0 0% 0 0)',
-          duration: 1.0,
-          delay: delay / 1000,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: ref.current,
-            start: 'top 85%',
-            once: true,
-          },
-        },
-      );
+    let alive = true;
+    let ctx: gsap.Context | null = null;
+    document.fonts.ready.then(() => {
+      if (!alive || !ref.current) return;
+      ctx = gsap.context(() => {
+        const { split, chars } = maskChars(ref.current);
+        gsap.to(
+          chars,
+          riseIn(chars, {
+            delay: delay / 1000,
+            scrollTrigger: { trigger: ref.current, start: 'top 85%', once: true },
+            onComplete: () => split.revert(),
+          }),
+        );
+      }, ref);
     });
 
-    return () => ctx.revert();
+    return () => {
+      alive = false;
+      ctx?.revert();
+    };
   }, [delay]);
 
   const Tag = tag;
 
   return (
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    <Tag ref={ref as any} className={cn('will-change-[clip-path]', className)}>
+    <Tag ref={ref as any} className={cn(className)}>
       {children}
     </Tag>
   );

@@ -4,9 +4,12 @@ import { useLayoutEffect, useRef } from 'react';
 
 import RevealFrame from '@/components/animations/RevealFrame';
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
-import { LINE_HIDDEN, LINE_SHOWN, maskLines } from '@/lib/animations/lines';
+import { CHAR_HIDDEN, maskChars, riseIn } from '@/lib/animations/text';
 import { imageSrcSet, imageUrl } from '@/lib/sanity/image';
 import type { SanityImage } from '@/lib/sanity/types';
+import type { RequestedImage } from '@/lib/content/requested-images';
+import ImageFootnote from '@/components/ui/ImageFootnote';
+import { imageCaption } from '@/lib/content/image-captions';
 
 /* ───────────────────────────────────────────────────────────────────────────
    ProjectScenes — the renders, as four spreads rather than a gallery
@@ -22,7 +25,7 @@ import type { SanityImage } from '@/lib/sanity/types';
                   opens and closes on this same plate (D), so the two spreads
                   between them sit inside a pair.
    B · SIDE NOTE  A portrait crop over six columns; the pull quote and the
-                  features in columns 8–12, written on line by line. The
+                  features in columns 8–12, revealed letter by letter. The
                   picture drifts inside its frame.
    C · DIPTYCH    A wide plate over eight columns and a tall one over four,
                   one row, the same height. Their renders drift at different
@@ -44,6 +47,7 @@ interface ProjectScenesProps {
   images: SanityImage[];
   quote?: string;
   features?: string[];
+  interiors?: RequestedImage[];
 }
 
 const INK = '#111111';
@@ -56,7 +60,7 @@ function Render({ id, alt, sizes }: { id: SanityImage; alt: string; sizes: strin
       src={imageUrl(id, { width: 1600 })}
       srcSet={imageSrcSet(id)}
       sizes={sizes}
-      alt={alt}
+      alt={imageCaption(id, alt)}
       loading="lazy"
       decoding="async"
       className="block h-full w-full object-cover"
@@ -80,7 +84,13 @@ function Drift({ range, children }: { range: number; children: React.ReactNode }
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
 
-export default function ProjectScenes({ title, images, quote, features = [] }: ProjectScenesProps) {
+export default function ProjectScenes({
+  title,
+  images,
+  quote,
+  features = [],
+  interiors = [],
+}: ProjectScenesProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [imgA, imgB, imgC1, imgC2, imgD] = images;
   const heading = quote?.trim() || title;
@@ -136,11 +146,11 @@ export default function ProjectScenes({ title, images, quote, features = [] }: P
         /* the side note's words */
         const quoteEl = q('[data-b-quote]')[0];
         if (quoteEl) {
-          const quoteSplit = maskLines(quoteEl);
-          const featureSplits = q('[data-b-feature]').map((el) => maskLines(el));
+          const quoteSplit = maskChars(quoteEl);
+          const featureSplits = q('[data-b-feature]').map((el) => maskChars(el));
           const idx = q('[data-b-index]');
-          gsap.set([...quoteSplit.lines, ...featureSplits.flatMap((s) => s.lines)], {
-            clipPath: LINE_HIDDEN,
+          gsap.set([...quoteSplit.chars, ...featureSplits.flatMap((s) => s.chars)], {
+            ...CHAR_HIDDEN,
           });
           gsap.set(idx, { autoAlpha: 0 });
           gsap
@@ -151,15 +161,11 @@ export default function ProjectScenes({ title, images, quote, features = [] }: P
                 featureSplits.forEach((s) => s.split.revert());
               },
             })
-            .to(
-              quoteSplit.lines,
-              { clipPath: LINE_SHOWN, duration: 1, ease: 'power2.inOut', stagger: 0.13 },
-              0,
-            )
+            .to(quoteSplit.chars, riseIn(quoteSplit.chars), 0)
             .to(idx, { autoAlpha: 1, duration: 0.6, stagger: 0.12 }, 0.45)
             .to(
-              featureSplits.map((s) => s.lines),
-              { clipPath: LINE_SHOWN, duration: 0.8, ease: 'power2.inOut', stagger: 0.12 },
+              featureSplits.flatMap((s) => s.chars),
+              riseIn(featureSplits.flatMap((s) => s.chars)),
               0.5,
             );
         }
@@ -194,6 +200,7 @@ export default function ProjectScenes({ title, images, quote, features = [] }: P
                 sizes="(min-width: 1024px) 100vw, 180vw"
               />
             </div>
+            <ImageFootnote>{imageCaption(imgA, `${title} · exterior view`)}</ImageFootnote>
           </RevealFrame>
         </section>
       )}
@@ -209,6 +216,7 @@ export default function ProjectScenes({ title, images, quote, features = [] }: P
                 sizes="(min-width: 1024px) 110vw, 180vw"
               />
             </Drift>
+            <ImageFootnote>{imageCaption(imgB, `${title} · exterior elevation`)}</ImageFootnote>
           </RevealFrame>
         )}
 
@@ -259,6 +267,7 @@ export default function ProjectScenes({ title, images, quote, features = [] }: P
                   sizes="(min-width: 1024px) 70vw, 100vw"
                 />
               </Drift>
+              <ImageFootnote>{imageCaption(imgC1, `${title} · architectural view`)}</ImageFootnote>
             </RevealFrame>
           )}
           {imgC2 && (
@@ -271,8 +280,67 @@ export default function ProjectScenes({ title, images, quote, features = [] }: P
                   sizes="(min-width: 1024px) 60vw, 140vw"
                 />
               </Drift>
+              <ImageFootnote>
+                {imageCaption(imgC2, `${title} · exterior perspective`)}
+              </ImageFootnote>
             </RevealFrame>
           )}
+        </section>
+      )}
+
+      {/* Interior plates keep the irregular spread sizes and independent drift. */}
+      {interiors.length > 0 && (
+        <section
+          data-interior-gallery
+          aria-label={`${title}, apartment interiors`}
+          className="flex flex-col gap-[12svh] py-[6svh] lg:gap-[16svh]"
+        >
+          {Array.from({ length: Math.ceil(interiors.length / 2) }, (_, spread) => {
+            const layouts = [
+              ['lg:col-span-8', 'lg:col-span-3 lg:col-start-10 lg:mt-[18svh]'],
+              ['lg:col-span-5 lg:col-start-2 lg:mt-[9svh]', 'lg:col-span-6 lg:col-start-7'],
+              ['lg:col-span-7 lg:col-start-4', 'lg:col-span-4 lg:col-start-1 lg:mt-[15svh]'],
+              ['lg:col-span-6', 'lg:col-span-4 lg:col-start-9 lg:mt-[18svh]'],
+            ];
+            return (
+              <div
+                key={spread}
+                className="lg:gap-x-gutter grid grid-cols-1 gap-y-[8svh] lg:grid-cols-12"
+              >
+                {interiors.slice(spread * 2, spread * 2 + 2).map((image, index) => (
+                  <div
+                    key={image.key}
+                    data-interior-plate
+                    className={layouts[spread % layouts.length][index]}
+                  >
+                    <RevealFrame
+                      nav="dark"
+                      className={`w-full ${index === 1 && spread % 2 === 0 ? 'aspect-[4/5]' : 'aspect-[3/2]'}`}
+                    >
+                      <Drift range={index ? 10 : 5}>
+                        <img
+                          src={image.image ? imageUrl(image.image, { width: 2000 }) : image.src}
+                          srcSet={image.image ? imageSrcSet(image.image) : image.srcSet}
+                          width={image.width}
+                          height={image.height}
+                          alt={image.caption}
+                          sizes={
+                            index
+                              ? '(min-width: 1024px) 38vw, 100vw'
+                              : '(min-width: 1024px) 68vw, 100vw'
+                          }
+                          loading="lazy"
+                          decoding="async"
+                          className="block h-full w-full object-cover"
+                        />
+                      </Drift>
+                      <ImageFootnote>{image.caption}</ImageFootnote>
+                    </RevealFrame>
+                  </div>
+                ))}
+              </div>
+            );
+          })}
         </section>
       )}
 
@@ -287,6 +355,7 @@ export default function ProjectScenes({ title, images, quote, features = [] }: P
                 sizes="(min-width: 1024px) 100vw, 180vw"
               />
             </div>
+            <ImageFootnote>{imageCaption(imgD, `${title} · exterior detail`)}</ImageFootnote>
           </RevealFrame>
         </section>
       )}

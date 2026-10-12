@@ -1,0 +1,272 @@
+.footer {
+  --footer-wordmark-size: 9.6vw;
+  background: #ffffff;
+  color: #111111;
+  font-family: var(--font-josefin), sans-serif;
+}
+
+.index {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 0.9fr;
+  padding: clamp(56px, 6.6vw, 110px) 5.2vw 0;
+}
+
+.brand,
+.column {
+  min-width: 0;
+  padding-right: 22px;
+}
+
+.brandName,
+.heading {
+  display: inline-block;
+  font-size: clamp(20px, 1.7vw, 28px);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 1.2;
+}
+
+.intro {
+  margin-top: 13px;
+  color: #777777;
+  font-size: clamp(14px, 1.15vw, 18px);
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  margin-top: 24px;
+  border-radius: 0;
+  padding: 16px 32px;
+  background: var(--color-threshold);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  line-height: 1.6;
+  text-transform: uppercase;
+  transition:
+    background-color 300ms ease,
+    color 300ms ease;
+}
+
+.cta:hover {
+  background: #111111;
+}
+
+.links,
+.contact {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 18px;
+  color: #777777;
+  font-size: clamp(13px, 1.02vw, 16px);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.contact {
+  font-style: normal;
+}
+
+.address {
+  max-width: 21ch;
+  margin-top: 3px;
+}
+
+.link {
+  display: inline-block;
+  transition: color 200ms ease;
+}
+
+.link:hover,
+.social:hover,
+.brandName:hover {
+  color: var(--color-threshold);
+}
+
+.footer a:focus-visible {
+  outline: 2px solid var(--color-threshold);
+  outline-offset: 5px;
+}
+
+.cta:focus-visible {
+  outline-color: #111111;
+}
+
+.socials {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  margin-left: -5px;
+}
+
+.social {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  color: #777777;
+  transition: color 200ms ease;
+}
+
+.social svg {
+  width: 16px;
+  height: 16px;
+}
+
+.credit {
+  margin-top: 3px;
+}
+
+.art {
+  position: relative;
+  margin-top: clamp(64px, 9.8vw, 160px);
+}
+
+.wordmarkRow {
+  position: relative;
+  padding: 0 var(--page-margin) clamp(8px, 1vw, 16px);
+  background: #ffffff;
+}
+
+.wordmarkFrame {
+  width: 100%;
+}
+
+.wordmark {
+  position: relative;
+  display: inline-block;
+  width: max-content;
+  padding-top: 0.12em;
+  font-size: var(--footer-wordmark-size);
+  font-weight: 600;
+  letter-spacing: -0.065em;
+  line-height: 0.94;
+  white-space: nowrap;
+}
+
+.imageText {
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center bottom;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.photo {
+  position: relative;
+  height: clamp(240px, 26vw, 520px);
+  overflow: hidden;
+  background: #111111;
+}
+
+.image {
+  position: absolute;
+  left: var(--footer-image-x, 0px);
+  top: var(--footer-photo-y, 0px);
+  width: var(--footer-image-width, 100%);
+  height: var(--footer-image-height, 100%);
+  max-width: none;
+  object-fit: cover;
+}
+
+@media (max-width: 1023px) {
+  .index {
+    grid-template-columns: 1.8fr 1fr 1.3fr 1.2fr;
+    padding-right: var(--page-margin);
+    padding-left: var(--page-margin);
+  }
+
+  .brandName,
+  .heading {
+    font-size: 19px;
+  }
+
+  .cta {
+    padding-right: 24px;
+    padding-left: 24px;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+  }
+
+  .brand,
+  .column {
+    padding-right: 16px;
+  }
+}
+
+@media (max-width: 699px) {
+  .index {
+    grid-template-columns: 1fr 1fr;
+    gap: 36px 20px;
+    padding-top: 52px;
+  }
+
+  .brand {
+    grid-column: 1 / -1;
+  }
+
+  .brand,
+  .column {
+    padding-right: 0;
+  }
+
+  .brandName {
+    font-size: 24px;
+  }
+
+  .intro {
+    margin-top: 12px;
+    font-size: 15px;
+  }
+
+  .cta {
+    margin-top: 21px;
+    padding: 16px 32px;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+  }
+
+  .links,
+  .contact {
+    margin-top: 15px;
+    font-size: 14px;
+  }
+
+  .legal {
+    grid-column: 1 / -1;
+  }
+
+  .legal .links {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+  }
+
+  .credit {
+    margin-top: 0;
+  }
+
+  .art {
+    margin-top: 48px;
+  }
+
+  .photo {
+    height: 240px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer a {
+    transition: none;
+  }
+}

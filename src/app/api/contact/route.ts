@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { escapeHtml, mailSettings, sendEnquiry } from '@/lib/contact/delivery';
 
 // In-memory rate limiter: IP → timestamps
 const rateLimitMap = new Map<string, number[]>();
@@ -18,11 +16,11 @@ function isRateLimited(ip: string): boolean {
 }
 
 const schema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email address'),
-  phone: z.string().optional(),
-  projectType: z.string().min(1, 'Project type is required'),
-  message: z.string().min(1, 'Message is required'),
+  name: z.string().trim().min(1, 'Name is required').max(200),
+  email: z.string().trim().email('Invalid email address').max(320),
+  phone: z.string().trim().max(80).optional(),
+  projectType: z.string().trim().min(1, 'Project type is required').max(100),
+  message: z.string().trim().min(1, 'Message is required').max(10000),
   _honeypot: z.string().optional(),
 });
 
@@ -62,46 +60,49 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const toEmail = process.env.CONTACT_FORM_TO_EMAIL;
-  if (!toEmail) {
-    console.error('CONTACT_FORM_TO_EMAIL not configured');
+  const mail = mailSettings('contact');
+  if (!mail) {
+    console.error('Contact email delivery is not configured');
     return NextResponse.json(
-      { success: false, error: 'Server configuration error' },
-      { status: 500 },
+      { success: false, error: 'We could not send your message. Please try again later.' },
+      { status: 503 },
     );
   }
 
   try {
     // Send notification to TDK team
-    await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL ?? 'noreply@tdkdb.com',
-      to: toEmail,
-      subject: `New Contact: ${name} — ${projectType}`,
-      html: `
+    await sendEnquiry(
+      mail.apiKey,
+      {
+        from: mail.from,
+        to: mail.to,
+        replyTo: email,
+        subject: `New Contact: ${name} — ${projectType}`,
+        html: `
         <h2>New Contact Form Submission</h2>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phone ?? 'Not provided'}</p>
-        <p><strong>Project Type:</strong> ${projectType}</p>
+        <p><strong>Name:</strong> ${escapeHtml(name)}</p>
+        <p><strong>Email:</strong> ${escapeHtml(email)}</p>
+        <p><strong>Phone:</strong> ${escapeHtml(phone || 'Not provided')}</p>
+        <p><strong>Project Type:</strong> ${escapeHtml(projectType)}</p>
         <p><strong>Message:</strong></p>
-        <p>${message.replace(/\n/g, '<br/>')}</p>
+        <p>${escapeHtml(message).replace(/\n/g, '<br/>')}</p>
       `,
-    });
-
-    // Auto-reply to sender
-    await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL ?? 'noreply@tdkdb.com',
-      to: email,
-      subject: 'Thank you for contacting TDK Design & Build',
-      html: `
-        <p>Dear ${name},</p>
+      },
+      {
+        from: mail.from,
+        to: email,
+        replyTo: mail.to,
+        subject: 'Thank you for contacting TDK Design & Build',
+        html: `
+        <p>Dear ${escapeHtml(name)},</p>
         <p>Thank you for getting in touch with TDK Design &amp; Build.</p>
         <p>We have received your message and will respond within 1–2 business days.</p>
         <p>Best regards,<br/>TDK Design &amp; Build</p>
       `,
-    });
+      },
+    );
   } catch (err) {
-    console.error('Contact form error:', err);
+    console.error('Contact form error:', err instanceof Error ? err.message : 'Unknown mail error');
     return NextResponse.json(
       { success: false, error: 'Failed to send your message. Please try again.' },
       { status: 500 },

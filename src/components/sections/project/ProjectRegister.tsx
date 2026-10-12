@@ -4,6 +4,9 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 
 import { gsap, gsapInit } from '@/lib/animations/gsap';
+import { maskChars, riseIn } from '@/lib/animations/text';
+import TDKSelect from '@/components/forms/TDKSelect';
+import controls from '@/components/forms/FormControls.module.css';
 
 /* ───────────────────────────────────────────────────────────────────────────
    ProjectRegister — the page's last word: leave your details
@@ -12,9 +15,9 @@ import { gsap, gsapInit } from '@/lib/animations/gsap';
    very large heading on the left; on the right a short form whose fields are
    solid blocks rather than underlined lines, turning white when focused.
    Posts to /api/project-interest (validation, rate limit, Resend, Sanity
-   lead) — unchanged.
+   lead) with explicit validation and delivery error handling.
 
-   MOTION — once, on arrival: the heading slides sideways into its mask, the
+   MOTION — once, on arrival: the heading rises letter by letter through masks, the
    intro and the fields rise in.
    ─────────────────────────────────────────────────────────────────────────── */
 
@@ -28,8 +31,7 @@ interface ProjectRegisterProps {
 }
 
 const TEAL = '#66979f';
-const FIELD =
-  'block w-full bg-white/[0.14] px-5 py-4 text-[17px] font-[300] text-white outline-none transition-colors duration-300 placeholder:text-white/55 focus:bg-white focus:text-[#111111] focus:placeholder:text-[#111111]/40';
+const FIELD = controls.control;
 const LABEL = 'mb-2.5 block text-[14px] font-[400] text-white/80';
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
@@ -44,6 +46,7 @@ export default function ProjectRegister({
   const rootRef = useRef<HTMLElement>(null);
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<'name' | 'email', string>>>({});
 
   useLayoutEffect(() => {
     gsapInit();
@@ -52,13 +55,12 @@ export default function ProjectRegister({
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const ctx = gsap.context(() => {
-      const words = gsap.utils.toArray<HTMLElement>('[data-word]');
+      const words = maskChars(gsap.utils.toArray<HTMLElement>('[data-word]')).chars;
       const rise = gsap.utils.toArray<HTMLElement>('[data-rise]');
-      gsap.set(words, { xPercent: -104, x: 0 });
       gsap.set(rise, { autoAlpha: 0, y: 24 });
       gsap
         .timeline({ scrollTrigger: { trigger: root, start: 'top 80%', once: true } })
-        .to(words, { xPercent: 0, x: 0, duration: 1.3, ease: 'power4.out', stagger: 0.09 }, 0)
+        .to(words, riseIn(words), 0)
         .to(rise, { autoAlpha: 1, y: 0, duration: 0.9, ease: 'power3.out', stagger: 0.07 }, 0.35);
     }, root);
 
@@ -67,11 +69,30 @@ export default function ProjectRegister({
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (status === 'sending') return;
     const form = e.currentTarget;
-    if (!form.reportValidity()) return;
-
-    const field = (name: string) =>
-      (form.elements.namedItem(name) as HTMLInputElement | null)?.value ?? '';
+    const fields = new FormData(form);
+    const field = (name: string) => String(fields.get(name) ?? '').trim();
+    const data = {
+      name: field('name'),
+      email: field('email'),
+      phone: field('phone'),
+      unitPreference: field('unitPreference'),
+      message: field('message'),
+      projectSlug,
+      projectName,
+      _honeypot: field('_honeypot'),
+    };
+    const next: Partial<Record<'name' | 'email', string>> = {};
+    if (!data.name) next.name = 'Please tell us your name.';
+    if (!data.email) next.email = 'Please leave an email address.';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))
+      next.email = 'Please enter a valid email address.';
+    setFieldErrors(next);
+    if (Object.keys(next).length) {
+      form.querySelector<HTMLElement>(`[name="${Object.keys(next)[0]}"]`)?.focus();
+      return;
+    }
 
     setStatus('sending');
     setError('');
@@ -79,25 +100,20 @@ export default function ProjectRegister({
       const res = await fetch('/api/project-interest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: field('name'),
-          email: field('email'),
-          phone: field('phone'),
-          unitPreference: field('unitPreference'),
-          message: field('message'),
-          projectSlug,
-          projectName,
-          _honeypot: field('_honeypot'),
-        }),
+        body: JSON.stringify(data),
       });
       const json = await res.json().catch(() => ({}));
-      if (json.success) {
+      if (res.ok && json.success) {
         setStatus('sent');
-        (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag?.(
-          'event',
-          'project_interest_submit',
-          { project_slug: projectSlug, unit_preference: field('unitPreference') },
-        );
+        try {
+          (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag?.(
+            'event',
+            'project_interest_submit',
+            { project_slug: projectSlug, unit_preference: data.unitPreference },
+          );
+        } catch {
+          console.warn('Enquiry submitted; analytics event unavailable.');
+        }
       } else {
         setStatus('error');
         setError(json.error || 'Something went wrong. Please try again.');
@@ -114,7 +130,7 @@ export default function ProjectRegister({
       id="register-interest"
       data-nav="dark"
       aria-labelledby="register-heading"
-      className="px-page lg:gap-x-gutter relative grid min-h-svh gap-16 pb-[14svh] pt-[16svh] text-white lg:grid-cols-12"
+      className={`${controls.teal} px-page lg:gap-x-gutter relative grid min-h-svh gap-16 pb-[14svh] pt-[16svh] text-white lg:grid-cols-12`}
       style={{ background: TEAL, fontFamily: 'var(--font-josefin)' }}
     >
       <div className="lg:col-span-5">
@@ -152,7 +168,13 @@ export default function ProjectRegister({
             </p>
           </div>
         ) : (
-          <form onSubmit={onSubmit} noValidate className="grid gap-x-5 gap-y-7 sm:grid-cols-2">
+          <form
+            onSubmit={onSubmit}
+            noValidate
+            aria-label={`Register interest in ${projectName}`}
+            aria-busy={status === 'sending'}
+            className="grid gap-x-5 gap-y-7 sm:grid-cols-2"
+          >
             <input
               type="text"
               name="_honeypot"
@@ -166,76 +188,111 @@ export default function ProjectRegister({
               <label htmlFor="ri-name" className={LABEL}>
                 Name
               </label>
-              <input id="ri-name" name="name" required autoComplete="name" className={FIELD} />
+              <div className={controls.shell}>
+                <input
+                  id="ri-name"
+                  name="name"
+                  required
+                  maxLength={200}
+                  autoComplete="name"
+                  aria-invalid={!!fieldErrors.name}
+                  aria-describedby={fieldErrors.name ? 'ri-name-error' : undefined}
+                  className={FIELD}
+                />
+              </div>
+              {fieldErrors.name && (
+                <p id="ri-name-error" className="mt-2 text-[13px] text-white">
+                  {fieldErrors.name}
+                </p>
+              )}
             </div>
             <div data-rise>
               <label htmlFor="ri-email" className={LABEL}>
                 Email
               </label>
-              <input
-                id="ri-email"
-                name="email"
-                type="email"
-                required
-                autoComplete="email"
-                className={FIELD}
-              />
+              <div className={controls.shell}>
+                <input
+                  id="ri-email"
+                  name="email"
+                  type="email"
+                  required
+                  maxLength={320}
+                  autoComplete="email"
+                  aria-invalid={!!fieldErrors.email}
+                  aria-describedby={fieldErrors.email ? 'ri-email-error' : undefined}
+                  className={FIELD}
+                />
+              </div>
+              {fieldErrors.email && (
+                <p id="ri-email-error" className="mt-2 text-[13px] text-white">
+                  {fieldErrors.email}
+                </p>
+              )}
             </div>
             <div data-rise>
               <label htmlFor="ri-phone" className={LABEL}>
                 Phone <span className="text-white/55">(optional)</span>
               </label>
-              <input id="ri-phone" name="phone" type="tel" autoComplete="tel" className={FIELD} />
+              <div className={controls.shell}>
+                <input
+                  id="ri-phone"
+                  name="phone"
+                  type="tel"
+                  maxLength={80}
+                  autoComplete="tel"
+                  className={FIELD}
+                />
+              </div>
             </div>
             <div data-rise>
               <label htmlFor="ri-pref" className={LABEL}>
                 Interested in
               </label>
-              <select
+              <TDKSelect
                 id="ri-pref"
                 name="unitPreference"
-                defaultValue=""
-                className={`${FIELD} appearance-none bg-[length:12px] bg-[right_20px_center] bg-no-repeat`}
-                style={{
-                  backgroundImage:
-                    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='white' stroke-width='1.2'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E\")",
-                }}
-              >
-                <option value="" className="text-[#111111]">
-                  Any residence
-                </option>
-                {preferences.map((p) => (
-                  <option key={p} value={p} className="text-[#111111]">
-                    {p}
-                  </option>
-                ))}
-              </select>
+                label="Interested in"
+                placeholder="Any residence"
+                options={[
+                  { value: '', label: 'Any residence' },
+                  ...preferences.map((value) => ({ value, label: value })),
+                ]}
+              />
             </div>
             <div data-rise className="sm:col-span-2">
               <label htmlFor="ri-message" className={LABEL}>
                 Message <span className="text-white/55">(optional)</span>
               </label>
-              <textarea
-                id="ri-message"
-                name="message"
-                rows={4}
-                className={`${FIELD} resize-none`}
-              />
+              <div className={controls.shell}>
+                <textarea
+                  id="ri-message"
+                  name="message"
+                  rows={4}
+                  maxLength={10000}
+                  className={`${FIELD} resize-none`}
+                />
+              </div>
             </div>
 
             <div
               data-rise
               className="flex flex-col-reverse items-start gap-5 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between"
             >
-              <p aria-live="polite" className="text-[15px] text-white">
+              <p
+                role={status === 'error' ? 'alert' : undefined}
+                aria-live="polite"
+                className="text-[15px] text-white"
+              >
                 {status === 'error' ? error : ''}
               </p>
               <button
                 type="submit"
                 disabled={status === 'sending'}
-                className="bg-white px-10 py-5 text-[13px] font-[600] uppercase tracking-[0.2em] text-[#111111] transition-colors duration-300 hover:bg-[#111111] hover:text-white disabled:opacity-60"
+                className="inline-flex min-h-12 items-center justify-center bg-white px-10 py-5 text-[13px] font-[600] uppercase tracking-[0.2em] text-[#111111] transition-colors duration-300 hover:bg-[#111111] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:opacity-60"
               >
-                {status === 'sending' ? 'Sending' : 'Register interest'}
+                <span className="button-label">
+                  {status === 'sending' ? 'Sending' : 'Register interest'}
+                </span>
               </button>
             </div>
           </form>

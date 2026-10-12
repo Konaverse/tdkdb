@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:forms": "node tools/check-form-delivery.cjs"
   },
   "dependencies": {
     "@sanity/client": "^7.16.0",

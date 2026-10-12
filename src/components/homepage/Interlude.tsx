@@ -3,82 +3,33 @@
 import { useLayoutEffect, useRef } from 'react';
 
 import { gsap, gsapInit, ScrollTrigger, SplitText } from '@/lib/animations/gsap';
+import { CHAR_HIDDEN, maskChars, riseIn } from '@/lib/animations/text';
 import { imageUrl } from '@/lib/sanity/image';
 import type { SanityImage } from '@/lib/sanity/types';
+import InterludeGlass, { GLASS_INSETS } from './InterludeGlass';
+import styles from './Interlude.module.css';
 
-/* ───────────────────────────────────────────────────────────────────────────
-   Interlude — the kitchen, then "We House Your Dream"
-
-   Sept 2026 boards: "interlude first state.png" → "interlude second state.png".
-
-   THE STORY
-   State A: the Armonia kitchen render full bleed, dimmed, with a row of three
-   beat titles across the upper third. The active title is white; the ones
-   waiting to its right sit back at low strength. Each beat carries two
-   right-aligned paragraphs.
-
-   State B: when the beats are spent, the render shrinks to a centred frame on
-   white, the camera pulling back as it goes, and uncovers a giant teal
-   "TDK DESIGN & BUILD", wider than the screen, drifting from one edge to the
-   other and back on its own. "We House / Your Dream"
-   slides in over the frame's top edge and its paragraph is written on below.
-
-   THE MOTION, AND WHY
-   · Entrance (one-shot, on arrival): every title word slides sideways into
-     its own mask, the hero's letter reveal; then the first beat's lines are
-     written on left to right, the hero's paragraph reveal. The section
-     introduces itself the way the page began.
-   · Title to title (scrubbed): a long, soft power3.inOut glide. The incoming
-     title trails the row a little and settles into place; the outgoing one
-     drifts ahead as it dims. The row feels carried, not dragged.
-   · Paragraphs (scrubbed): the outgoing lines are wiped away left to right,
-     one after another; the incoming lines are written on in the same
-     direction, starting as the last outgoing line clears. One continuous
-     sweep of the pen, never a cross-fade of two blocks.
-   · Shrink (scrubbed): scale + clip to the frame, a slow zoom-out inside it,
-     the dim lifting.
-   · Wordmark (time-based, not scroll): at the board's size, reading
-     "TDK DESIGN & BUILD", it glides on its own from its first letter on the
-     left edge to its last letter on the right edge and back, forever, and
-     only runs while the section is on screen.
-   · Parallax: the photograph drifts on its own node and trigger throughout.
-
-   THE LAYERS (one node, one writer per property — gsap-transform-pitfalls)
-     [data-shrink]  scale, y           timeline
-       [data-clip]  clip-path          timeline
-         [data-zoom]      scale        timeline
-           [data-parallax] yPercent    parallax trigger
-         [data-dim]       opacity      timeline
-     [data-title]        opacity, x    timeline
-       [data-word]       xPercent      entrance
-     line mask (SplitText) clip-path   entrance (first beat only)
-       line              clip-path     timeline
-     [data-wordmark]     x             its own endless tween (the wrapper owns the
-                                       vertical centring translate)
-     [data-dream-line]   xPercent      timeline
-
-   GEOMETRY
-   The final frame is a real, invisible element, [data-frame-target], sized
-   and placed in CSS from --fw / --fh / --fy. Its box drives the shrink as
-   function values. The heading, the paragraph and the wordmark are placed
-   from the same variables, so the composition cannot drift apart.
-
-   BELOW lg there is no pin and no state B: the render is a sticky backdrop
-   and the three beats stack vertically over it, each revealed once as it
-   arrives. build() picks the version from DESKTOP_QUERY and is re-run when
-   the width changes, so crossing the breakpoint swaps them cleanly.
-
-   Everything is built after the fonts land (SplitText needs final line
-   breaks) and rebuilt when the width changes. Pixel twins are pinned on
-   every percentage transform because of invalidateOnRefresh (pitfall #3).
-   ─────────────────────────────────────────────────────────────────────────── */
+/**
+ * Interlude: three beats over the full-bleed kitchen, then a centered image
+ * with WE HOUSE to its left, YOUR DREAM to its right, and the original copy
+ * below. Three nested clear-glass panes open inward, each from its parent's
+ * settled edges, and finish before the pullback visually settles. Their rim
+ * samples follow the real image crop, camera zoom and parallax; the faces
+ * stay transparent.
+ *
+ * One pinned GSAP timeline owns the image scale, clip, glass insets and
+ * masked text reveals. Parallax has its own node and trigger. Everything
+ * reverses with scroll; the CSS target drives sizing on refresh. Below lg
+ * retain the existing vertical beats and sticky photo, without a pin.
+ * Context cleanup restores the markup and removes image listeners on resize
+ * and navigation. Reduced motion removes the letter and glass entrances.
+ */
 
 /** The pinned, two-state interlude runs from lg up. Below it (phones and
     portrait tablets) scrolling vertically to move content sideways reads
     badly, so the section is a plain vertical stack of the first state. */
 const DESKTOP_QUERY = '(min-width: 1024px)';
 
-const TEAL = 'var(--color-threshold, #66979f)';
 const INK = '#111111';
 
 interface Beat {
@@ -105,11 +56,9 @@ const BEATS: Beat[] = [
   },
 ];
 
-const DREAM = ['We House', 'Your Dream'];
+const DREAM = ['WE HOUSE', 'YOUR DREAM'];
 const DREAM_COPY =
   'From the first sketch to the handed keys, one team designs and builds your home, so the residence you imagined is the one you move into.';
-
-const WORDMARK = 'TDK DESIGN & BUILD';
 
 /* Title strengths. */
 const WAITING = 0.38;
@@ -123,10 +72,11 @@ const DIM_B = 0.24;
 const HOLD_FIRST = 0.45;
 const GLIDE = 1.3;
 const HOLD = 0.5;
-const SHRINK = 1.6;
+const SHRINK = 2.2;
 const HOLD_LAST = 0.55;
-/** Seconds for one edge-to-edge pass of the wordmark. */
-const WORDMARK_GLIDE = 18;
+const GLASS_START = 0.4;
+const GLASS_END = 0.78;
+const GLASS_OPEN = (SHRINK * (GLASS_END - GLASS_START)) / GLASS_INSETS.length;
 
 /* Line clip states. */
 const LINE_ON = 'inset(0% 0% 0% 0%)';
@@ -149,28 +99,16 @@ export default function Interlude({ image }: { image?: SanityImage }) {
     let alive = true;
 
     /* ── below lg: no pin, no second state. Each beat reveals once as it
-       arrives: title words slide into their masks, lines are written on. ── */
+       arrives: titles and copy rise letter by letter through masks. ── */
     const buildMobile = () => {
       if (reduced) return;
       gsap.utils.toArray<HTMLElement>('[data-m-beat]', scope).forEach((beat) => {
-        const words = beat.querySelectorAll('[data-m-word]');
-        const masks = Array.from(beat.querySelectorAll<HTMLElement>('[data-m-copy]')).flatMap(
-          (p) => {
-            const s = SplitText.create(p, { type: 'lines', mask: 'lines' });
-            gsap.set(s.masks, { width: 'fit-content', marginRight: 'auto' });
-            return s.masks as HTMLElement[];
-          },
-        );
-        gsap.set(words, { xPercent: -104, x: 0 });
-        gsap.set(masks, { clipPath: LINE_BEFORE });
+        const words = maskChars(beat.querySelectorAll('[data-m-word]')).chars;
+        const copy = maskChars(beat.querySelectorAll('[data-m-copy]')).chars;
         gsap
           .timeline({ scrollTrigger: { trigger: beat, start: 'top 82%', once: true } })
-          .to(words, { xPercent: 0, x: 0, duration: 1.25, ease: 'power4.out', stagger: 0.1 })
-          .to(
-            masks,
-            { clipPath: LINE_ON, duration: 0.8, ease: 'power2.inOut', stagger: 0.1 },
-            0.35,
-          );
+          .to(words, riseIn(words))
+          .to(copy, riseIn(copy), 0.25);
       });
     };
 
@@ -193,8 +131,95 @@ export default function Interlude({ image }: { image?: SanityImage }) {
         const target = one('[data-frame-target]');
         const titles = q('[data-title]') as HTMLElement[];
         const words = q('[data-word]') as HTMLElement[];
-        const wordmark = one('[data-wordmark]');
-        const dreamLines = q('[data-dream-line]') as HTMLElement[];
+        const glassBounds = one('[data-glass-bounds]');
+        const panes = q('[data-glass-pane]') as HTMLElement[];
+        const rims = q('[data-glass-rim]') as HTMLCanvasElement[];
+        const optics = rims.map((rim) => rim.getContext('2d'));
+        const photograph = parallax.querySelector('img') as HTMLImageElement;
+        const dreamHeading = one('[data-dream-heading]');
+        const dreamLines = maskChars(q('[data-dream-line]')).chars;
+
+        // Sample the actual cover crop, camera zoom and parallax. Read every
+        // box first. Four narrow stretched crops recreate inward refraction
+        // without filtering or repainting multiple full-size photographs.
+        const syncGlass = () => {
+          if (!photograph.naturalWidth || Number(gsap.getProperty(panes[0], 'opacity')) === 0)
+            return;
+          const photoBox = photograph.getBoundingClientRect();
+          const boxes = panes.map((pane) => pane.getBoundingClientRect());
+          if (boxes[0].bottom < 0 || boxes[0].top > window.innerHeight) return;
+          const scale = Number(gsap.getProperty(shrink, 'scaleX')) || 1;
+          const cover = Math.max(
+            photoBox.width / photograph.naturalWidth,
+            photoBox.height / photograph.naturalHeight,
+          );
+          const width = photograph.naturalWidth * cover;
+          const height = photograph.naturalHeight * cover;
+          const x = photoBox.left + (photoBox.width - width) / 2;
+          const y = photoBox.top + (photoBox.height - height) / 2;
+          const darkness = Number(gsap.getProperty(dim, 'opacity'));
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          panes.forEach((pane, i) => {
+            const optical = optics[i];
+            if (!optical || Number(gsap.getProperty(pane, 'opacity')) === 0) return;
+            const { width: w, height: h, left, top } = boxes[i];
+            const rim = rims[i];
+            const pixelW = Math.ceil(w * dpr);
+            const pixelH = Math.ceil(h * dpr);
+            if (rim.width !== pixelW) rim.width = pixelW;
+            if (rim.height !== pixelH) rim.height = pixelH;
+            optical.setTransform(pixelW / w, 0, 0, pixelH / h, 0, 0);
+            optical.clearRect(0, 0, w, h);
+            const bevel = Math.min(24 * scale, w / 4, h / 4);
+            const bend = bevel * 0.75;
+            const radius = Math.min(32 * scale, w / 2, h / 2);
+            optical.save();
+            optical.beginPath();
+            optical.roundRect(0, 0, w, h, radius);
+            optical.clip();
+            const draw = (
+              dx: number,
+              dy: number,
+              dw: number,
+              dh: number,
+              sx: number,
+              sy: number,
+              sw: number,
+              sh: number,
+            ) => {
+              optical.drawImage(
+                photograph,
+                (left - x + sx) / cover,
+                (top - y + sy) / cover,
+                sw / cover,
+                sh / cover,
+                dx,
+                dy,
+                dw,
+                dh,
+              );
+            };
+            draw(0, 0, w, bevel, 0, bend, w, bevel - bend);
+            draw(0, h - bevel, w, bevel, 0, h - bevel, w, bevel - bend);
+            draw(0, bevel, bevel, h - bevel * 2, bend, bevel, bevel - bend, h - bevel * 2);
+            draw(
+              w - bevel,
+              bevel,
+              bevel,
+              h - bevel * 2,
+              w - bevel,
+              bevel,
+              bevel - bend,
+              h - bevel * 2,
+            );
+            // Darken only painted pixels; the transparent face stays untouched.
+            optical.globalCompositeOperation = 'source-atop';
+            optical.fillStyle = `rgba(0, 0, 0, ${darkness})`;
+            optical.fillRect(0, 0, w, h);
+            optical.restore();
+          });
+        };
+        photograph.addEventListener('load', syncGlass);
 
         /* ── split the copy into lines, each in its own mask ── */
         const splitCopy = (p: HTMLElement, align: 'right' | 'center') => {
@@ -204,7 +229,7 @@ export default function Interlude({ image }: { image?: SanityImage }) {
             marginLeft: 'auto',
             marginRight: align === 'center' ? 'auto' : 0,
           });
-          return s;
+          return { ...s, chars: maskChars(s.lines).chars };
         };
         const beatCopy = BEATS.map((_, i) => {
           const lead = splitCopy(one(`[data-lead="${i}"]`), 'right');
@@ -212,10 +237,12 @@ export default function Interlude({ image }: { image?: SanityImage }) {
           return {
             lines: [...lead.lines, ...aside.lines] as HTMLElement[],
             masks: [...lead.masks, ...aside.masks] as HTMLElement[],
+            chars: [...lead.chars, ...aside.chars],
           };
         });
         const dreamSplit = splitCopy(one('[data-dream-copy]'), 'center');
         const dreamCopyLines = dreamSplit.lines as HTMLElement[];
+        const dreamCopyChars = dreamSplit.chars;
 
         /* ── geometry, read inside function values only ── */
         const vw = () => pinEl.clientWidth;
@@ -240,15 +267,23 @@ export default function Interlude({ image }: { image?: SanityImage }) {
         beatCopy.forEach((b, i) =>
           gsap.set(b.lines, { clipPath: i === 0 ? LINE_ON : LINE_BEFORE }),
         );
+        beatCopy.forEach((b, i) => gsap.set(b.chars, { yPercent: i === 0 || reduced ? 0 : 135 }));
         gsap.set(dreamCopyLines, { clipPath: LINE_BEFORE });
-        gsap.set(dreamLines, { xPercent: -101, x: 0 });
+        if (reduced) gsap.set([...dreamLines, ...dreamCopyChars], { yPercent: 0 });
+        if (reduced) gsap.set(dreamHeading, { autoAlpha: 0 });
         gsap.set(dim, { opacity: DIM_A });
         gsap.set(zoom, { scale: 1.1 });
+        panes.forEach((pane, i) => {
+          gsap.set(pane, {
+            autoAlpha: 0,
+            '--glass-inset': `${i ? GLASS_INSETS[i - 1] : 0}%`,
+          });
+        });
 
         /* ── entrance: once, on arrival ── */
         if (!reduced && !entered) {
-          gsap.set(words, { xPercent: -104, x: 0 });
-          gsap.set(beatCopy[0].masks, { clipPath: LINE_BEFORE });
+          const titleChars = maskChars(words).chars;
+          gsap.set(beatCopy[0].chars, CHAR_HIDDEN);
           gsap
             .timeline({
               scrollTrigger: {
@@ -260,18 +295,8 @@ export default function Interlude({ image }: { image?: SanityImage }) {
                 },
               },
             })
-            .to(words, {
-              xPercent: 0,
-              x: 0,
-              duration: 1.45,
-              ease: 'power4.out',
-              stagger: 0.11,
-            })
-            .to(
-              beatCopy[0].masks,
-              { clipPath: LINE_ON, duration: 0.9, ease: 'power2.inOut', stagger: 0.14 },
-              0.6,
-            );
+            .to(titleChars, riseIn(titleChars))
+            .to(beatCopy[0].chars, riseIn(beatCopy[0].chars), 0.35);
         }
 
         /* ── the pinned, scrubbed timeline ── */
@@ -279,6 +304,7 @@ export default function Interlude({ image }: { image?: SanityImage }) {
           // Chained fromTo tweens share nodes: none may stamp its start value
           // at creation, or it overwrites the rest state above.
           defaults: { ease: 'none', immediateRender: false },
+          onUpdate: syncGlass,
         });
 
         let at = HOLD_FIRST;
@@ -324,7 +350,7 @@ export default function Interlude({ image }: { image?: SanityImage }) {
             at + GLIDE * 0.3,
           );
 
-          // The pen: outgoing lines wiped away, incoming lines written on.
+          // Outgoing lines wipe away; incoming letters rise through masks.
           const outLines = beatCopy[k].lines;
           const inLines = beatCopy[k + 1].lines;
           const wipeOut = 0.42;
@@ -336,11 +362,13 @@ export default function Interlude({ image }: { image?: SanityImage }) {
             at + 0.05,
           );
           const outEnd = at + 0.05 + wipeOut + outStagger * (outLines.length - 1);
+          const copyAt = Math.min(outEnd - 0.08, at + GLIDE * 0.62);
+          tl.set(inLines, { clipPath: LINE_ON }, copyAt);
           tl.fromTo(
-            inLines,
-            { clipPath: LINE_BEFORE },
-            { clipPath: LINE_ON, duration: 0.5, ease: 'power2.out', stagger: 0.085 },
-            Math.min(outEnd - 0.08, at + GLIDE * 0.62),
+            beatCopy[k + 1].chars,
+            { yPercent: reduced ? 0 : 135, y: 0 },
+            riseIn(beatCopy[k + 1].chars, { duration: 0.5, stagger: { amount: 0.2 } }),
+            copyAt,
           );
 
           at += GLIDE + HOLD;
@@ -414,19 +442,57 @@ export default function Interlude({ image }: { image?: SanityImage }) {
           shrinkAt,
         );
 
-        // "We House / Your Dream" slides in; its paragraph is written on.
-        const dreamAt = shrinkAt + SHRINK * 0.62;
+        // The optical frames share the photograph's current clipped bounds.
         tl.fromTo(
-          dreamLines,
-          { xPercent: -101, x: 0 },
-          { xPercent: 0, x: 0, duration: 0.9, ease: 'power3.out', stagger: 0.16 },
-          dreamAt,
+          glassBounds,
+          { left: '0%', right: '0%', top: '0%', bottom: '0%' },
+          {
+            left: () => `${fit().insetX}%`,
+            right: () => `${fit().insetX}%`,
+            top: () => `${fit().insetY}%`,
+            bottom: () => `${fit().insetY}%`,
+            duration: SHRINK,
+            ease: 'power3.inOut',
+          },
+          shrinkAt,
         );
+        const glassAt = shrinkAt + SHRINK * GLASS_START;
+        tl.addLabel('glassStart', glassAt);
+        panes.forEach((pane, i) => {
+          const openAt = glassAt + i * GLASS_OPEN;
+          if (reduced) {
+            tl.set(
+              pane,
+              { autoAlpha: 1, '--glass-inset': `${GLASS_INSETS[i]}%` },
+              shrinkAt + SHRINK,
+            );
+          } else {
+            tl.fromTo(pane, { autoAlpha: 0 }, { autoAlpha: 1, duration: 0.07 }, openAt);
+            tl.fromTo(
+              pane,
+              { '--glass-inset': `${i ? GLASS_INSETS[i - 1] : 0}%` },
+              {
+                '--glass-inset': `${GLASS_INSETS[i]}%`,
+                duration: GLASS_OPEN,
+                ease: 'power2.inOut',
+              },
+              openAt,
+            );
+          }
+        });
+        tl.addLabel('glassSettled', shrinkAt + SHRINK * GLASS_END);
+        tl.addLabel('imageSettled', shrinkAt + SHRINK);
+
+        // "We House / Your Dream" and its copy rise letter by letter.
+        const dreamAt = shrinkAt + SHRINK * 0.62;
+        if (reduced) tl.set(dreamHeading, { autoAlpha: 1 }, dreamAt);
+        tl.fromTo(dreamLines, { yPercent: reduced ? 0 : 135, y: 0 }, riseIn(dreamLines), dreamAt);
+        tl.set(dreamCopyLines, { clipPath: LINE_ON }, dreamAt + 0.3);
         tl.fromTo(
-          dreamCopyLines,
-          { clipPath: LINE_BEFORE },
-          { clipPath: LINE_ON, duration: 0.55, ease: 'power2.inOut', stagger: 0.1 },
-          dreamAt + 0.45,
+          dreamCopyChars,
+          { yPercent: reduced ? 0 : 135, y: 0 },
+          riseIn(dreamCopyChars),
+          dreamAt + 0.3,
         );
 
         tl.to({}, { duration: HOLD_LAST });
@@ -450,6 +516,7 @@ export default function Interlude({ image }: { image?: SanityImage }) {
               yPercent: 7,
               y: 0,
               ease: 'none',
+              onUpdate: syncGlass,
               scrollTrigger: {
                 trigger: scope,
                 start: 'top bottom',
@@ -461,40 +528,10 @@ export default function Interlude({ image }: { image?: SanityImage }) {
           );
         }
 
-        /* ── the wordmark: its own clock, not the scroll ──
-           A slow glide from the first letter on the left edge to the last
-           letter on the right edge, and back, forever. It runs only while the
-           section is on screen. */
-        if (!reduced) {
-          // The last letter carries trailing tracking; it is not ink.
-          const travel = () => {
-            const trailing = parseFloat(getComputedStyle(wordmark).fontSize) * 0.04;
-            return Math.max(0, wordmark.scrollWidth - trailing - vw() * (1 - 2 * 0.009));
-          };
-          const drift = gsap.fromTo(
-            wordmark,
-            { x: 0, xPercent: 0 },
-            {
-              x: () => -travel(),
-              xPercent: 0,
-              duration: WORDMARK_GLIDE,
-              ease: 'sine.inOut',
-              repeat: -1,
-              yoyo: true,
-              paused: true,
-            },
-          );
-          ScrollTrigger.create({
-            trigger: scope,
-            start: 'top bottom',
-            end: 'bottom top',
-            onToggle: (self) => (self.isActive ? drift.play() : drift.pause()),
-          });
-        }
-
         if (process.env.NODE_ENV !== 'production') {
           (window as unknown as { __interludeTl?: gsap.core.Timeline }).__interludeTl = tl;
         }
+        return () => photograph.removeEventListener('load', syncGlass);
       }, scope);
 
       // This pin can be created after the triggers below it; put them back in
@@ -533,6 +570,7 @@ export default function Interlude({ image }: { image?: SanityImage }) {
 
   return (
     <section
+      id="interlude"
       data-nav="light"
       ref={rootRef}
       aria-label="We house your dream"
@@ -594,27 +632,8 @@ export default function Interlude({ image }: { image?: SanityImage }) {
       {/* ── lg and up: the pinned two-state interlude ── */}
       <div
         ref={pinRef}
-        className="relative hidden h-svh w-full overflow-hidden [--fh:calc(var(--fw)*1.05)] [--fw:84vw] [--fy:2svh] lg:block lg:[--fh:calc(var(--fw)*9/16)] lg:[--fw:39.5vw] lg:[--fy:4svh]"
+        className="relative hidden h-svh w-full overflow-hidden [--fh:calc(var(--fw)*1.05)] [--fw:84vw] [--fy:2svh] lg:block lg:[--fh:calc(var(--fw)*9/16)] lg:[--fw:min(39.5vw,78svh)] lg:[--fy:4svh]"
       >
-        {/* ── State B, behind: the wordmark ── */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 -translate-y-1/2 select-none px-[0.9vw] font-[300] uppercase leading-none"
-          style={{
-            color: TEAL,
-            fontSize: '15.5vw',
-            top: 'calc(50% + var(--fy))',
-            marginTop: '2.3vw',
-          }}
-        >
-          <div
-            data-wordmark
-            className="w-max whitespace-nowrap tracking-[0.04em] will-change-transform"
-          >
-            {WORDMARK}
-          </div>
-        </div>
-
         {/* The frame the render shrinks to. Invisible; measured. */}
         <div
           data-frame-target
@@ -641,6 +660,7 @@ export default function Interlude({ image }: { image?: SanityImage }) {
               </div>
             </div>
             <div data-dim className="absolute inset-0" style={{ background: '#000000' }} />
+            <InterludeGlass />
           </div>
         </div>
 
@@ -690,18 +710,10 @@ export default function Interlude({ image }: { image?: SanityImage }) {
           ))}
         </div>
 
-        {/* ── State B, in front: heading over the frame's top edge, copy below ── */}
-        <h2
-          className="pointer-events-none absolute inset-x-0 text-center font-[300] leading-[1.02] tracking-[0.01em]"
-          style={{
-            fontSize: 'clamp(40px, min(6.4vw, 10.5svh), 124px)',
-            // Bottom of the heading sits a fifth of an em INTO the frame: it
-            // may overlap the render, it may never run off the top.
-            bottom: 'calc(50% - var(--fy) + var(--fh) / 2 - 0.2em)',
-          }}
-        >
+        {/* ── State B: heading on either side of the image, copy below ── */}
+        <h2 data-dream-heading aria-label="We house your dream" className={styles.dreamHeading}>
           {DREAM.map((line) => (
-            <span key={line} className="mx-auto block w-fit overflow-hidden pb-[0.06em]">
+            <span key={line} className={styles.dreamSide}>
               <span data-dream-line className="block will-change-transform">
                 {line}
               </span>

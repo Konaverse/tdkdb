@@ -1,7 +1,8 @@
 import FooterClient from './FooterClient';
-import { getSiteImages, getSiteSettings } from '@/lib/sanity/queries';
+import { getSiteSettings } from '@/lib/sanity/queries';
+import footerBackdrop from '../../../public/images/footer-modular-sunset.jpg';
 
 export default async function Footer() {
-  const [settings, images] = await Promise.all([getSiteSettings(), getSiteImages()]);
-  return <FooterClient settings={settings} backdrop={images['footer-backdrop']} />;
+  const settings = await getSiteSettings();
+  return <FooterClient settings={settings} backdrop={footerBackdrop} />;
 }

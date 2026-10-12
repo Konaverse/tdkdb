@@ -2,6 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+Read `MEMORY.md` first for the latest user decisions, completed work, verification
+and external limitations. `HANDOFF.md` points to the current continuation documents.
+
 ## Commands
 
 ```bash
@@ -9,13 +12,16 @@ pnpm dev          # Start development server
 pnpm build        # Production build
 pnpm start        # Start production server
 pnpm lint         # ESLint (next lint + prettier)
+pnpm test:forms   # Isolated enquiry delivery checks; no external emails
 ```
 
-No test suite is configured. There is no single-test command.
+`tools/check-form-delivery.cjs` exercises the real enquiry handlers with isolated
+mail and CMS substitutes. Browser QA helpers are local, ignored files under `.tmp/`.
 
 ## Architecture Overview
 
-This is the **TDK Design & Build** website — a real estate developer in Greece. It is a Next.js 14 App Router project with TypeScript, Tailwind CSS, Sanity CMS, and Cloudinary. Deployed to Vercel.
+This is the **TDK Design & Build** website — a residential developer in Cyprus.
+It uses Next.js 14 App Router, TypeScript, Tailwind CSS and Sanity CMS.
 
 ### Routing
 
@@ -39,7 +45,7 @@ along with their Sanity schemas. Do not reintroduce them without being asked.
 
 All Sanity reads happen in **Server Components** using the public `client` from `src/lib/sanity/client.ts`. The `serverClient` (token-bearing) is **only** for API routes. GROQ queries go in `src/lib/sanity/queries.ts`; return types in `src/lib/sanity/types.ts`.
 
-All images are **Sanity image fields**, uploaded in the Studio (Cloudinary was removed in Sept 2026). Build URLs with `imageUrl()` / `imageSrcSet()` and the presets in `src/lib/sanity/image.ts`, and render plain `<img>` tags, not `next/image`. Photographs the DESIGN asks for by name (About's plates, the interlude, the footer backdrop) are `siteImage` documents keyed by slug: a server component fetches `getSiteImages()` and passes them down — never hardcode an image in a component. `next/image` is only for local static assets in `/public/` (the hero plates, the logo).
+CMS images are **Sanity image fields**, uploaded in the Studio (Cloudinary was removed in Sept 2026). Build URLs with `imageUrl()` / `imageSrcSet()` and the presets in `src/lib/sanity/image.ts`, and render plain `<img>` tags, not `next/image`. Photographs the DESIGN asks for by name (About's plates, the interlude) are `siteImage` documents keyed by slug: a server component fetches `getSiteImages()` and passes them down. Explicit local-asset exceptions are the hero plates, logo, user-requested Modular footer photograph, eight Almond apartment interiors and three replacement About process photographs. The latter eleven use optimized responsive WebPs under `public/images/requested/` and a typed manifest in `src/lib/content/requested-images.ts`; CMS uploads were unavailable in the editing environment. Project images can carry optional `alt` and `caption` metadata; `ImageFootnote` renders the caption inside the photograph.
 
 **Sanity ids must not contain a dot.** A document whose `_id` has a dot is private to authenticated clients, so `siteImage.about-hero` returned nothing for the site's public client while the token saw it. Use `siteImage-about-hero`.
 
@@ -55,7 +61,7 @@ All images are **Sanity image fields**, uploaded in the Studio (Cloudinary was r
 
 The homepage (`src/app/[locale]/(site)/page.tsx`) is a small server component that fetches
 two Sanity queries and composes, in order: `HomeLoader` (first-load intro) → `Hero` →
-`ProjectsPinned` → `AboutGrid` → `Interlude` → `ContactSection`.
+`FeaturedProject` (Almond Suites, primary Register interest CTA) → `ProjectsPinned` → `AboutGrid` → `Interlude` → `ContactSection`.
 The Sept 2026 restructure (boards in `homepage_redesign.zip` at the repo root) has replaced
 the hero, the projects section, the interlude and contact, and repainted About light (same
 grid and motion, teal stat cells), and replaced the site-wide footer (the old dark
@@ -67,31 +73,43 @@ once input stops — never ScrollTrigger's own `snap`, which fights Lenis at the
 
 `Interlude.tsx` — BELOW lg (1024px) it is NOT pinned and has no second state: the render is a
 sticky backdrop and the three beats stack vertically over it, revealed once each (the user
-rejected vertical-scroll-drives-horizontal on mobile). From lg up: one pinned, scrubbed timeline whose pin is exactly its duration in viewport
-heights (~7.3). Entrance, once on arrival: title words slide sideways into masks and the first
-beat's lines wipe on (the hero's reveals, on their own nodes). Beats: the title row glides with a
-long power3.inOut, the incoming title trailing and settling; paragraph lines are wiped off and
-written on left to right (SplitText lines in masks, rebuilt on width change). Then the render
-shrinks (scale + clip, camera pulling back inside) to a frame over a teal "TDK DESIGN & BUILD" that
-drifts edge to edge on its own endless, time-based tween (NOT scroll-driven, at the user's
-request; paused off screen), and "We House / Your Dream" slides in, allowed to overlap the frame's top
-edge so it never clips. The photograph has its own parallax trigger; the user asked for it
-explicitly here, the hero stays parallax-free. Scrub is `true` (never numeric under Lenis).
+rejected vertical-scroll-drives-horizontal on mobile). From lg up: one pinned timeline with
+`scrub: true` owns the title row, image pullback, nested glass and masked character rises.
+The photograph has its own parallax node and trigger. After the beats, the render shrinks
+to a centered frame, capped by viewport height to keep the original paragraph visible below.
+"WE HOUSE" sits to the left and "YOUR DREAM" to the right, both centered vertically on the
+image. The cyan background wordmark is removed. `InterludeGlass.tsx` adds three successively
+smaller, concentric clear panes: the first opens from the image edges, then each inner pane
+opens from its parent's settled edges after the previous one finishes. The sequence runs
+between 40% and 78% of the pullback so all panes finish before the image visually settles.
+Canvas redraws four narrow refracted crops of the actual photograph
+only at the rims; centers are fully transparent, with no blur or frost. Samples
+follow crop, scale, dimming and parallax. All scrubbed motion reverses with scroll. Rebuild
+splits on width change, remove listeners on cleanup, and show the final panes without their
+entrance under reduced motion. The hero stays parallax-free.
 
-`ContactSection.tsx` — the board's Norm-Architects layout: CONTACT (Josefin light, letters
-sliding into masks), an intro with one "Write to us" link to /en/contact, a drawn 2×2 grid of
-details from Sanity siteSettings (email, phone, address, socials; never hardcode them), and a
-full-height render (armonia/interior/6) on the right. Entrance only, once; nothing on scroll.
+`ContactSection.tsx` — the editorial CONTACT heading, its original introductory
+paragraph in the same position, a working enquiry form replacing the old details grid,
+and the full-height Armonia interior/6 render on the right. The Write to us link is removed.
+`src/components/contact/ContactForm.tsx` is shared with the Contact page, submits to
+`/api/contact`, and handles field errors, delivery errors, retry and confirmation.
+Entrance only, once; reduced motion leaves content visible.
 
-`FooterClient.tsx` (site-wide, every page) — the room behind the page. It stays in the flow;
-its contents ([data-drift]) start 42% up behind its own top edge and scrub to 0, so the section
-above leaves at full speed and the footer is uncovered moving slower, a veil lifting off it.
-Dimmed armonia/interior/2 full bleed; ONE frosted container across the width holding "Stay in
-contact" + its line, Index, Studio, socials, email and legal, compact at the top of a FULL-VIEWPORT
-footer (the user wants the footer full height, only the container short); and "TDK DESIGN & BUILD" on one tightly tracked line along the foot, sized
-by fit() to span the margins and sunk 0.26em so the bottom edge clips it. The letters and the panel are painted with aligned copies of the render
-(brightened for the letters, Cloudinary-blurred for the glass) by paint(): NEVER backdrop-filter
-or a clip-path wipe there, both re-rasterise on every frame of the reveal. Data from siteSettings.
+`FooterClient.tsx` and its CSS module (site-wide) — the user-supplied footer.png reference:
+a white four-column index (TDK, Company, Get in touch, Legal), a teal Register interest
+rectangular button with white text leading to Almond Suites, then one huge TDK DESIGN & BUILD line filled with the
+photograph that continues full width beneath it. The requested Modular 2-bedroom
+1_4 - Sunset.jpg is bundled unchanged as public/images/footer-modular-sunset.jpg and
+imported by Footer.tsx; all contact details still come from siteSettings. Fit the actual
+wordmark to the page margins and align both image copies on resize. Text uses the shared
+masked character rise on its index columns only, once, reverting splits on completion.
+The large image-filled wordmark stays unsplit and visible immediately, with no entrance.
+The white content and letter shapes scroll normally while the room starts raised and
+travels more slowly. One scroll offset drives the photograph and wordmark background
+together; image overscan covers the entire range. Reduced motion keeps the image static.
+Two-column mobile
+layout, visible focus states, reduced motion supported. Filled button labels use
+.button-label for a small optical correction to Josefin’s glyph alignment.
 
 `NavbarClient.tsx` (site-wide) — logo left; Contact | EN·EL | burger right, margins from the hero
 (2vw left, 1.35vw right). The bar is only ever pure black or pure white — NOT a difference blend
@@ -107,11 +125,11 @@ building with the sky knocked out), stacked in one full-width box at the plate's
 the letters between them. **Never generate cutouts or composites of these — the user supplies
 the layers.** All desktop copy lives in plate coordinates (`cqw` on the frame, which is a
 container), measured off the board; the section is as tall as the plate, as the board is.
-On load: the back plate wipes in as vertical stripes, T/D/K each slide one slot right into
+On load: the back and building plates reveal together in fourteen paired tiles,
+then T/D/K each slide one slot right into
 their own mask (the slot is the glyph's advance box, the tracking a negative margin between
-slots, so nothing clips), the front plate wipes down behind a soft mask driven by one CSS
-variable, the social rings draw. DESIGN & / BUILD, the paragraphs (SplitText lines wiping
-on left to right) and the CTA reveal on entering the viewport, once, armed after the load
+slots, so nothing clips), and the social rings draw. DESIGN & / BUILD, the paragraphs
+(masked per-character rises) and the CTA reveal on entering the viewport, once, armed after the load
 sequence. Nothing moves on scroll — the user rejected parallax outright.
 
 `ProjectsPinned.tsx` — a port of **Passage** from the user's own library
@@ -119,10 +137,13 @@ sequence. Nothing moves on scroll — the user rejected parallax outright.
 is the motion and design they asked for. A white editorial ledger: the renders travel through
 the viewport as a centred vertical filmstrip of 3:2 frames (44vw column, 10svh gaps, the
 first frame centred by pure CSS padding), the previous frame still leaving above and the next
-arriving below; the project's name stands large on the left over the photograph and changes
+arriving below; the project's name stays at its original clamp(1.9rem, 3.4vw, 4.2rem) size
+on the left over the photograph, on one line, shrinking only to fit. White difference blending
+keeps it visible across the paper and photograph. The name changes
 by a FOCUS PULL (opacity + blur, never a slide); each photograph pans slowly against the
-travel; a stacked index lower left and a circle button lower right jump the scroll, snapped
-to whole projects; the frames enter with the shared strip reveal (below) and the name block sharpens in from blur. `render(p)` is the single
+travel; a stacked index lower left jumps the scroll, snapped to whole projects.
+Project numbering and the circular next button are removed. The frames enter with the
+shared image reveal (below) and the name block sharpens in from blur. `render(p)` is the single
 writer of the strip translate, the pans, the name focus states and the index states — never
 add a tween or CSS transition to any of them. TDK adaptations: Josefin, no wordmark/menu (the
 navbar holds the corners), frames and names are links that open the project page through
@@ -145,7 +166,7 @@ stay 100% × 100svh object-cover with no transform/filter/dimming on arrival, or
 `about/page.tsx` + `AboutClient.tsx` (Sept 2026, from the user's two boards) — light, editorial,
 on the page grid: a headline with a photograph set INSIDE the line (two sets of line breaks,
 sm and up vs phones, never wrapping — a wrap strands the picture), a full-width plate, the
-"one team" statement with three captioned plates (Draw / Build / Hand over), the second board's
+"one team" statement with the extended editorial `AboutProcess` (Build / Draw / Hand over), the second board's
 spread (small text columns against a large plate, a staggered row with captions, a pull quote
 held in the margin), then a near-full-viewport plate (92svh) with the
 page's closing statement laid out INSIDE it — heading left, paragraph right, over a bottom
@@ -154,16 +175,29 @@ asked for it removed (the bios are still in Sanity; `portraitUrl()` with Cloudin
 remains in transforms for whenever portraits are wanted again). NO invented numbers: the old
 page claimed 15 years and 8 deliveries; the dataset says 2 buildings.
 
+`AboutProcess.tsx` uses a left Build portrait capped at 75svh height with slower text on
+the right, a small faster Draw portrait on the right with text left, and a medium central
+Hand over photo with a blended overlapping heading and its paragraph to the right.
+`AboutClient` owns the outer parallax through a desktop-only matchMedia context, separate
+from inner-image pan and RevealFrame entrances. Smaller screens stack and disable outer
+parallax; reduced motion is static. The three replacement images are chosen from TDK assets.
+
 ### Contact page
 
 `contact/page.tsx` + `ContactClient.tsx` (Sept 2026) — white and editorial, the hub's
 typographic hero ("Contact" + a lead), then the form at six columns with the studio's details
 beside it and one `RevealFrame` photograph under them, all on the page grid. Fields are solid
-blocks (as in the project page's register section) with a teal focus ring; validation notes are
+blocks (as in the project page's register section) with smooth focus fill and drawn border
+edges shared through `FormControls.module.css`; validation notes are
 teal and tied to their field by aria-describedby. The page is a server component that passes
 Sanity `siteSettings` in — email, phone, address and socials are NEVER hardcoded (the old page
 had them in markup). The Google Maps embed was dropped (a generic Nicosia pin behind a dark
 filter); `/api/contact` is unchanged.
+
+The homepage, Contact and project forms share `TDKSelect`: a rectangular branded dropdown
+portalled to the viewport to avoid clipping, with keyboard navigation, typeahead, outside
+click, reset support and a hidden input for native FormData. Animate border/fill and menu
+entrances with CSS; respect reduced motion. Keep the existing delivery and retry behavior.
 
 ### Projects hub
 
@@ -187,10 +221,24 @@ of white around every picture, section heights don't matter: A aperture (content
 render zooms out on scroll), B side note (6-col portrait + quote/features in cols 8–12),
 C diptych (8 + 4 cols, same height, renders drift at different rates inside their frames),
 D plate (the aperture again — the sequence opens and closes on the same plate; it replaced a
-panorama band the user found ugly). Frames never move or scale on scroll —
+panorama band the user found ugly). Almond adds eight apartment interiors between C and D
+in four staggered spreads with the same RevealFrame entrance and inner-image drift.
+All project photographs, including the hero, carry bottom-left inside-image descriptions.
+Frames never move or scale on scroll —
 only the render inside them does, so the grid stays exact. Availability is a rule-less banded table with three counting figures; Story is
-the description lead + percentage/bar + specs; Register is the one teal section and posts to the
-unchanged `/api/project-interest`.
+the description lead + percentage/bar + specs; Register is the one teal section and posts to
+`/api/project-interest`. Inline name/email validation, a busy state and retry preserve entered
+details. Successful delivery remains successful even if the analytics event fails.
+
+The homepage and Contact page share `ContactForm` and `/api/contact`. Both API handlers
+use `src/lib/contact/delivery.ts`: require the configured Resend key, sender and recipient,
+escape submitted HTML, set the visitor as notification reply-to, and return success only
+after Resend accepts the studio's email. A rejected or failed acknowledgement does not
+undo delivery. CONTACT_FORM_TO_EMAIL and INTEREST_FORM_TO_EMAIL can fall back to one
+another if only one studio recipient is configured. Project enquiries are archived as
+the existing Sanity `lead` type with status `new`; archive failures are logged without
+turning an accepted notification into a failed submission. `npm run test:forms` exercises
+the actual handlers with isolated provider/CMS substitutes, without sending test messages.
 
 Rule for both, and for every section to come: the scrubbed or scroll-driven timeline and
 the one-shot entrance never share a node and a property — where they would, the entrance
@@ -234,7 +282,7 @@ redirects everything to `/en`. Copy is written inline in English.
 
 1. **No Three.js** — the dependency has been removed. Use GSAP or plain canvas.
 2. **No Framer Motion** — GSAP for all animation.
-3. **No Cloudinary** — images are Sanity assets; `src/lib/sanity/image.ts` builds every URL.
+3. **No Cloudinary** — use Sanity images and `src/lib/sanity/image.ts`, with the explicit local-asset exceptions listed above.
 4. **`SANITY_API_TOKEN` must never have `NEXT_PUBLIC_` prefix** — server-only.
 5. **Email addresses come from env vars** — never hardcoded.
 6. **One prompt = one component** — commit after each prompt as `feat: Phase X.Y — description`.

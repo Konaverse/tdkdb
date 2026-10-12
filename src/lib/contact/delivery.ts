@@ -1,0 +1,45 @@
+import { Resend } from 'resend';
+import type { CreateEmailOptions } from 'resend';
+
+export function mailSettings(kind: 'contact' | 'interest') {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.RESEND_FROM_EMAIL;
+  const to =
+    (kind === 'interest'
+      ? process.env.INTEREST_FORM_TO_EMAIL
+      : process.env.CONTACT_FORM_TO_EMAIL) ||
+    process.env.CONTACT_FORM_TO_EMAIL ||
+    process.env.INTEREST_FORM_TO_EMAIL;
+  return apiKey && from && to ? { apiKey, from, to } : null;
+}
+
+export function escapeHtml(value: string): string {
+  return value.replace(
+    /[&<>"']/g,
+    (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]!,
+  );
+}
+
+/** Success means the studio's notification was accepted by the mail provider.
+ * A failed acknowledgement must not invite a duplicate enquiry from the visitor.
+ */
+export async function sendEnquiry(
+  apiKey: string,
+  notification: CreateEmailOptions,
+  acknowledgement: CreateEmailOptions,
+) {
+  const resend = new Resend(apiKey);
+  const result = await resend.emails.send(notification);
+  if (result.error) throw new Error(result.error.message);
+  if (!result.data?.id) throw new Error('The mail provider did not accept the enquiry.');
+
+  try {
+    const reply = await resend.emails.send(acknowledgement);
+    if (reply.error) console.error('Enquiry acknowledgement failed:', reply.error.message);
+  } catch (error) {
+    console.error(
+      'Enquiry acknowledgement failed:',
+      error instanceof Error ? error.message : 'Unknown mail error',
+    );
+  }
+}

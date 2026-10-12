@@ -6,6 +6,7 @@ import Link from 'next/link';
 import type { CSSProperties, MouseEvent } from 'react';
 
 import { gsap, gsapInit, ScrollTrigger, SplitText } from '@/lib/animations/gsap';
+import { maskChars, riseIn } from '@/lib/animations/text';
 import { getLenis } from '@/lib/animations/lenis';
 import SocialGlyph from '@/components/ui/SocialGlyph';
 import type { SocialLink } from '@/lib/sanity/types';
@@ -31,14 +32,12 @@ import { useIntro } from './IntroProvider';
    the lower third of the PLATE, so all desktop copy is in plate coordinates.
 
    ON LOAD, in order:
-     · the back plate wipes in as vertical stripes, left to right;
+     · both image plates wipe in together as vertical tiles, left to right;
      · T, D, K each slide one slot to the right into their own mask;
-     · the front plate wipes down over the letters behind a soft edge;
      · the social rings draw, then their marks appear.
-   ON REACHING THE VIEWPORT, once each (armed after the load sequence):
-     · DESIGN & / BUILD slide in from the left, one line each;
-     · the paragraphs wipe on line by line, left to right (SplitText lines);
-     · the CTA's brackets grow from their corners, then the label wipes on.
+   ON REACHING THE VIEWPORT, once each (armed as TDK starts):
+     · DESIGN & / BUILD, paragraphs and CTA letters rise through their masks;
+     · the CTA's brackets grow from their corners alongside the label.
    Nothing is scrubbed by scroll.
 
    Layering discipline (see gsap-transform-pitfalls): every animated
@@ -49,9 +48,13 @@ import { useIntro } from './IntroProvider';
 const PLATE_W = 1512;
 const PLATE_H = 1300;
 const BACK_SRC = '/hero/hero-back.webp';
+const FRONT_SRC = '/hero/hero-front.webp';
 
-/** Vertical stripes the back plate is cut into for its wipe. */
+/** Both plates use the same fourteen tile boundaries and timing. */
 const STRIPES = 14;
+const TILE_DURATION = 0.55;
+const TILE_STAGGER = 0.06;
+const TILES_DONE = TILE_DURATION + TILE_STAGGER * (STRIPES - 1);
 
 /** The frame is a normal block: full width at the plate's aspect, so the
     section is exactly as tall as the plate and nothing is cropped or scaled.
@@ -68,11 +71,6 @@ const COPY: CSSProperties = {
   fontSize: 'clamp(13px, 1.2cqw, 20px)',
   lineHeight: 1.3,
 };
-
-/** The front plate's wipe: a soft-edged mask driven by one CSS variable that
-    GSAP tweens from 0% to past the bottom. */
-const FRONT_MASK =
-  'linear-gradient(to bottom, #000 calc(var(--wipe) - 9%), transparent var(--wipe))';
 
 export interface HeroProps {
   /** Two short paragraphs — bottom-left and centre-bottom of the plate. */
@@ -91,15 +89,14 @@ export default function Hero({
   const { phase } = useIntro();
 
   const sectionRef = useRef<HTMLElement>(null);
-  const frontWrapRef = useRef<HTMLDivElement>(null); // carries --wipe
-  const stripesRef = useRef<HTMLDivElement>(null); // the striped back plate
+  const frontWrapRef = useRef<HTMLDivElement>(null); // the whole foreground plate
+  const frontStripesRef = useRef<HTMLDivElement>(null);
+  const stripesRef = useRef<HTMLDivElement>(null);
   const backRef = useRef<HTMLDivElement>(null); // the whole back plate, after the wipe
 
   // ── Entrance ──────────────────────────────────────────────────────────────
-  // The load sequence is the picture: plot, letters, building, socials. The
-  // copy — DESIGN & / BUILD, the paragraphs, the CTA — is on scroll triggers
-  // created once the picture is complete, so whatever is already on screen
-  // follows straight on and whatever is below the fold waits to be reached.
+  // Both picture plates finish together. TDK follows; visible copy and
+  // socials overlap that entrance instead of waiting for another image wipe.
   useLayoutEffect(() => {
     if (phase === 'loading') return;
     gsapInit();
@@ -118,7 +115,6 @@ export default function Hero({
       ctx.add(() => {
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        const stripes = gsap.utils.toArray<HTMLElement>('[data-stripe]');
         const glyphs = gsap.utils.toArray<HTMLElement>('[data-glyph]');
         const mobileLines = gsap.utils.toArray<HTMLElement>('[data-mobile-line]');
         const subLines = gsap.utils.toArray<HTMLElement>('[data-sub-line]');
@@ -126,13 +122,12 @@ export default function Hero({
         const marks = gsap.utils.toArray<HTMLElement>('[data-mark]');
         const paras = gsap.utils.toArray<HTMLElement>('[data-para]');
         const ctas = gsap.utils.toArray<HTMLElement>('[data-cta]');
-        const wrap = frontWrapRef.current;
 
         // Start states. Percentages MUST be established here, not in CSS — a
         // class-based translate computes to a pixel matrix that GSAP reads
         // back as `y`, and the percent tween that undoes it silently no-ops.
         // Each glyph sits one slot to the left, hidden by its own mask.
-        gsap.set([...glyphs, ...mobileLines, ...subLines], {
+        gsap.set([...glyphs, ...mobileLines], {
           xPercent: -100,
           x: 0,
           visibility: 'visible',
@@ -141,35 +136,38 @@ export default function Hero({
         gsap.set(marks, { autoAlpha: 0 });
         ctas.forEach((cta) => {
           gsap.set(cta.querySelectorAll('[data-bracket]'), { scale: 0 });
-          gsap.set(cta.querySelector('[data-cta-label]'), { clipPath: 'inset(0 100% 0 0)' });
         });
 
         if (reduced) {
-          gsap.set(backRef.current, { autoAlpha: 1 });
-          gsap.set(stripesRef.current, { display: 'none' });
+          gsap.set([backRef.current, frontWrapRef.current], { autoAlpha: 1 });
+          gsap.set([stripesRef.current, frontStripesRef.current], { display: 'none' });
           gsap.set([...glyphs, ...mobileLines, ...subLines], { xPercent: 0 });
-          gsap.set(wrap, { '--wipe': '112%' });
+          gsap.set(subLines, { autoAlpha: 1 });
           gsap.set(rings, { strokeDashoffset: 0 });
           gsap.set(marks, { autoAlpha: 1 });
           gsap.set(paras, { autoAlpha: 1 });
           ctas.forEach((cta) => {
             gsap.set(cta.querySelectorAll('[data-bracket]'), { scale: 1 });
-            gsap.set(cta.querySelector('[data-cta-label]'), { clipPath: 'inset(0 0% 0 0)' });
           });
           return;
         }
 
-        // Paragraphs are split into lines now, while the font is certain,
-        // and revealed later by their own triggers.
-        const lineSets = paras.map((p) => {
-          const split = SplitText.create(p, { type: 'lines', linesClass: 'hero-line' });
+        const subText = maskChars(subLines);
+        splits.push(subText.split);
+        gsap.set(subLines, { visibility: 'visible' });
+        const textSets = paras.map((p) => {
+          const { split, chars } = maskChars(p);
           splits.push(split);
-          gsap.set(split.lines, { clipPath: 'inset(0 100% 0 0)' });
-          return { p, split };
+          return { p, split, chars };
+        });
+        const ctaSets = ctas.map((cta) => {
+          const { split, chars } = maskChars(cta.querySelector('[data-cta-label]'));
+          splits.push(split);
+          return { cta, split, chars };
         });
 
         // ── On scroll — each block reveals itself when it reaches the
-        //    viewport, once. Created after the load sequence, inside the
+        //    viewport, once. Created as the wordmark starts, inside the
         //    context so they are cleaned up with it.
         const armScrollReveals = () =>
           ctx.add(() => {
@@ -177,45 +175,29 @@ export default function Hero({
               scrollTrigger: { trigger, start: 'top 88%', once: true },
             });
 
-            // DESIGN & / BUILD — the same side reveal as the letters.
             if (subLines.length) {
               gsap
                 .timeline(once(subLines[0].parentElement as Element))
-                .to(subLines, { xPercent: 0, duration: 0.8, ease: 'power4.out', stagger: 0.15 });
+                .to(subText.chars, riseIn(subText.chars));
             }
 
-            // Paragraphs — each line wipes on left to right without moving,
-            // as if written, with a lag between lines so the block reads as
-            // typeset rather than dealt out. The split is undone when the
-            // last line is on so the text reflows normally after.
-            lineSets.forEach(({ p, split }) => {
+            textSets.forEach(({ p, split, chars }) => {
               gsap
                 .timeline(once(p))
                 .set(p, { autoAlpha: 1 })
-                .to(split.lines, {
-                  clipPath: 'inset(0 0% 0 0)',
-                  duration: 0.7,
-                  ease: 'power2.inOut',
-                  stagger: 0.16,
-                  onComplete: () => split.revert(),
-                });
+                .to(chars, riseIn(chars, { onComplete: () => split.revert() }));
             });
 
-            // CTA — brackets grow out of their corners, then the label wipes on.
-            ctas.forEach((cta) => {
+            ctaSets.forEach(({ cta, split, chars }) => {
               gsap
-                .timeline(once(cta))
+                .timeline({ scrollTrigger: { trigger: cta, start: 'top bottom', once: true } })
                 .to(cta.querySelectorAll('[data-bracket]'), {
                   scale: 1,
                   duration: 0.45,
                   ease: 'power3.out',
                   stagger: 0.08,
                 })
-                .to(
-                  cta.querySelector('[data-cta-label]'),
-                  { clipPath: 'inset(0 0% 0 0)', duration: 0.5, ease: 'power2.inOut' },
-                  0.15,
-                );
+                .to(chars, riseIn(chars, { onComplete: () => split.revert() }), 0);
             });
 
             ScrollTrigger.refresh();
@@ -224,7 +206,6 @@ export default function Hero({
         // ── On load ───────────────────────────────────────────────────────
         const tl = gsap.timeline({
           defaults: { ease: 'power3.out' },
-          onComplete: armScrollReveals,
         });
         // Dev hook: lets the sequence be scrubbed from the console.
         if (process.env.NODE_ENV !== 'production') {
@@ -236,50 +217,55 @@ export default function Hero({
           w.__ST = ScrollTrigger;
         }
 
-        // 1. The plot — stripes wipe in, left to right.
-        tl.to(
-          stripes,
-          { clipPath: 'inset(0 0% 0 0)', duration: 0.55, ease: 'power2.inOut', stagger: 0.06 },
-          0,
-        );
-        // Once every stripe is open the plate is whole: swap the fourteen
-        // layered slices for the single image so nothing heavy stays alive.
-        tl.set(backRef.current, { autoAlpha: 1 }, 1.4).set(
-          stripesRef.current,
+        // Paired tiles keep the building and its background in lockstep,
+        // while retaining TDK's position between the two plates.
+        for (let i = 0; i < STRIPES; i++) {
+          tl.fromTo(
+            `[data-stripe="${i}"]`,
+            { clipPath: `inset(0 ${100 - (i * 100) / STRIPES}% 0 ${(i * 100) / STRIPES}%)` },
+            {
+              clipPath: `inset(0 ${Math.max(0, 100 - ((i + 1) * 100) / STRIPES - 0.08)}% 0 ${(i * 100) / STRIPES}%)`,
+              duration: TILE_DURATION,
+              ease: 'power2.inOut',
+            },
+            i * TILE_STAGGER,
+          );
+        }
+        tl.set([backRef.current, frontWrapRef.current], { autoAlpha: 1 }, TILES_DONE).set(
+          [stripesRef.current, frontStripesRef.current],
           { display: 'none' },
-          1.4,
+          TILES_DONE,
         );
+        tl.addLabel('tilesComplete', TILES_DONE);
+        tl.call(armScrollReveals, [], TILES_DONE);
 
         // 2. The drawing — T, then D, then K, each sliding into its slot.
         glyphs.forEach((g, i) => {
-          tl.to(g, { xPercent: 0, duration: 0.8, ease: 'power4.out' }, 0.9 + i * 0.3);
+          tl.to(g, { xPercent: 0, duration: 0.8, ease: 'power4.out' }, TILES_DONE + i * 0.3);
         });
-        tl.to(mobileLines, { xPercent: 0, duration: 0.8, ease: 'power4.out', stagger: 0.3 }, 0.9);
+        tl.to(mobileLines, { xPercent: 0, duration: 0.8, ease: 'power4.out' }, TILES_DONE);
 
-        // 3. The build — the front plate wipes down over the letters behind a
-        //    soft edge.
-        tl.to(wrap, { '--wipe': '112%', duration: 1.6, ease: 'power2.inOut' }, 1.9);
-
-        // 4. Socials — each ring draws, then its mark appears.
+        // Socials accompany the letters.
         tl.to(
           rings,
           { strokeDashoffset: 0, duration: 0.6, ease: 'power2.inOut', stagger: 0.12 },
-          2.8,
+          TILES_DONE + 0.15,
         );
-        tl.to(marks, { autoAlpha: 1, duration: 0.4, stagger: 0.12 }, 3.05);
+        tl.to(marks, { autoAlpha: 1, duration: 0.4, stagger: 0.12 }, TILES_DONE + 0.4);
       });
     });
 
     return () => {
       cancelled = true;
-      splits.forEach((s) => s.revert());
       ctx.revert();
+      splits.forEach((s) => s.revert());
     };
   }, [phase]);
 
-  // The CTA scrolls to the projects section when it is on the page, and only
-  // falls through to the projects index when it is not.
+  // A general projects CTA scrolls to the reel. Project enquiries follow
+  // their own link directly to the registration form.
   const onCta = (e: MouseEvent<HTMLAnchorElement>) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || !ctaHref.endsWith('/projects')) return;
     const target = document.getElementById('projects');
     if (!target) return;
     e.preventDefault();
@@ -305,7 +291,7 @@ export default function Hero({
         data-bracket
         className="absolute bottom-0 right-0 h-[0.8em] w-[0.8em] origin-bottom-right border-b border-r border-white transition-[width,height] duration-medium ease-smooth group-hover:h-full group-hover:w-full"
       />
-      <span data-cta-label className="block" style={{ clipPath: 'inset(0 100% 0 0)' }}>
+      <span data-cta-label className="block">
         {ctaLabel}
       </span>
     </Link>
@@ -320,9 +306,7 @@ export default function Hero({
     >
       {/* ── Frame — plate coordinates ─────────────────────────────────────── */}
       <div className="relative min-h-[100svh] w-full lg:min-h-0" style={FRAME_STYLE}>
-        {/* 1 · back plate — cut into vertical stripes, each showing its own
-               slice of the image so the wipe can run stripe by stripe. Each is
-               a pixel wider than its share so no hairline opens at a seam. */}
+        {/* 1 · back plate, and its temporary tiled entrance. */}
         <div ref={backRef} className="absolute inset-0" style={{ visibility: 'hidden' }}>
           <Image
             src={BACK_SRC}
@@ -338,16 +322,14 @@ export default function Hero({
           {Array.from({ length: STRIPES }, (_, i) => (
             <div
               key={i}
-              data-stripe
-              className="absolute inset-y-0"
+              data-stripe={i}
+              className="absolute inset-0"
               style={{
-                left: `${(i * 100) / STRIPES}cqw`,
-                width: `calc(${100 / STRIPES}cqw + 1px)`,
                 backgroundImage: `url(${BACK_SRC})`,
-                backgroundSize: '100cqw 100%',
-                backgroundPosition: `-${(i * 100) / STRIPES}cqw 0`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
-                clipPath: 'inset(0 100% 0 0)',
+                clipPath: `inset(0 ${100 - (i * 100) / STRIPES}% 0 ${(i * 100) / STRIPES}%)`,
               }}
             />
           ))}
@@ -402,23 +384,33 @@ export default function Hero({
           </div>
         </div>
 
-        {/* 3 · front plate — the building, sky knocked out. The wrapper owns
-               --wipe; the masked layer reads it. */}
-        <div ref={frontWrapRef} className="absolute inset-0" style={{ ['--wipe' as string]: '0%' }}>
-          <div
-            className="absolute inset-0"
-            style={{ maskImage: FRONT_MASK, WebkitMaskImage: FRONT_MASK }}
-          >
-            <Image
-              src="/hero/hero-front.webp"
-              alt="Almond Suites, Strovolos — the current TDK project"
-              fill
-              priority
-              unoptimized
-              sizes="100vw"
-              className="object-cover"
+        {/* 3 · the building remains in front of TDK in both entrance and rest. */}
+        <div ref={frontWrapRef} className="absolute inset-0" style={{ visibility: 'hidden' }}>
+          <Image
+            src={FRONT_SRC}
+            alt="Almond Suites, Strovolos — the current TDK project"
+            fill
+            priority
+            unoptimized
+            sizes="100vw"
+            className="object-cover"
+          />
+        </div>
+        <div ref={frontStripesRef} className="absolute inset-0" aria-hidden="true">
+          {Array.from({ length: STRIPES }, (_, i) => (
+            <div
+              key={i}
+              data-stripe={i}
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `url(${FRONT_SRC})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                clipPath: `inset(0 ${100 - (i * 100) / STRIPES}% 0 ${(i * 100) / STRIPES}%)`,
+              }}
             />
-          </div>
+          ))}
         </div>
 
         {/* ── Desktop copy — plate coordinates, as on the board ──────────── */}
@@ -499,8 +491,7 @@ export default function Hero({
 
           {/* DESIGN & / BUILD — right-aligned under the K, in front of the front
               plate (the board has them clear of the tree). Each line has its
-              own mask, padded a touch above so the & keeps its ascender, and
-              slides in from the left like the letters. */}
+              own padded frame, with a rising mask for each letter. */}
           {[
             { text: 'DESIGN &', top: '49.0cqw' },
             { text: 'BUILD', top: '55.6cqw' },
@@ -551,7 +542,7 @@ export default function Hero({
           </span>
           <span className="mt-2 block overflow-hidden text-right">
             <span
-              data-mobile-line
+              data-sub-line
               className="block text-[8.5vw] font-[300] leading-[1.2] tracking-[0.07em]"
               style={{ visibility: 'hidden' }}
             >

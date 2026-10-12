@@ -4,8 +4,9 @@ import { useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
 
 import RevealFrame from '@/components/animations/RevealFrame';
+import AboutProcess from '@/components/about/AboutProcess';
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
-import { LINE_HIDDEN, LINE_SHOWN, maskLines } from '@/lib/animations/lines';
+import { CHAR_HIDDEN, maskChars, riseIn } from '@/lib/animations/text';
 import { imageSrcSet, imageUrl } from '@/lib/sanity/image';
 import type { SanityImage, SiteImages } from '@/lib/sanity/types';
 
@@ -52,25 +53,6 @@ const ROOF_HEADING = ['One team, from the', 'first sketch to the', 'last fitting
 const ROOF_BODY =
   'Most developments pass through three or four companies before anyone lives in them. Ours do not. Drawing, building and handing over are the same people, so nothing is lost in between — and there is no one else to point at when something is wrong.';
 
-/** The three moves. No numbers and no names: the studio speaks as "we". */
-const STEPS = [
-  {
-    title: 'Draw',
-    line: 'We read the site, the brief and the light, and draw until the plan is resolved.',
-    image: 'draw' as const,
-  },
-  {
-    title: 'Build',
-    line: 'We run the site — the materials, the contractors, the sequence, the standard.',
-    image: 'build' as const,
-  },
-  {
-    title: 'Hand over',
-    line: 'We finish the building, snag it ourselves, and give you the keys.',
-    image: 'handover' as const,
-  },
-];
-
 const POSITION = [
   'We take on a few homes at a time. That is a limit we set, not a stage we are passing through: a studio this size can detail every residence as if it were the only one.',
   'The practice is young. What we have built stands in Lakatamia and Strovolos, and it is the argument for what comes next.',
@@ -86,7 +68,7 @@ const STANDARD_BODY =
 
 const CLOSE = 'If you are thinking about a home, write to us.';
 
-/** The headline's lines. Each line slides into its own mask, so the breaks
+/** The headline's lines. Each line uses masked rising letters, so the breaks
     are set by hand: one set from sm up, a shorter one for phones. */
 const HEAD_WIDE = ['A family studio that draws,', 'builds, and hands over', 'the keys.'];
 const HEAD_NARROW = ['A family studio', 'that draws, builds,', 'and hands over', 'the keys.'];
@@ -152,6 +134,7 @@ export default function AboutClient({ images }: { images: SiteImages }) {
 
     let alive = true;
     let ctx: gsap.Context | null = null;
+    let processMotion: gsap.MatchMedia | null = null;
 
     (document.fonts?.ready ?? Promise.resolve()).then(() => {
       if (!alive) return;
@@ -160,48 +143,31 @@ export default function AboutClient({ images }: { images: SiteImages }) {
 
         /* the hero, on arrival */
         const leadEl = q('[data-lead]')[0];
-        const leadSplit = leadEl ? maskLines(leadEl) : null;
-        gsap.set(q('[data-hero-line]'), { xPercent: -104, x: 0 });
-        if (leadSplit) gsap.set(leadSplit.lines, { clipPath: LINE_HIDDEN });
+        const leadSplit = leadEl ? maskChars(leadEl) : null;
+        const heroChars = maskChars(q('[data-hero-line]')).chars;
+        if (leadSplit) gsap.set(leadSplit.chars, CHAR_HIDDEN);
 
         const hero = gsap
           .timeline({ delay: 0.15, onComplete: () => leadSplit?.split.revert() })
-          .to(
-            q('[data-hero-line]'),
-            { xPercent: 0, x: 0, duration: 1.4, ease: 'power4.out', stagger: 0.1 },
-            0,
-          );
+          .to(heroChars, riseIn(heroChars), 0);
         if (leadSplit) {
-          hero.to(
-            leadSplit.lines,
-            { clipPath: LINE_SHOWN, duration: 0.9, ease: 'power2.inOut', stagger: 0.12 },
-            0.5,
-          );
+          hero.to(leadSplit.chars, riseIn(leadSplit.chars), 0.5);
         }
 
-        /* headings slide into their masks as they arrive */
+        /* heading letters rise through their masks as they arrive */
         q('[data-heading]').forEach((heading) => {
-          const lines = heading.querySelectorAll('[data-heading-line]');
-          gsap.set(lines, { xPercent: -104, x: 0 });
-          gsap.to(lines, {
-            xPercent: 0,
-            x: 0,
-            duration: 1.3,
-            ease: 'power4.out',
-            stagger: 0.09,
+          const chars = maskChars(heading.querySelectorAll('[data-heading-line]')).chars;
+          gsap.to(chars, {
+            ...riseIn(chars),
             scrollTrigger: { trigger: heading, start: 'top 88%', once: true },
           });
         });
 
-        /* paragraphs are written on line by line; everything else rises */
+        /* paragraph letters rise through masks; other blocks rise together */
         q('[data-write]').forEach((el) => {
-          const { split, lines } = maskLines(el);
-          gsap.set(lines, { clipPath: LINE_HIDDEN });
-          gsap.to(lines, {
-            clipPath: LINE_SHOWN,
-            duration: 0.9,
-            ease: 'power2.inOut',
-            stagger: 0.1,
+          const { split, chars } = maskChars(el);
+          gsap.to(chars, {
+            ...riseIn(chars),
             scrollTrigger: { trigger: el, start: 'top 88%', once: true },
             onComplete: () => split.revert(),
           });
@@ -240,12 +206,35 @@ export default function AboutClient({ images }: { images: SiteImages }) {
           );
         });
 
+        // Separate outer nodes carry the editorial movement. Image entrance,
+        // image pan and text reveal keep their existing individual owners.
+        processMotion = gsap.matchMedia();
+        processMotion.add('(min-width: 1024px)', () => {
+          q('[data-process-motion]').forEach((node) => {
+            const range = Number((node as HTMLElement).dataset.processMotion);
+            gsap.fromTo(
+              node,
+              { y: -range },
+              {
+                y: range,
+                ease: 'none',
+                scrollTrigger: {
+                  trigger: node.closest('[data-process-step]')!,
+                  start: 'top bottom',
+                  end: 'bottom top',
+                  scrub: true,
+                },
+              },
+            );
+          });
+        });
         ScrollTrigger.refresh();
       }, root);
     });
 
     return () => {
       alive = false;
+      processMotion?.revert();
       ctx?.revert();
     };
   }, []);
@@ -338,29 +327,7 @@ export default function AboutClient({ images }: { images: SiteImages }) {
           </p>
         </div>
 
-        {/* the three moves, as plates */}
-        <div className="gap-page lg:gap-x-gutter mt-[9svh] grid grid-cols-1 sm:grid-cols-3">
-          {STEPS.map((s) => (
-            <div key={s.title}>
-              <RevealFrame nav="dark" className="aspect-[4/5] w-full">
-                <Picture id={img(s.image)} alt="" sizes="(min-width: 640px) 34vw, 100vw" />
-              </RevealFrame>
-              <h3
-                data-rise
-                className="mt-6 text-[clamp(28px,2.6vw,48px)] font-[300] leading-[1.05] tracking-[-0.01em]"
-              >
-                {s.title}
-              </h3>
-              <p
-                data-rise
-                className="mt-4 max-w-[34ch] text-[clamp(15px,1.05vw,18px)] font-[300] leading-[1.55]"
-                style={{ color: BODY }}
-              >
-                {s.line}
-              </p>
-            </div>
-          ))}
-        </div>
+        <AboutProcess />
       </section>
 
       {/* ── The spread — text columns against a large picture ────────────── */}

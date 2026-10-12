@@ -202,6 +202,13 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 @layer components {
+  /* Josefin's visible glyphs sit above the centre of its line box. Offset
+     labels optically without changing button padding or animation transforms. */
+  .button-label {
+    position: relative;
+    top: 0.1em;
+  }
+
   .text-display-xl {
     font-size: clamp(64px, 8vw, 120px);
     font-weight: 300;

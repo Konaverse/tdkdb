@@ -6,6 +6,7 @@ import ProjectScenes from '@/components/sections/project/ProjectScenes';
 import ProjectAvailability from '@/components/sections/project/ProjectAvailability';
 import ProjectStory from '@/components/sections/project/ProjectStory';
 import ProjectRegister from '@/components/sections/project/ProjectRegister';
+import { ALMOND_INTERIORS } from '@/lib/content/requested-images';
 import { getProjectBySlug, getAllProjects } from '@/lib/sanity/queries';
 import { bedroomsLabel, displayTitle, sceneImages } from '@/lib/projects/display';
 import type { PortableTextBlock } from '@/lib/sanity/types';
@@ -78,6 +79,7 @@ export default async function ProjectDetailPage({ params }: Props) {
           images={images}
           quote={project.pullQuote}
           features={project.features}
+          interiors={slug === 'almond-suites' || slug === 'almond' ? ALMOND_INTERIORS : undefined}
         />
       )}
 
@@ -95,6 +97,7 @@ export default async function ProjectDetailPage({ params }: Props) {
           value: String(project.year),
         }}
         specs={project.specs ?? []}
+        technicalSpecificationsHref={project.technicalSpecificationsHref}
       />
 
       <ProjectRegister

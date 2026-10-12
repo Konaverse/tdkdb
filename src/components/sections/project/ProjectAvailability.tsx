@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef } from 'react';
 
 import { gsap, gsapInit } from '@/lib/animations/gsap';
+import { maskChars, riseIn } from '@/lib/animations/text';
 import { bedroomsLabel, floorLabel, UNIT_STATUS_LABEL } from '@/lib/projects/display';
 import type { ProjectUnit } from '@/lib/sanity/types';
 
@@ -16,7 +17,7 @@ import type { ProjectUnit } from '@/lib/sanity/types';
    sold residences stepped back. Available ones carry the teal mark.
 
    MOTION — once, on arrival
-   · The heading slides sideways into its mask (the site's side reveal).
+   · The heading rises letter by letter through individual masks.
    · The figures count up.
    · The rows rise in, a beat apart, top to bottom.
    ─────────────────────────────────────────────────────────────────────────── */
@@ -66,7 +67,7 @@ export default function ProjectAvailability({ units, note }: ProjectAvailability
       const counters = q('[data-count]') as HTMLElement[];
       const rows = q('[data-row]');
 
-      gsap.set(q('[data-heading]'), { xPercent: -104, x: 0 });
+      const heading = maskChars(q('[data-heading]')).chars;
       gsap.set(q('[data-figure]'), { autoAlpha: 0, y: 18 });
       gsap.set(rows, { autoAlpha: 0, y: 22 });
       counters.forEach((el) => (el.textContent = '0'));
@@ -74,7 +75,7 @@ export default function ProjectAvailability({ units, note }: ProjectAvailability
       const tl = gsap.timeline({
         scrollTrigger: { trigger: root, start: 'top 85%', once: true },
       });
-      tl.to(q('[data-heading]'), { xPercent: 0, x: 0, duration: 1.3, ease: 'power4.out' }, 0);
+      tl.to(heading, riseIn(heading), 0);
       tl.to(
         q('[data-figure]'),
         { autoAlpha: 1, y: 0, duration: 0.9, ease: 'power3.out', stagger: 0.1 },

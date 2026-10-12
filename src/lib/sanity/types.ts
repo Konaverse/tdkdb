@@ -6,6 +6,8 @@
 export interface SanityImage {
   _type?: 'image';
   _key?: string;
+  alt?: string;
+  caption?: string;
   asset: { _ref: string; _type?: 'reference' };
   hotspot?: { x: number; y: number; height: number; width: number };
   crop?: { top: number; bottom: number; left: number; right: number };
@@ -80,6 +82,7 @@ export interface Project {
   units?: ProjectUnit[];
   progressPercent?: number;
   progressLabel?: string;
+  technicalSpecificationsHref?: string;
   constructionUpdates?: ConstructionUpdate[];
   interestFormHeading?: string;
   interestFormSubtext?: string;

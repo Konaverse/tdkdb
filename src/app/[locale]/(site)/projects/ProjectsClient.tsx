@@ -8,7 +8,7 @@ import { useParams, useRouter } from 'next/navigation';
 import RevealFrame from '@/components/animations/RevealFrame';
 import { useProjectTransition } from '@/components/transition/ProjectTransition';
 import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
-import { LINE_HIDDEN, LINE_SHOWN, maskLines } from '@/lib/animations/lines';
+import { CHAR_HIDDEN, maskChars, riseIn } from '@/lib/animations/text';
 import { imageSrcSet, imageUrl } from '@/lib/sanity/image';
 import { displayTitle, projectHref, projectScope, STATUS_LABEL } from '@/lib/projects/display';
 import type { Project, ProjectScope } from '@/lib/sanity/types';
@@ -112,24 +112,16 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
 
         /* the hero, on arrival */
         const leadEl = q('[data-lead]')[0];
-        const leadSplit = leadEl ? maskLines(leadEl) : null;
-        gsap.set(q('[data-hero-word]'), { xPercent: -104, x: 0 });
-        if (leadSplit) gsap.set(leadSplit.lines, { clipPath: LINE_HIDDEN });
+        const leadSplit = leadEl ? maskChars(leadEl) : null;
+        const heroChars = maskChars(q('[data-hero-word]')).chars;
+        if (leadSplit) gsap.set(leadSplit.chars, CHAR_HIDDEN);
         gsap.set(q('[data-figure]'), { autoAlpha: 0, y: 18 });
 
         const hero = gsap
           .timeline({ delay: 0.15, onComplete: () => leadSplit?.split.revert() })
-          .to(
-            q('[data-hero-word]'),
-            { xPercent: 0, x: 0, duration: 1.4, ease: 'power4.out', stagger: 0.1 },
-            0,
-          );
+          .to(heroChars, riseIn(heroChars), 0);
         if (leadSplit) {
-          hero.to(
-            leadSplit.lines,
-            { clipPath: LINE_SHOWN, duration: 0.9, ease: 'power2.inOut', stagger: 0.12 },
-            0.45,
-          );
+          hero.to(leadSplit.chars, riseIn(leadSplit.chars), 0.45);
         }
         hero.to(
           q('[data-figure]'),
@@ -137,25 +129,21 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
           0.8,
         );
 
-        /* each ledger's heading slides into its mask, its note is written on */
+        /* each ledger's heading and note rise letter by letter */
         q('[data-group]').forEach((group) => {
           const title = group.querySelector('[data-group-title]');
           const noteEl = group.querySelector<HTMLElement>('[data-group-note]');
-          const note = noteEl ? maskLines(noteEl) : null;
-          gsap.set(title, { xPercent: -104, x: 0 });
-          if (note) gsap.set(note.lines, { clipPath: LINE_HIDDEN });
+          const note = noteEl ? maskChars(noteEl) : null;
+          const titleChars = maskChars(title).chars;
+          if (note) gsap.set(note.chars, CHAR_HIDDEN);
           const tl = gsap
             .timeline({
               scrollTrigger: { trigger: group, start: 'top 82%', once: true },
               onComplete: () => note?.split.revert(),
             })
-            .to(title, { xPercent: 0, x: 0, duration: 1.2, ease: 'power4.out' }, 0);
+            .to(titleChars, riseIn(titleChars), 0);
           if (note) {
-            tl.to(
-              note.lines,
-              { clipPath: LINE_SHOWN, duration: 0.9, ease: 'power2.inOut', stagger: 0.1 },
-              0.3,
-            );
+            tl.to(note.chars, riseIn(note.chars), 0.3);
           }
         });
 
@@ -163,11 +151,11 @@ export default function ProjectsClient({ projects }: ProjectsClientProps) {
         q('[data-entry]').forEach((entry) => {
           const name = entry.querySelector('[data-name]');
           const rows = entry.querySelectorAll('[data-detail]');
-          gsap.set(name, { xPercent: -104, x: 0 });
+          const nameChars = maskChars(name).chars;
           gsap.set(rows, { autoAlpha: 0, y: 16 });
           gsap
             .timeline({ scrollTrigger: { trigger: entry, start: 'top 72%', once: true } })
-            .to(name, { xPercent: 0, x: 0, duration: 1.2, ease: 'power4.out' }, 0)
+            .to(nameChars, riseIn(nameChars), 0)
             .to(
               rows,
               { autoAlpha: 1, y: 0, duration: 0.8, ease: 'power3.out', stagger: 0.08 },

@@ -1,0 +1,89 @@
+{
+  "version": 1,
+  "project": {
+    "name": "tdkdb",
+    "productType": "Residential property developer in Cyprus",
+    "stack": ["nextjs", "react", "tailwind-v3"]
+  },
+  "sources": {
+    "tokens": ["src/styles/globals.css", "tailwind.config.ts"],
+    "components": ["src/components/ui"],
+    "assets": ["public/images"],
+    "instructions": ["CLAUDE.md"]
+  },
+  "design": {
+    "colorMode": "light",
+    "colors": {
+      "ground": "#ffffff",
+      "ink": "#111111",
+      "accent": "#66979f"
+    },
+    "typography": {
+      "primary": "Josefin Sans",
+      "numbers": "JetBrains Mono"
+    },
+    "spacing": {
+      "margin": "var(--page-margin)",
+      "gutter": "var(--page-gutter)",
+      "columns": 12
+    },
+    "radius": {},
+    "shadows": {},
+    "motion": {
+      "library": "GSAP",
+      "imageEntrance": "RevealFrame",
+      "reducedMotion": true,
+      "textEntrance": "Masked per-character rise with a bounded stagger"
+    },
+    "density": "spacious"
+  },
+  "components": {
+    "installed": ["Button", "CustomCursor", "SocialGlyph"],
+    "preferredPrimitives": ["RevealFrame", "TDKSelect", "ImageFootnote"],
+    "patterns": []
+  },
+  "constraints": {
+    "must": [
+      "Use the existing page grid and Sanity project images, with bundled assets for the explicitly requested interior and process photographs",
+      "Declare data-nav on new sections",
+      "Keep register interest as the primary homepage CTA"
+    ],
+    "avoid": ["Framer Motion", "Three.js", "Cloudinary", "Decorative nested cards"]
+  },
+  "decisions": [
+    "Feature Almond Suites immediately after the homepage hero on white, with a large project render, live availability count and construction progress. Use the teal filled Register interest CTA and route enquiries directly to the existing project form.",
+    "Reveal the homepage background and building plates together in fourteen paired tiles, then preserve the existing TDK glyph entrance. Replace sideways text entrances throughout the site with a masked per-letter rise.",
+    "Match the supplied footer reference with a white four-column index, a rectangular teal Register interest button with white text, an oversized image-filled TDK DESIGN & BUILD wordmark and the same aligned photograph continuing full width below. Use the user-provided Modular two-bedroom sunset image, bundled as a local static asset. Scroll the white content and letter shapes normally while the photograph starts raised and moves more slowly, sharing one scroll offset through the wordmark and photograph. Cover the motion with image overscan; preserve a static reduced-motion view.",
+    "Keep the homepage Contact introduction and photograph in their original positions. Replace the details grid and Write to us link with the shared ContactForm, using /api/contact. Apply the shared button-label optical offset to filled button labels.",
+    "Finish the desktop Interlude on white with WE HOUSE left of the centered photograph and YOUR DREAM right, both aligned to its centerline, and retain the original paragraph below. Remove the cyan background wordmark. Open three progressively smaller concentric clear-glass panes strictly one after another between 40% and 78% of the pullback, so all finish before the image visually settles. The first starts at the image edges; each inner pane starts at its parent's settled edges. Draw refracted image crops on canvas only in narrow rims, preserving transparent centers and avoiding frost. Keep the existing mobile vertical beats and reduced-motion support.",
+    "Keep the footer's large image-filled wordmark visible immediately, without splitting or animating its letters. Contact and residence forms must validate clearly, keep entered details on delivery errors, show a busy state, and confirm only after the studio notification is accepted.",
+    "Match featured-project and footer filled CTAs to the site's rectangular buttons, with white text on teal, uppercase tracked labels, the shared optical label offset, and a dark hover state.",
+    "Keep homepage project titles at their original clamp(1.9rem, 3.4vw, 4.2rem) size, on one line, shrinking only when needed to fit. Use white difference blending across photographs and remove project numbering and the circular next button.",
+    "Share animated form controls across homepage, Contact and residence enquiries: smooth fill changes, drawn border edges, and a rectangular TDK-branded dropdown with keyboard navigation, native FormData values, viewport-aware placement and reduced-motion support.",
+    "Add eight optimized Almond apartment interior photographs in staggered editorial spreads using the existing RevealFrame and inner-image drift. Place descriptive bottom-left footnotes inside every project photograph, with optional CMS caption metadata for existing assets.",
+    "Extend the About process into Build, Draw, Hand over editorial spreads. Build uses a reduced left portrait capped at 75svh height with slower text on the right; Draw has text left and a small faster image right; Hand over uses a medium central photograph with an overlapping blended heading and readable body text to its right. Keep mobile layouts static and stacked."
+  ],
+  "evidence": [
+    {
+      "fact": "components.installed",
+      "source": "src/components/ui"
+    },
+    {
+      "fact": "project.instructions",
+      "source": "CLAUDE.md"
+    },
+    {
+      "fact": "project.stack:nextjs",
+      "source": "package.json"
+    },
+    {
+      "fact": "project.stack:react",
+      "source": "package.json"
+    },
+    {
+      "fact": "project.stack:tailwind-v3",
+      "source": "package.json"
+    }
+  ],
+  "generatedAt": "2026-10-11T17:31:41.616Z"
+}
