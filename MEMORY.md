@@ -8,7 +8,7 @@ Older master plans describe removed features and must not override the current s
 
 Prepare the existing website for public launch, with Almond Suites as the main
 sales priority. The accepted layout and lightbox changes were pushed to `origin/main`
-through `0ed8d29`. The user is reviewing production at `https://tdkdb.vercel.app` and
+through `8cce719`. The user is reviewing production at `https://tdkdb.vercel.app` and
 reported fallback fonts and a failed project enquiry. Font packaging and production
 diagnostics are corrected and verified locally. The user identified the mail issue:
 a key from the Konaverse Resend account was used with an unverified TDK sender
@@ -148,6 +148,10 @@ They are production assets, not preview placeholders, and are not yet CMS-manage
   external font requests. The production diagnostic fixture confirms that server
   errors retain Resend's rejection details without logging credentials or enquiry
   bodies. All 43 backend checks pass; focused 21st review has no errors or warnings.
+  Live files confirmed the original font failure: the document used variable class
+  `__variable_3b0381`, while its stylesheet defined only `__variable_cc8663`.
+  After deployment of the fix, both root classes match the stylesheet, and the
+  downloaded WOFF2 hash exactly matches the verified committed Josefin font.
 - Changed-file ESLint, TypeScript, Prettier and whitespace checks passed.
 - Production compilation, type checks and page generation passed using real
   cached Sanity data and local font fixtures for the restricted build environment.
@@ -218,7 +222,10 @@ When restarting this isolated preview, pass `--env-file=../../.env.local` before
 `--require ../offline-preview.cjs` so runtime form credentials are loaded too.
 
 Outstanding: set up the chosen TDK Resend account and verify its sender domain,
-replace the Vercel Production key and redeploy, then confirm a real enquiry and
-font rendering on the deployed site.
-Workspace requests to the site, Vercel API and Resend are blocked with EACCES.
+replace the Vercel Production key and redeploy, then confirm a real enquiry.
+Live font asset/class checks pass. Direct browser/Node requests to external hosts
+and Vercel CLI requests are blocked with EACCES. Standalone `curl.exe -L` commands
+can fetch the public deployment files; keep approved network commands separate
+from unrelated shell commands. Do not send external test messages without user
+authorization.
 Preserve the accepted motion and sizes while resolving the production report.

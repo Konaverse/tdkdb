@@ -11,7 +11,7 @@ Read these current documents when continuing work:
 
 The website includes the shared responsive image lightbox and the hero navigation
 fixes, alongside the accepted Projects hub, typography, image overlays and captions.
-The accepted changes were pushed to `origin/main` through `0ed8d29`.
+The accepted changes were pushed to `origin/main` through `8cce719`.
 The dev preview is `http://127.0.0.1:3008/en`; the user is reviewing the deployment
 at `https://tdkdb.vercel.app`.
 An isolated production preview runs at `http://127.0.0.1:3010/en` to assess navigation
@@ -32,6 +32,11 @@ in Vercel and redeployment are still needed for live email delivery.
 43 isolated mail checks pass, including the real SDK with intercepted transport.
 The production build and eight actual rendered-font checks pass without font mocks;
 provider error logs also survive production compilation.
+The font fix is deployed: public HTML/CSS classes match and the live font's hash
+matches the committed Josefin file. The earlier deployment used a font-variable
+class absent from its stylesheet, explaining the fallback. Public live files can
+be downloaded with standalone `curl.exe -L`; direct browser/Node and Vercel CLI
+requests remain blocked by this workspace's network restrictions.
 
 The historical master plans describe removed canvas scenes, Three.js, Cloudinary
 and earlier page structures. Use the current code and documents above instead.
