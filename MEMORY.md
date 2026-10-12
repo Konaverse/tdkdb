@@ -7,9 +7,13 @@ Older master plans describe removed features and must not override the current s
 ## Current objective and state
 
 Prepare the existing website for public launch, with Almond Suites as the main
-sales priority. The requested changes and latest size corrections are implemented
-and verified locally. The user is reviewing the dev site at
-`http://127.0.0.1:3008/en`. No deployment or remote push has been performed in this session.
+sales priority. The accepted layout and lightbox changes were pushed to `origin/main`
+through `0ed8d29`. The user is reviewing production at `https://tdkdb.vercel.app` and
+reported fallback fonts and a failed project enquiry. Font packaging and production
+diagnostics are corrected and verified locally. The user identified the mail issue:
+a key from the Konaverse Resend account was used with an unverified TDK sender
+domain. They chose a separate TDK account. Its domain verification and deployment
+key update remain outstanding. The dev preview remains `http://127.0.0.1:3008/en`.
 
 ## Completed changes and user decisions
 
@@ -26,6 +30,9 @@ and verified locally. The user is reviewing the dev site at
   bottom-right with page-grid padding. Preserve the two project ledgers below.
 - Use Josefin Sans everywhere, including numerals, image footnotes and the loader.
   JetBrains Mono and its tokens are removed.
+  The verified variable WOFF2 is now committed in `src/app/fonts/`, with its OFL
+  license, and loaded by `next/font/local`. Apply both its variable and font class
+  to `<html>`; builds no longer download font files from Google.
 - Featured Almond: overlay availability left, Now selling in Strovolos centered,
   and construction progress right over the desktop image. Fade the overlay on
   hover and keyboard focus. Mobile keeps only the selling line inside the image,
@@ -113,6 +120,21 @@ validity, sender-domain verification and inbox delivery remain unconfirmed.
 The isolated production preview now starts with `--env-file=../../.env.local`
 from `.tmp/build-check` so it loads the same mail settings as the development site.
 
+Production failure supplied by the user: `/api/project-interest` returns 500 after
+the external email POST returns 403. The user confirmed the API key belongs to
+Konaverse's account, where only the Konaverse domain is verified, while the sender
+uses the TDK domain. A second key in that account does not authorize a new domain.
+The user chose a separate Resend account for TDK, preserving its branded sender.
+Verify the TDK domain there, create its sending key, replace the Vercel Production
+key and redeploy. Account/DNS work and live delivery verification remain pending.
+Production previously removed
+all console calls. Preserve errors/warnings and log the Resend rejection's name,
+status and message; never log credentials or submitted enquiry bodies. Mail settings
+are trimmed to tolerate surrounding whitespace. The expanded isolated suite has
+43 checks, including request serialization and rejection handling through the real
+installed Resend SDK. Production compilation preserves the provider error name,
+403 status and reason, verified with an intercepted transport and no external mail.
+
 Sanity uploads also returned EACCES. The eight new interiors and three About
 process photos therefore use optimized responsive WebPs in
 `public/images/requested/`, with their typed manifest in `src/lib/content/`.
@@ -120,6 +142,12 @@ They are production assets, not preview placeholders, and are not yet CMS-manage
 
 ## Verification completed
 
+- Font packaging correction: production build succeeds without Google font mocks.
+  Eight browser checks across four pages at desktop/mobile widths confirmed actual
+  rendered Josefin glyphs and exact hashes matching the committed WOFF2, with no
+  external font requests. The production diagnostic fixture confirms that server
+  errors retain Resend's rejection details without logging credentials or enquiry
+  bodies. All 43 backend checks pass; focused 21st review has no errors or warnings.
 - Changed-file ESLint, TypeScript, Prettier and whitespace checks passed.
 - Production compilation, type checks and page generation passed using real
   cached Sanity data and local font fixtures for the restricted build environment.
@@ -178,15 +206,19 @@ and leaving enquiry fields hidden.
 
 Normal startup is `npm run dev -- --hostname 127.0.0.1 --port 3008`.
 The running preview uses ignored `.tmp/offline-preview.cjs` with cached CMS reads
-and `.tmp/font-preview.cjs` for fonts because network access is restricted. These
-local helpers and screenshots remain available in this workspace but are not
-committed or part of production. Do not introduce their mocks into application code.
+because network access is restricted. Historical checks also used a local font
+fixture; current builds use the committed font without any font mock. Helpers and
+screenshots remain available in this workspace but are not committed or part of
+production. Do not introduce CMS mocks into application code.
 
 An isolated production preview is available at `http://127.0.0.1:3010/en`, built
-under ignored `.tmp/build-check/` with the same cached public CMS content and font
-fixtures. Use it to assess navigation without dev compilation and Fast Refresh.
+under ignored `.tmp/build-check/` with cached public CMS content and the actual
+committed font. Use it to assess navigation without dev compilation and Fast Refresh.
 When restarting this isolated preview, pass `--env-file=../../.env.local` before
 `--require ../offline-preview.cjs` so runtime form credentials are loaded too.
 
-There is no outstanding requested implementation work at this checkpoint.
-Continue from the user's next feedback, preserving the accepted motion and sizes.
+Outstanding: set up the chosen TDK Resend account and verify its sender domain,
+replace the Vercel Production key and redeploy, then confirm a real enquiry and
+font rendering on the deployed site.
+Workspace requests to the site, Vercel API and Resend are blocked with EACCES.
+Preserve the accepted motion and sizes while resolving the production report.

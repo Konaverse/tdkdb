@@ -11,8 +11,9 @@ Read these current documents when continuing work:
 
 The website includes the shared responsive image lightbox and the hero navigation
 fixes, alongside the accepted Projects hub, typography, image overlays and captions.
-The dev preview is
-`http://127.0.0.1:3008/en`; no deployment or remote push has been performed.
+The accepted changes were pushed to `origin/main` through `0ed8d29`.
+The dev preview is `http://127.0.0.1:3008/en`; the user is reviewing the deployment
+at `https://tdkdb.vercel.app`.
 An isolated production preview runs at `http://127.0.0.1:3010/en` to assess navigation
 without dev compilation and Fast Refresh.
 Start this isolated preview with `node --env-file=../../.env.local` from
@@ -20,6 +21,17 @@ Start this isolated preview with `node --env-file=../../.env.local` from
 so its runtime form settings are present. Local form checks pass; actual Resend
 delivery and sender-domain verification remain unconfirmed because provider
 access is blocked in this environment.
+
+Latest production report: font packaging now uses a committed Josefin Sans WOFF2
+through `next/font/local`, with no Google download or font mocks. The user's
+Vercel trace shows a Resend POST returning 403 and `/api/project-interest` returning 500. Production errors/warnings are retained to show the provider reason. The
+user identified the cause: the key belongs to Konaverse's Resend account with
+only the Konaverse domain verified, while the sender uses TDK's domain. They
+chose a separate TDK Resend account. Domain verification, a new Production key
+in Vercel and redeployment are still needed for live email delivery.
+43 isolated mail checks pass, including the real SDK with intercepted transport.
+The production build and eight actual rendered-font checks pass without font mocks;
+provider error logs also survive production compilation.
 
 The historical master plans describe removed canvas scenes, Three.js, Cloudinary
 and earlier page structures. Use the current code and documents above instead.

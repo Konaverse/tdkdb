@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
-import { Josefin_Sans } from 'next/font/google';
+import localFont from 'next/font/local';
 import SmoothScrollProvider from '@/components/animations/SmoothScrollProvider';
 import CustomCursor from '@/components/ui/CustomCursor';
 import '@/styles/globals.css';
 
-const josefin = Josefin_Sans({
-  subsets: ['latin'],
-  weight: ['100', '200', '300', '400', '600'],
+const josefin = localFont({
+  src: './fonts/josefin-sans-latin.woff2',
+  weight: '100 700',
+  style: 'normal',
   display: 'swap',
   variable: '--font-josefin',
 });
@@ -22,7 +23,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={josefin.variable}>
+    <html lang="en" className={`${josefin.variable} ${josefin.className}`}>
       <body>
         <noscript>
           <style>

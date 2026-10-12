@@ -109,3 +109,6 @@ Generated from project sources at 2026-10-11T17:31:41.616Z.
   reduced-motion and no-JavaScript fallbacks. Initialize cached fonts immediately.
   Prepare below-fold About, Projects and footer text near the viewport. Prefetch
   primary routes and project pages without changing the accepted expansion motion.
+- Bundle the verified Josefin Sans variable WOFF2 and OFL license in the repository.
+  Use `next/font/local` and apply its variable and font class to the document root,
+  so builds and deployed pages use the same font without a Google download.

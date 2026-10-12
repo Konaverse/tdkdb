@@ -2,14 +2,11 @@ import { Resend } from 'resend';
 import type { CreateEmailOptions } from 'resend';
 
 export function mailSettings(kind: 'contact' | 'interest') {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM_EMAIL;
-  const to =
-    (kind === 'interest'
-      ? process.env.INTEREST_FORM_TO_EMAIL
-      : process.env.CONTACT_FORM_TO_EMAIL) ||
-    process.env.CONTACT_FORM_TO_EMAIL ||
-    process.env.INTEREST_FORM_TO_EMAIL;
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  const from = process.env.RESEND_FROM_EMAIL?.trim();
+  const contactTo = process.env.CONTACT_FORM_TO_EMAIL?.trim();
+  const interestTo = process.env.INTEREST_FORM_TO_EMAIL?.trim();
+  const to = (kind === 'interest' ? interestTo : contactTo) || contactTo || interestTo;
   return apiKey && from && to ? { apiKey, from, to } : null;
 }
 
@@ -30,7 +27,14 @@ export async function sendEnquiry(
 ) {
   const resend = new Resend(apiKey);
   const result = await resend.emails.send(notification);
-  if (result.error) throw new Error(result.error.message);
+  if (result.error) {
+    console.error('Resend notification rejected:', {
+      name: result.error.name,
+      statusCode: result.error.statusCode,
+      message: result.error.message,
+    });
+    throw new Error(result.error.message);
+  }
   if (!result.data?.id) throw new Error('The mail provider did not accept the enquiry.');
 
   try {

@@ -86,6 +86,17 @@ are prefetched after opening; no gallery decoding work happens during route entr
 Close and restore scrolling on navigation. Native cursor styles stay visible inside
 the top-layer dialog, where the custom cursor cannot render.
 
+### Production fonts and mail diagnostics
+
+Load the committed Josefin Sans variable WOFF2 through `next/font/local` in the
+root layout. `src/app/fonts/OFL.txt` holds its license. Keep `--font-josefin` and
+the font class on `<html>`; builds must not depend on sandbox font substitutes or
+Google Fonts access. The variable font supports normal weights 100 through 700.
+
+Production compilation preserves `console.error` and `console.warn`. Keep the
+Resend rejection name, status and message in server logs, without credentials or
+submitted enquiry bodies. Whitespace in mail environment values is trimmed.
+
 ### Homepage
 
 The homepage (`src/app/[locale]/(site)/page.tsx`) is a small server component that fetches
