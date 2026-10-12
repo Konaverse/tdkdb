@@ -1,9 +1,10 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import TDKSelect from '@/components/forms/TDKSelect';
 import controls from '@/components/forms/FormControls.module.css';
+import { submissionAttempt, type SubmissionAttempt } from '@/lib/contact/attribution';
 
 const TYPES = [
   { value: 'residence-enquiry', label: 'A residence' },
@@ -25,12 +26,14 @@ export default function ContactForm({ compact = false }: { compact?: boolean }) 
   const [status, setStatus] = useState<Status>('idle');
   const [serverError, setServerError] = useState('');
   const [errors, setErrors] = useState<FieldErrors>({});
+  const attemptRef = useRef<SubmissionAttempt | null>(null);
+  const submittingRef = useRef(false);
   const id = (name: string) => `${prefix}-${name}`;
   const span = compact ? 'xl:col-span-2' : 'sm:col-span-2';
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (status === 'sending') return;
+    if (submittingRef.current || status === 'sending') return;
     const form = event.currentTarget;
     const fields = new FormData(form);
     const field = (name: string) => String(fields.get(name) ?? '').trim();
@@ -55,13 +58,19 @@ export default function ContactForm({ compact = false }: { compact?: boolean }) 
       return;
     }
 
+    attemptRef.current = submissionAttempt(data, attemptRef.current);
+    submittingRef.current = true;
     setStatus('sending');
     setServerError('');
     try {
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          submissionId: attemptRef.current.submissionId,
+          attribution: attemptRef.current.attribution,
+        }),
       });
       const result = await response.json().catch(() => ({}));
       if (response.ok && result.success) setStatus('sent');
@@ -72,6 +81,8 @@ export default function ContactForm({ compact = false }: { compact?: boolean }) 
     } catch {
       setStatus('error');
       setServerError('We could not reach the server. Please try again.');
+    } finally {
+      submittingRef.current = false;
     }
   }
 

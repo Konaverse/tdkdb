@@ -1,14 +1,41 @@
 # TDK website — current project memory
 
-Updated 2026-10-12. Read this first when continuing work; use `CLAUDE.md` for
+Updated 2026-10-13. Read this first when continuing work; use `CLAUDE.md` for
 implementation details and `.21st/design.json` for durable visual decisions.
 Older master plans describe removed features and must not override the current site.
 
 ## Current objective and state
 
-The latest user request addresses mobile scroll lag, emoji link arrows, and
-fullscreen sizing when Safari/Chrome toolbars appear or disappear. The fixes are
-implemented locally and are awaiting deployment/device review. Touch-only devices
+The current task integrates Brevo CRM with both existing form endpoints. The
+owner explicitly confirmed that ALL website enquiries, including general Contact
+and other projects, should create deals in Almond Pipeline. Target list is `3`,
+pipeline `6acd18d26b19db2a45b1cef1`, New Inquiry stage
+`0e5173b4643c420bbacdd97cc7d22450`. The integration is disabled by default through
+`BREVO_ENABLED`. On 2026-10-13, after being told that a push to main triggers
+Production, the owner authorized committing and pushing the CRM integration.
+The owner now identifies production as `https://tdkdb.com` and confirms that
+Resend is functioning; preserve its existing notification/acknowledgement flow.
+
+`src/lib/crm/` contains native-fetch contact upserts, linked deals/notes, private
+Sanity receipts, revision-checked worker leases and checkpointed recovery. CRM
+failure never changes an accepted-email success. Browser forms capture first/last
+campaign touch and keep stable submission UUIDs through retries; edits get new
+IDs. Brevo deal/note writes with an ambiguous outcome are reconciled or marked for
+operator review instead of blindly recreated. The authenticated daily Vercel worker
+and manual recovery endpoint are at `/api/crm/retry`. Sanity Studio has a read-only
+CRM deliveries view. See `docs/brevo-crm.md` for activation, failure handling and
+manual queue restoration; no extra SDK or service was installed.
+
+The owner reports that `BREVO_API_KEY` is configured in Vercel; local Brevo API
+credentials are still absent. Vercel's `BREVO_ENABLED` and retry-secret configuration
+have not been verified. A private local `CRON_SECRET` was generated without printing
+its value; it is not committed. A real account check
+and an approved end-to-end Preview test remain outstanding. Automated tests sent
+no live email and created no live Brevo/Sanity records. The production preview for
+this task is `http://127.0.0.1:3014/en`, using the existing ignored cached-CMS helper.
+
+The earlier mobile fixes were committed and pushed as `15940a4`. Physical Safari
+review remains outstanding. Touch-only devices
 now use native scrolling; homepage projects retain their filmstrip with CSS sticky,
 stable small-viewport measurements, no automatic snapping, blur or inner-image pan.
 Mobile text entrances reveal words instead of individual letters, image covers run
@@ -25,8 +52,8 @@ through `8cce719`. The user is reviewing production at `https://tdkdb.vercel.app
 reported fallback fonts and a failed project enquiry. Font packaging and production
 diagnostics are corrected and verified locally. The user identified the mail issue:
 a key from the Konaverse Resend account was used with an unverified TDK sender
-domain. They chose a separate TDK account. Its domain verification and deployment
-key update remain outstanding. The dev preview remains `http://127.0.0.1:3008/en`.
+domain. They chose a separate TDK account. The latest CRM brief confirms that Resend
+now functions in production. The dev preview remains `http://127.0.0.1:3008/en`.
 
 ## Completed changes and user decisions
 
@@ -114,6 +141,10 @@ key update remain outstanding. The dev preview remains `http://127.0.0.1:3008/en
 
 ## Delivery behavior and remaining external verification
 
+Current owner report: Resend works at tdkdb.com. The older provider diagnosis below
+is historical; it must not be treated as a current CRM blocker. This task used
+isolated providers and did not perform another live email test.
+
 `ContactForm` serves homepage and Contact via `/api/contact`; `ProjectRegister`
 uses `/api/project-interest`. Shared delivery code confirms success only after
 Resend accepts the studio notification. Preserve visitor input on errors, disable
@@ -155,6 +186,17 @@ They are production assets, not preview placeholders, and are not yet CMS-manage
 
 ## Verification completed
 
+- Brevo integration: 43 existing delivery checks plus 52 CRM checks pass, covering
+  validation/honeypots, new/existing contacts, phone conflicts, every enquiry type,
+  failed email, duplicate/concurrent replay, cold instances, API failures, lost
+  deal/note responses, failed checkpoints, long notes, worker authorization and
+  the installed Resend SDK's actual idempotency header serialization. Six browser
+  checks in the production preview pass at 1440 and 390px across homepage, Contact
+  and Almond: campaign retention, current source URL, filtered query data, stable
+  retry IDs, fresh IDs for edits, duplicate-submit blocking and legacy crypto
+  fallback. These form checks use keyboard selection, not a mobile dropdown audit.
+  TypeScript, full-project ESLint and isolated production build pass. Live account
+  verification remains pending because `BREVO_API_KEY` is not configured.
 - Mobile corrections: 12 behavior groups passed at 320, 390 and 768px, with
   changing heights and landscape rotation: sticky alignment, centered projects,
   no snap, dynamic heroes, visual-viewport lightbox bounds, SVG arrows and static
@@ -253,8 +295,9 @@ committed font. Use it to assess navigation without dev compilation and Fast Ref
 When restarting this isolated preview, pass `--env-file=../../.env.local` before
 `--require ../offline-preview.cjs` so runtime form credentials are loaded too.
 
-Outstanding: set up the chosen TDK Resend account and verify its sender domain,
-replace the Vercel Production key and redeploy, then confirm a real enquiry.
+Outstanding: configure `BREVO_API_KEY` securely, verify the real list/pipeline/stage
+and private queue permissions in an approved Preview, then obtain explicit approval
+before Production deployment. Do not push CRM changes to main as an implicit rollout.
 Live font asset/class checks pass. Direct browser/Node requests to external hosts
 and Vercel CLI requests are blocked with EACCES. Standalone `curl.exe -L` commands
 can fetch the public deployment files; keep approved network commands separate

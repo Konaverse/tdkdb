@@ -7,6 +7,7 @@ import { gsap, gsapInit, ScrollTrigger } from '@/lib/animations/gsap';
 import { maskChars, riseIn } from '@/lib/animations/text';
 import TDKSelect from '@/components/forms/TDKSelect';
 import controls from '@/components/forms/FormControls.module.css';
+import { submissionAttempt, type SubmissionAttempt } from '@/lib/contact/attribution';
 
 /* ───────────────────────────────────────────────────────────────────────────
    ProjectRegister — the page's last word: leave your details
@@ -47,6 +48,8 @@ export default function ProjectRegister({
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<'name' | 'email', string>>>({});
+  const attemptRef = useRef<SubmissionAttempt | null>(null);
+  const submittingRef = useRef(false);
 
   useLayoutEffect(() => {
     gsapInit();
@@ -75,7 +78,7 @@ export default function ProjectRegister({
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (status === 'sending') return;
+    if (submittingRef.current || status === 'sending') return;
     const form = e.currentTarget;
     const fields = new FormData(form);
     const field = (name: string) => String(fields.get(name) ?? '').trim();
@@ -100,13 +103,19 @@ export default function ProjectRegister({
       return;
     }
 
+    attemptRef.current = submissionAttempt(data, attemptRef.current);
+    submittingRef.current = true;
     setStatus('sending');
     setError('');
     try {
       const res = await fetch('/api/project-interest', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          submissionId: attemptRef.current.submissionId,
+          attribution: attemptRef.current.attribution,
+        }),
       });
       const json = await res.json().catch(() => ({}));
       if (res.ok && json.success) {
@@ -127,6 +136,8 @@ export default function ProjectRegister({
     } catch {
       setStatus('error');
       setError('We could not reach the server. Please try again.');
+    } finally {
+      submittingRef.current = false;
     }
   }
 

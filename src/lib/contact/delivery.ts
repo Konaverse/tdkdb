@@ -24,9 +24,13 @@ export async function sendEnquiry(
   apiKey: string,
   notification: CreateEmailOptions,
   acknowledgement: CreateEmailOptions,
+  idempotencyKey?: string,
 ) {
   const resend = new Resend(apiKey);
-  const result = await resend.emails.send(notification);
+  const result = await resend.emails.send(
+    notification,
+    idempotencyKey ? { idempotencyKey: `${idempotencyKey}/notification` } : undefined,
+  );
   if (result.error) {
     console.error('Resend notification rejected:', {
       name: result.error.name,
@@ -38,7 +42,10 @@ export async function sendEnquiry(
   if (!result.data?.id) throw new Error('The mail provider did not accept the enquiry.');
 
   try {
-    const reply = await resend.emails.send(acknowledgement);
+    const reply = await resend.emails.send(
+      acknowledgement,
+      idempotencyKey ? { idempotencyKey: `${idempotencyKey}/acknowledgement` } : undefined,
+    );
     if (reply.error) console.error('Enquiry acknowledgement failed:', reply.error.message);
   } catch (error) {
     console.error(
@@ -46,4 +53,5 @@ export async function sendEnquiry(
       error instanceof Error ? error.message : 'Unknown mail error',
     );
   }
+  return result.data.id;
 }

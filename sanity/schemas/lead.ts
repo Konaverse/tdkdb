@@ -1,4 +1,5 @@
 import { defineType, defineField } from 'sanity';
+import { attributionField } from './enquirySubmission';
 
 export default defineType({
   name: 'lead',
@@ -28,6 +29,7 @@ export default defineType({
       },
     }),
     defineField({ name: 'notes', title: 'Internal Notes', type: 'text' }),
+    attributionField,
   ],
   preview: {
     select: {

@@ -4,6 +4,7 @@
   "buildCommand": "pnpm build",
   "outputDirectory": ".next",
   "regions": ["fra1"],
+  "crons": [{ "path": "/api/crm/retry", "schedule": "0 6 * * *" }],
   "headers": [
     {
       "source": "/(.*)",

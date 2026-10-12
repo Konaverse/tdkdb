@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { escapeHtml, mailSettings, sendEnquiry } from '@/lib/contact/delivery';
+import { submissionMetadataSchema } from '@/lib/contact/metadata';
+import {
+  makeSubmission,
+  previousSubmission,
+  queueAcceptedSubmission,
+  submissionEmailHtml,
+} from '@/lib/crm/submissions';
+
+export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 // In-memory rate limiter: IP → timestamps
 const rateLimitMap = new Map<string, number[]>();
@@ -15,14 +25,16 @@ function isRateLimited(ip: string): boolean {
   return false;
 }
 
-const schema = z.object({
-  name: z.string().trim().min(1, 'Name is required').max(200),
-  email: z.string().trim().email('Invalid email address').max(320),
-  phone: z.string().trim().max(80).optional(),
-  projectType: z.string().trim().min(1, 'Project type is required').max(100),
-  message: z.string().trim().min(1, 'Message is required').max(10000),
-  _honeypot: z.string().optional(),
-});
+const schema = z
+  .object({
+    name: z.string().trim().min(1, 'Name is required').max(200),
+    email: z.string().trim().email('Invalid email address').max(320),
+    phone: z.string().trim().max(80).optional(),
+    projectType: z.string().trim().min(1, 'Project type is required').max(100),
+    message: z.string().trim().min(1, 'Message is required').max(10000),
+    _honeypot: z.string().optional(),
+  })
+  .extend(submissionMetadataSchema.shape);
 
 export async function POST(req: NextRequest) {
   let body: unknown;
@@ -47,6 +59,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   }
 
+  const submission = makeSubmission('contact', parsed.data);
+  const previous = await previousSubmission(submission);
+  if (previous === 'conflict')
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'This submission reference was already used. Please submit a new enquiry.',
+      },
+      { status: 409 },
+    );
+  if (previous === 'accepted') return NextResponse.json({ success: true });
+
   // Rate limiting
   const ip =
     req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
@@ -69,9 +93,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  let emailId: string;
   try {
     // Send notification to TDK team
-    await sendEnquiry(
+    emailId = await sendEnquiry(
       mail.apiKey,
       {
         from: mail.from,
@@ -86,6 +111,7 @@ export async function POST(req: NextRequest) {
         <p><strong>Project Type:</strong> ${escapeHtml(projectType)}</p>
         <p><strong>Message:</strong></p>
         <p>${escapeHtml(message).replace(/\n/g, '<br/>')}</p>
+        ${submissionEmailHtml(submission)}
       `,
       },
       {
@@ -100,6 +126,7 @@ export async function POST(req: NextRequest) {
         <p>Best regards,<br/>TDK Design &amp; Build</p>
       `,
       },
+      submission.idempotencyKey,
     );
   } catch (err) {
     console.error('Contact form error:', err instanceof Error ? err.message : 'Unknown mail error');
@@ -109,5 +136,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  await queueAcceptedSubmission(submission, emailId);
   return NextResponse.json({ success: true });
 }

@@ -1,13 +1,25 @@
 # TDK Design & Build — handoff
 
-Updated 2026-10-12.
+Updated 2026-10-13.
 
-Latest work: mobile smoothness, SVG link arrows and browser-toolbar-aware fullscreen
-sizing are implemented locally. Touch uses native scrolling, CSS sticky projects
+Current task: Brevo CRM integration is implemented and disabled by default.
+All website enquiries go to Almond Pipeline/New Inquiry, retaining their actual
+interest. Resend remains the success authority; private Sanity receipts and a daily
+worker handle CRM retries. The 43 email and 52 CRM checks, six production-preview
+form checks, full lint, types and build pass. The owner reports that the Brevo API
+key is configured in Vercel; real account verification remains outstanding.
+Vercel's enable flag and retry secret have not been verified. The retry secret
+exists in ignored local environment settings. On 2026-10-13, after the deployment
+requirement was explained, the owner explicitly authorized committing and pushing
+this integration to main. Further Production changes still require approval. Read
+[docs/brevo-crm.md](./docs/brevo-crm.md) for setup and recovery.
+
+Earlier work: mobile smoothness, SVG link arrows and browser-toolbar-aware fullscreen
+sizing were pushed as `15940a4`. Touch uses native scrolling, CSS sticky projects
 without automatic snap, lighter word/image entrances, and static footer photography.
 Desktop retains the existing motion. Dynamic heroes and visual-viewport lightbox
 sizing track browser controls. Mobile/desktop interaction and resize checks pass;
-physical Safari review and deployment remain outstanding. Read MEMORY.md for details.
+physical Safari review remains outstanding. Read MEMORY.md for details.
 
 Read these current documents when continuing work:
 

@@ -2,6 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { serverClient } from '@/lib/sanity/client';
 import { escapeHtml, mailSettings, sendEnquiry } from '@/lib/contact/delivery';
+import { submissionMetadataSchema } from '@/lib/contact/metadata';
+import {
+  makeSubmission,
+  previousSubmission,
+  queueAcceptedSubmission,
+  submissionEmailHtml,
+} from '@/lib/crm/submissions';
+
+export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 // In-memory rate limiter: IP → timestamps
 const rateLimitMap = new Map<string, number[]>();
@@ -16,16 +26,18 @@ function isRateLimited(ip: string): boolean {
   return false;
 }
 
-const schema = z.object({
-  name: z.string().trim().min(1, 'Name is required').max(200),
-  email: z.string().trim().email('Invalid email address').max(320),
-  phone: z.string().trim().max(80).optional(),
-  unitPreference: z.string().trim().max(200).optional(),
-  message: z.string().trim().max(10000).optional(),
-  projectSlug: z.string().trim().min(1).max(200),
-  projectName: z.string().trim().min(1).max(200),
-  _honeypot: z.string().optional(),
-});
+const schema = z
+  .object({
+    name: z.string().trim().min(1, 'Name is required').max(200),
+    email: z.string().trim().email('Invalid email address').max(320),
+    phone: z.string().trim().max(80).optional(),
+    unitPreference: z.string().trim().max(200).optional(),
+    message: z.string().trim().max(10000).optional(),
+    projectSlug: z.string().trim().min(1).max(200),
+    projectName: z.string().trim().min(1).max(200),
+    _honeypot: z.string().optional(),
+  })
+  .extend(submissionMetadataSchema.shape);
 
 export async function POST(req: NextRequest) {
   let body: unknown;
@@ -51,6 +63,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   }
 
+  const submission = makeSubmission('interest', parsed.data);
+  const previous = await previousSubmission(submission);
+  if (previous === 'conflict')
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'This submission reference was already used. Please submit a new enquiry.',
+      },
+      { status: 409 },
+    );
+  if (previous === 'accepted') return NextResponse.json({ success: true });
+
   // Rate limiting
   const ip =
     req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
@@ -73,9 +97,10 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  let emailId: string;
   try {
     // Send notification to TDK team
-    await sendEnquiry(
+    emailId = await sendEnquiry(
       mail.apiKey,
       {
         from: mail.from,
@@ -90,6 +115,7 @@ export async function POST(req: NextRequest) {
         <p><strong>Unit Preference:</strong> ${escapeHtml(unitPreference || 'Any residence')}</p>
         <p><strong>Message:</strong> ${escapeHtml(message || 'None').replace(/\n/g, '<br/>')}</p>
         <p><strong>Project Slug:</strong> ${escapeHtml(projectSlug)}</p>
+        ${submissionEmailHtml(submission)}
       `,
       },
       {
@@ -104,6 +130,7 @@ export async function POST(req: NextRequest) {
         <p>Best regards,<br/>TDK Design &amp; Build</p>
       `,
       },
+      submission.idempotencyKey,
     );
   } catch (err) {
     console.error(
@@ -119,7 +146,7 @@ export async function POST(req: NextRequest) {
   // The email is already accepted. Archiving must not turn it into a failed
   // submission and cause the visitor to send the same enquiry again.
   try {
-    await serverClient.create({
+    const lead = {
       _type: 'lead',
       name,
       email,
@@ -130,7 +157,11 @@ export async function POST(req: NextRequest) {
       projectName,
       submittedAt: new Date().toISOString(),
       status: 'new',
-    });
+      attribution: submission.enquiry.attribution,
+    };
+    if (parsed.data.submissionId)
+      await serverClient.createIfNotExists({ ...lead, _id: `lead.${submission.id}` });
+    else await serverClient.create(lead);
   } catch (err) {
     console.error(
       'Project lead archive failed:',
@@ -138,5 +169,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  await queueAcceptedSubmission(submission, emailId);
   return NextResponse.json({ success: true });
 }

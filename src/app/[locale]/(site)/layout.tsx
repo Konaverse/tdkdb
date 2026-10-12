@@ -4,10 +4,12 @@ import NavGuard from '@/components/layout/NavGuard';
 import IntroProvider from '@/components/homepage/IntroProvider';
 import ProjectTransitionProvider from '@/components/transition/ProjectTransition';
 import ImageLightboxProvider from '@/components/ui/ImageLightbox';
+import AttributionCapture from '@/components/contact/AttributionCapture';
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <IntroProvider>
+      <AttributionCapture />
       <ProjectTransitionProvider>
         <ImageLightboxProvider>
           <NavGuard>

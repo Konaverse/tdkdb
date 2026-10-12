@@ -40,6 +40,7 @@ export const structure: StructureResolver = (S) =>
       S.documentTypeListItem('teamMember').title('Team'),
       S.divider(),
       S.listItem().title('Leads').child(S.documentTypeList('lead').title('Leads by Project')),
+      S.documentTypeListItem('enquirySubmission').title('CRM deliveries'),
       S.divider(),
       S.listItem()
         .title('Site Settings')

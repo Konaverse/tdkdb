@@ -13,10 +13,31 @@ pnpm build        # Production build
 pnpm start        # Start production server
 pnpm lint         # ESLint (next lint + prettier)
 pnpm test:forms   # Isolated enquiry delivery checks; no external emails
+pnpm test:crm     # Isolated Brevo contact/deal/queue recovery checks
 ```
 
 `tools/check-form-delivery.cjs` exercises the real enquiry handlers with isolated
 mail and CMS substitutes. Browser QA helpers are local, ignored files under `.tmp/`.
+
+### Enquiries and Brevo CRM
+
+Keep Resend as the enquiry success authority. Brevo is enabled only through the
+server-only `BREVO_ENABLED` flag; `BREVO_API_KEY` and `CRON_SECRET` stay private.
+The confirmed routing sends ALL website enquiries to Almond Pipeline/New Inquiry
+while preserving their actual property/service interest. `src/lib/crm/` owns the
+contact upsert, associated deal/notes and durable private Sanity receipts. New
+form requests use retry-stable UUIDs and separate Resend idempotency keys for the
+notification and acknowledgement. Do not make CRM or archive failure return a
+false failure after the studio email was accepted.
+
+CRM delivery is checkpointed under a revision-checked lease. Brevo deal/note POSTs
+with unknown outcomes must be reconciled by their stable markers or reviewed,
+never blindly repeated. `/api/crm/retry` is an authenticated, uncached daily worker
+with explicit operator recovery actions. New enquiry/lead IDs intentionally use
+dotted private namespaces to protect customer data from anonymous CMS reads.
+Contact blacklist/marketing consent flags are never overwritten. Use
+`docs/brevo-crm.md` for configuration, approved Preview validation and recovery.
+This integration must not be deployed to Production without explicit approval.
 
 ## Architecture Overview
 
