@@ -51,6 +51,8 @@ export interface ConstructionUpdate {
 
 export interface Project {
   _id: string;
+  /** Projected by getAllProjects for the sitemap's lastModified. */
+  _updatedAt?: string;
   title: string;
   slug: { current: string };
   status: 'upcoming' | 'in-progress' | 'completed';

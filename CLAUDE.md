@@ -52,7 +52,26 @@ It uses Next.js 14 App Router, TypeScript, Tailwind CSS and Sanity CMS.
 - API routes in `src/app/api/`: `contact`, `project-interest`, and `revalidate` (Sanity webhook).
 
 The site is deliberately small. The **only** pages are: homepage, About, Projects index,
-Project detail (`projects/[slug]`), and Contact — plus `privacy-policy` and `terms` stubs.
+Project detail (`projects/[slug]`), and Contact — plus `privacy-policy` and `terms` stubs
+(noindexed `LegalPlaceholder`s until their documents exist).
+
+### Technical SEO (Oct 2026)
+
+`src/lib/seo.ts` is the one place that knows the canonical origin (`NEXT_PUBLIC_SITE_URL`
+if https, else Vercel's production domain, else tdkdb.com) and builds page metadata.
+Every page exports `generateMetadata` through `buildMetadata({ title, description, path })`
+(or `pageMetadata` when it has its own image, as project pages do with their hero): that
+yields the canonical, Open Graph and Twitter cards. Next REPLACES a page's `openGraph`
+object instead of merging it with the root's, so the helper repeats site name, locale and
+the Site Settings share image on purpose. The root layout owns `metadataBase`, the
+`%s | TDK Design & Build` title template and the indexing defaults. `[locale]/layout.tsx`
+prerenders only `en` with `dynamicParams = false`, so `/el` is a 404, never a duplicate of
+the English site, and every page is SSG/ISR rather than request-rendered. `robots.ts`
+disallows `/studio` and `/api/` and names `sitemap.ts`, which lists the four pages and every
+project. `JsonLd` renders Organization data in the site layout and breadcrumbs on project
+pages; contact details come from Site Settings. The root `/` redirect is a permanent 308;
+`/studio` and `/api` also carry `X-Robots-Tag: noindex`. Security headers live only in
+`next.config.mjs` (the `vercel.json` copy was removed).
 There is no Services section and no Insights/blog section; both were removed in Aug 2026
 along with their Sanity schemas. Do not reintroduce them without being asked.
 

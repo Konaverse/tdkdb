@@ -62,12 +62,13 @@ const HeroTitleContent = forwardRef<HTMLDivElement, Props>(function HeroTitleCon
     <div className="absolute bottom-0 left-0 right-0 px-4 pb-0 sm:px-6 sm:pb-1 md:px-10 md:pb-1">
       <div className="grid grid-cols-12 items-end gap-4">
         <div ref={ref} className="pointer-events-auto col-span-12 lg:col-span-8">
-          <h1
+          <p
+            aria-hidden="true"
             className="translate-y-[0.12em] text-[22vw] font-medium leading-[0.85] tracking-[-0.05em] sm:text-[20vw] md:text-[18vw] lg:text-[17vw] xl:text-[16vw] 2xl:text-[17vw]"
             style={{ color: '#fff', fontFamily: 'var(--font-primary)' }}
           >
             <WordsPullUp animate={animate} />
-          </h1>
+          </p>
         </div>
       </div>
     </div>

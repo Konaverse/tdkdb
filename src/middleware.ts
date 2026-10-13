@@ -20,7 +20,9 @@ export function middleware(request: NextRequest) {
 
   const url = request.nextUrl.clone();
   url.pathname = `/${defaultLocale}${pathname}`;
-  return NextResponse.redirect(url);
+  // Permanent: English is the only published locale, and the canonical URLs
+  // live under it.
+  return NextResponse.redirect(url, 308);
 }
 
 export const config = {

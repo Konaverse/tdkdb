@@ -5,11 +5,17 @@ import IntroProvider from '@/components/homepage/IntroProvider';
 import ProjectTransitionProvider from '@/components/transition/ProjectTransition';
 import ImageLightboxProvider from '@/components/ui/ImageLightbox';
 import AttributionCapture from '@/components/contact/AttributionCapture';
+import JsonLd from '@/components/seo/JsonLd';
+import { getSiteSettings } from '@/lib/sanity/queries';
+import { organizationJsonLd } from '@/lib/seo';
 
-export default function SiteLayout({ children }: { children: React.ReactNode }) {
+export default async function SiteLayout({ children }: { children: React.ReactNode }) {
+  const settings = await getSiteSettings();
+
   return (
     <IntroProvider>
       <AttributionCapture />
+      <JsonLd data={organizationJsonLd(settings)} />
       <ProjectTransitionProvider>
         <ImageLightboxProvider>
           <NavGuard>

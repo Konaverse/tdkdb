@@ -2,7 +2,16 @@
 
 Updated 2026-10-13.
 
-Mobile smoothness (latest, Claude): heroes use `svh` instead of `dvh`, the scroll
+Technical SEO (latest, Claude, 2026-10-13): every page now has a canonical, title
+template, description and social cards through `src/lib/seo.ts`; `/el` is a 404; all
+pages prerender (SSG/ISR) instead of request-rendering; robots excludes Studio/API and
+names the populated sitemap; Organization and breadcrumb JSON-LD; permanent root
+redirect; legal stubs are noindexed placeholders. Still to do by the owner: real
+privacy/terms text, fix the Site Settings company name typo ("Desing"), set
+`NEXT_PUBLIC_SITE_URL=https://tdkdb.com` in Vercel (the code falls back correctly),
+and submit the sitemap in Google Search Console. See CLAUDE.md "Technical SEO".
+
+Mobile smoothness (Claude): heroes use `svh` instead of `dvh`, the scroll
 provider skips toolbar refreshes when the document height is unchanged, and the
 homepage projects on touch are a native full-width stack with captions under each
 frame. Desktop passage unchanged. Verified in phone emulation (zero layout shifts,

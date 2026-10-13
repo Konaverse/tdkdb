@@ -9,6 +9,8 @@ import ProjectRegister from '@/components/sections/project/ProjectRegister';
 import { ALMOND_INTERIORS } from '@/lib/content/requested-images';
 import { getProjectBySlug, getAllProjects } from '@/lib/sanity/queries';
 import { bedroomsLabel, displayTitle, sceneImages } from '@/lib/projects/display';
+import { breadcrumbsJsonLd, pageMetadata, projectDescription, projectOgImage } from '@/lib/seo';
+import JsonLd from '@/components/seo/JsonLd';
 import type { PortableTextBlock } from '@/lib/sanity/types';
 
 export const revalidate = 60;
@@ -18,14 +20,18 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const project = await getProjectBySlug(slug);
-  if (!project) return {};
+  if (!project) return { title: 'Project not found', robots: { index: false, follow: false } };
 
-  return {
-    title: project.seo?.title || `${project.title} | TDK Design & Build`,
-    description: project.seo?.description || project.pullQuote || '',
-  };
+  // A CMS title is used as written (it usually carries the brand already);
+  // otherwise the display name takes the site template.
+  return pageMetadata({
+    title: project.seo?.title ? { absolute: project.seo.title } : displayTitle(project),
+    description: project.seo?.description || projectDescription(project),
+    path: `/${locale}/projects/${slug}`,
+    image: projectOgImage(project),
+  });
 }
 
 export async function generateStaticParams() {
@@ -45,11 +51,16 @@ function paragraphsOf(blocks: PortableTextBlock[] = []): string[] {
 /* The page, in the order the reader needs it: the building, the pictures,
    what is available, what it is and how far along, and the form. */
 export default async function ProjectDetailPage({ params }: Props) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const project = await getProjectBySlug(slug);
   if (!project) notFound();
 
   const title = displayTitle(project);
+  const breadcrumbs = breadcrumbsJsonLd([
+    { name: 'Home', path: `/${locale}` },
+    { name: 'Projects', path: `/${locale}/projects` },
+    { name: title, path: `/${locale}/projects/${slug}` },
+  ]);
   const images = sceneImages(project, 5);
   const units = project.units ?? [];
   const soldOut = units.length > 0 && units.every((u) => u.status === 'sold');
@@ -69,6 +80,7 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   return (
     <main style={{ background: '#ffffff', color: '#111111' }}>
+      <JsonLd data={breadcrumbs} />
       {/* Full bleed. Arriving from the homepage, this is where the project's
           photograph lands (see ProjectTransition). */}
       <ProjectHero project={project} />

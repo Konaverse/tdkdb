@@ -7,7 +7,7 @@ import type { Project, SiteImages, SiteSettings, TeamMember } from './types';
 
 export async function getAllProjects(): Promise<Project[]> {
   const query = `*[_type == 'project'] | order(year desc) {
-    _id, title, slug, status, scope, type, ctaType, location, year, heroImage, seo
+    _id, _updatedAt, title, slug, status, scope, type, ctaType, location, year, heroImage, seo
   }`;
 
   try {

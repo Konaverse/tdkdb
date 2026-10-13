@@ -13,10 +13,21 @@ import {
 } from '@/lib/sanity/queries';
 import { displayTitle, projectHref, projectScope } from '@/lib/projects/display';
 import { ALMOND_SLUG } from '@/lib/projects/updates';
+import { buildMetadata } from '@/lib/seo';
 import type { AboutPlate } from '@/components/homepage/AboutGrid';
 import type { Project } from '@/lib/sanity/types';
+import type { Metadata } from 'next';
 
 export const revalidate = 60;
+
+export function generateMetadata(): Promise<Metadata> {
+  return buildMetadata({
+    title: { absolute: 'TDK Design & Build — Architects and builders in Nicosia, Cyprus' },
+    description:
+      'TDK is a design-and-build studio in Nicosia. The architects who draw a residence are the same people who build it and hand over the keys. Almond Suites in Strovolos is now under construction.',
+    path: '/en',
+  });
+}
 
 const HERO_PARAGRAPHS: [string, string] = [
   'TDK is a design-and-build studio in Nicosia. The architects who draw a residence are the same people who build it and hand over the keys — one team, accountable from the first sketch to the last fitting.',
