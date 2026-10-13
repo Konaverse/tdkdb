@@ -56,6 +56,15 @@ import styles from './ProjectsPinned.module.css';
    · Lenis carries the scroll, so the snap goes THROUGH Lenis (see "snap"
      below), never through ScrollTrigger's own snap.
 
+   PHONES AND TOUCH TABLETS (Oct 2026)
+   The pinned scrub is desktop-only. On touch the same strip is a native
+   vertical stack: full-width frames that scroll one-to-one with the finger,
+   each entering with the site's image entrance, its name and particulars set
+   below it in ink. No sticky stage, no scrubbed translate, no blend mode and
+   no index — a JS-driven strip moving at a third of finger speed under a
+   fixed stage read as a broken scroll on phones, and every toolbar change
+   jolted it. The CSS module owns the breakpoint geometry.
+
    PERFORMANCE — why it is built this way
    · scrub: true. Lenis already smooths the scroll; a numeric scrub on top
      made the strip trail the pin, still catching up as the pin engaged and
@@ -96,10 +105,6 @@ const PAPER = '#ffffff';
 const INK = '#111111';
 const ACCENT = 'var(--color-threshold, #66979f)';
 
-/** Frame column width. Height, centring and step all derive from it. */
-const COLUMN_WIDTH = 'min(clamp(300px, 44vw, 900px), calc(100vw - 2 * var(--page-margin)))';
-/** Vertical gap between frames, in svh. */
-const GAP = 10;
 /** Viewport-heights of scroll per project. */
 const STEP = 1.1;
 /** The slow pan inside each frame, yPercent across the whole travel. */
@@ -166,10 +171,43 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
       },
       (context) => {
         const mobile = !!context.conditions?.mobile;
-
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         const frames = gsap.utils.toArray<HTMLElement>('[data-frame]', scope);
+        const reveals: { revert: () => void }[] = [];
+
+        /* ─────────────────────────────────────────── touch: the native stack */
+
+        if (mobile) {
+          // The browser scrolls; nothing here writes to the strip. Each
+          // photograph takes the shared entrance as it arrives, its caption
+          // fades up with it, and that is all.
+          const ctx = gsap.context(() => {
+            if (reduced) return;
+            frames.forEach((frame) => {
+              const reveal = imageReveal(frame, {
+                settle: frame.querySelector('[data-settle]'),
+              });
+              reveals.push(reveal);
+            });
+            gsap.utils.toArray<HTMLElement>('[data-caption]', scope).forEach((caption) => {
+              gsap.from(caption, {
+                autoAlpha: 0,
+                y: 14,
+                duration: 0.7,
+                ease: 'power2.out',
+                scrollTrigger: { trigger: caption, start: 'top 94%', once: true },
+              });
+            });
+          }, scope);
+          return () => {
+            ctx.revert();
+            reveals.forEach((r) => r.revert());
+          };
+        }
+
+        /* ───────────────────────────────────────────── desktop: the passage */
+
         const pans = gsap.utils.toArray<HTMLElement>('[data-pan]', scope);
         const names = gsap.utils.toArray<HTMLElement>('[data-name]', scope);
         const indexBtns = gsap.utils.toArray<HTMLElement>('[data-index]', scope);
@@ -205,7 +243,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
           lastP = p;
           strip.style.transform = `translate3d(0, ${(-p * stepPx).toFixed(2)}px, 0)`;
 
-          if (!reduced && !mobile) {
+          if (!reduced) {
             // Slow pan: the picture drifts against the travel while its frame
             // crosses the viewport. While pinned, frame j's centre sits (j − p)
             // steps from the viewport centre — arithmetic, not a rect read.
@@ -235,9 +273,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
             // or settled names carry no filter at all. The pull is gentle — 2.5px
             // at most, was 7 — the client wants nothing that hits the eye.
             t.style.filter =
-              mobile || vis >= 0.999 || vis <= 0.02
-                ? ''
-                : `blur(${((1 - vis) * 2.5).toFixed(2)}px)`;
+              vis >= 0.999 || vis <= 0.02 ? '' : `blur(${((1 - vis) * 2.5).toFixed(2)}px)`;
           });
 
           if (active !== lastActive) {
@@ -251,7 +287,6 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
         /* ──────────────────────────────────────────────────────── behaviours */
 
         let trigger: ScrollTrigger | null = null;
-        const reveals: { revert: () => void }[] = [];
 
         const scrollFor = (j: number) =>
           trigger ? trigger.start + (j / (N - 1)) * (trigger.end - trigger.start) : 0;
@@ -295,7 +330,7 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
           lenis.scrollTo(dest, { duration: 0.9, easing: easeOutCubic });
         };
         const armSnap = () => {
-          if (reduced || mobile) return;
+          if (reduced) return;
           const lenis = getLenis();
           if (!lenis) return;
           const t = scrollTargetOf(lenis);
@@ -335,8 +370,8 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
             trigger: scope,
             start: 'top top',
             end: () => `+=${(N - 1) * pinEl.clientHeight * STEP}`,
-            pin: mobile ? false : pinEl,
-            pinSpacing: !mobile,
+            pin: pinEl,
+            pinSpacing: true,
             scrub: true,
             invalidateOnRefresh: true,
             onRefresh: (self) => {
@@ -363,9 +398,6 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
             scrollTrigger: { trigger: scope, start: 'top 85%', once: true },
           });
           frames.forEach((frame, i) => {
-            // Later touch frames are already entering through the moving strip.
-            // Give only its first image a separate entrance cover.
-            if (mobile && i > 0) return;
             const reveal = imageReveal(frame, {
               scroll: false,
               settle: frame.querySelector('[data-settle]'),
@@ -391,6 +423,16 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
           clearTimeout(resizeTimer);
           clearTimeout(snapTimer);
           indexBtns.forEach((b) => b.removeEventListener('click', onIndexClick));
+          // render() wrote these outside the context; leave the strip clean for
+          // the next breakpoint.
+          [strip, ...pans, ...names, ...indexBtns].forEach((el) => {
+            el.style.removeProperty('transform');
+            el.style.removeProperty('opacity');
+            el.style.removeProperty('visibility');
+            el.style.removeProperty('filter');
+          });
+          if (marker) marker.style.removeProperty('transform');
+          titles.forEach((title) => title.style.removeProperty('font-size'));
         };
       },
     );
@@ -410,62 +452,80 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
         style={{
           background: PAPER,
           color: INK,
-          ['--col-w' as string]: COLUMN_WIDTH,
-          ['--project-travel' as string]: `${Math.max(0, N - 1) * STEP * 100}svh`,
           fontFamily: 'var(--font-josefin)',
         }}
       >
         <div ref={pinRef} className={`${styles.stage} w-full overflow-hidden bg-white`}>
           {/* The filmstrip. First frame rests centred by construction. */}
-          <div className="absolute inset-x-0 top-0 flex justify-center">
+          <div className={`${styles.stripWrap} flex justify-center`}>
             <div
               ref={stripRef}
               data-strip
-              className="flex flex-col items-center will-change-transform"
-              style={{
-                width: 'var(--col-w)',
-                rowGap: `${GAP}svh`,
-                paddingTop: 'calc(50svh - var(--col-w) / 3)',
-              }}
+              className={`${styles.strip} flex flex-col items-center will-change-transform`}
             >
               {projects.map((p, j) => (
-                <Link
-                  key={p._id}
-                  href={projectHref(locale, p.slug.current)}
-                  data-frame
-                  onClick={(e) => openProject(e, j)}
-                  aria-label={`Open ${displayTitle(p)}`}
-                  className="block w-full cursor-pointer overflow-hidden"
-                  style={{ aspectRatio: '3 / 2' }}
-                >
-                  <div data-settle className="h-full w-full">
-                    <div
-                      data-pan
-                      className={`${styles.pan} relative h-full w-full will-change-transform`}
-                    >
-                      <img
-                        src={imageUrl(p.heroImage, { width: 1600 })}
-                        srcSet={[600, 900, 1200, 1600]
-                          .map((width) => `${imageUrl(p.heroImage, { width })} ${width}w`)
-                          .join(', ')}
-                        sizes="(max-width: 681px) 300px, (max-width: 2045px) 44vw, 900px"
-                        alt={displayTitle(p)}
-                        loading="eager"
-                        decoding="async"
-                        className="h-[116%] w-full -translate-y-[7%] object-cover"
+                <div key={p._id} className="w-full">
+                  <Link
+                    href={projectHref(locale, p.slug.current)}
+                    data-frame
+                    onClick={(e) => openProject(e, j)}
+                    aria-label={`Open ${displayTitle(p)}`}
+                    className="block w-full cursor-pointer overflow-hidden"
+                    style={{ aspectRatio: '3 / 2' }}
+                  >
+                    <div data-settle className="h-full w-full">
+                      <div
+                        data-pan
+                        className={`${styles.pan} relative h-full w-full will-change-transform`}
+                      >
+                        <img
+                          src={imageUrl(p.heroImage, { width: 1600 })}
+                          srcSet={[600, 900, 1200, 1600]
+                            .map((width) => `${imageUrl(p.heroImage, { width })} ${width}w`)
+                            .join(', ')}
+                          sizes="(max-width: 1023px) calc(100vw - 32px), (max-width: 2045px) 44vw, 900px"
+                          alt={displayTitle(p)}
+                          loading="eager"
+                          decoding="async"
+                          className="h-[116%] w-full -translate-y-[7%] object-cover"
+                        />
+                      </div>
+                    </div>
+                  </Link>
+
+                  {/* Touch only: the name and particulars set under their frame. */}
+                  <div data-caption className={`${styles.caption} pt-5`}>
+                    <h3 className="text-[clamp(1.7rem,7vw,2.4rem)] font-[300] leading-[1.1] tracking-[0.01em]">
+                      <Link
+                        href={projectHref(locale, p.slug.current)}
+                        onClick={(e) => openProject(e, j)}
+                        className="cursor-pointer"
+                      >
+                        {displayTitle(p)}
+                      </Link>
+                    </h3>
+                    <div className="mt-3 flex items-start gap-3">
+                      <span
+                        aria-hidden="true"
+                        className="mt-[0.45em] block h-px w-8 shrink-0"
+                        style={{ background: 'currentColor' }}
                       />
+                      <div className="text-label uppercase" style={{ letterSpacing: '0.24em' }}>
+                        <p>{STATUS_LABEL[p.status]}</p>
+                        {p.location && <p className="mt-1.5 text-[#111111]/60">{p.location}</p>}
+                      </div>
                     </div>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           </div>
 
           {/* The names and their particulars, standing over the film. Focus
-              pull only. */}
+              pull only. Desktop only; touch sets each name under its frame. */}
           <div
             data-name-wrap
-            className="pointer-events-none absolute inset-x-[5.5vw] top-1/2 z-10 text-white mix-blend-difference"
+            className={`${styles.names} pointer-events-none absolute inset-x-[5.5vw] top-1/2 z-10 text-white mix-blend-difference`}
           >
             {projects.map((p, j) => (
               <div
@@ -502,11 +562,11 @@ export default function ProjectsPinned({ projects }: ProjectsPinnedProps) {
             ))}
           </div>
 
-          {/* Project index and its scroll marker. */}
+          {/* Project index and its scroll marker. Desktop only. */}
           <nav
             data-quiet
             aria-label="Projects"
-            className="absolute bottom-10 left-[5.5vw] z-10 flex items-stretch gap-4"
+            className={`${styles.index} absolute bottom-10 left-[5.5vw] z-10 flex items-stretch gap-4`}
           >
             <span
               aria-hidden="true"

@@ -1,5 +1,11 @@
 .section {
+  /* Frame column width. Height, centring and step all derive from it. */
+  --col-w: min(clamp(300px, 44vw, 900px), calc(100vw - 2 * var(--page-margin)));
   --project-stage-height: 100svh;
+  --strip-gap: 10svh;
+  /* The first frame rests centred with zero JS; it derives from the 3:2 ratio. */
+  --strip-pad-top: calc(50svh - var(--col-w) / 3);
+  --strip-pad-bottom: 0px;
 }
 
 .stage {
@@ -7,17 +13,53 @@
   height: var(--project-stage-height);
 }
 
+.stripWrap {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+}
+
+.strip {
+  width: var(--col-w);
+  row-gap: var(--strip-gap);
+  padding-top: var(--strip-pad-top);
+  padding-bottom: var(--strip-pad-bottom);
+}
+
+.caption {
+  display: none;
+}
+
+/* Phones and touch tablets: a native vertical stack. The frames fill the page
+   width and scroll with the finger; nothing is pinned, scrubbed or blended. */
 @media (max-width: 1023px), (hover: none) and (pointer: coarse) {
   .section {
-    height: calc(var(--project-stage-height) + var(--project-travel));
+    --col-w: calc(100vw - 2 * var(--page-margin));
+    --strip-gap: clamp(56px, 9svh, 96px);
+    --strip-pad-top: clamp(56px, 10svh, 112px);
+    --strip-pad-bottom: clamp(56px, 10svh, 112px);
   }
 
   .stage {
-    position: sticky;
-    top: 0;
+    height: auto;
   }
 
+  .stripWrap {
+    position: relative;
+  }
+
+  .strip,
   .pan {
     will-change: auto;
+  }
+
+  .names,
+  .index {
+    display: none;
+  }
+
+  .caption {
+    display: block;
   }
 }

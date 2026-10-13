@@ -23,6 +23,7 @@ export default function SmoothScrollProvider({ children }: { children: React.Rea
     // Update trigger positions once the touch scroll and resize have settled.
     let width = window.innerWidth;
     let height = window.innerHeight;
+    let docHeight = document.documentElement.scrollHeight;
     let timer: ReturnType<typeof setTimeout> | undefined;
     let pending = false;
     const refresh = () => {
@@ -34,6 +35,12 @@ export default function SmoothScrollProvider({ children }: { children: React.Rea
       )
         return;
       pending = false;
+      // Full-height sections use the small viewport unit, so the document keeps
+      // its height while the toolbars move. A refresh then only re-measures
+      // unchanged layout and jolts scrubbed sections; skip it.
+      const nextDocHeight = document.documentElement.scrollHeight;
+      if (nextDocHeight === docHeight) return;
+      docHeight = nextDocHeight;
       ScrollTrigger.refresh(true);
     };
     const onResize = () => {

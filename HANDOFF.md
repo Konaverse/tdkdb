@@ -2,6 +2,20 @@
 
 Updated 2026-10-13.
 
+Mobile smoothness (latest, Claude): heroes use `svh` instead of `dvh`, the scroll
+provider skips toolbar refreshes when the document height is unchanged, and the
+homepage projects on touch are a native full-width stack with captions under each
+frame. Desktop passage unchanged. Verified in phone emulation (zero layout shifts,
+no refresh during scroll) and a desktop pin/snap check; real-phone review is pending.
+
+Latest request: update Almond deal attributes and exact deal names, preserve all
+form/delivery behavior, and do not deploy without approval. The base integration
+is pushed as `7c3bd7e` and its Vercel deployment reported Ready. Production
+`CRON_SECRET` is now configured. Actual Brevo schema inspection is pending a local
+API key or exported schema JSON; Vercel's saved Secret cannot be downloaded.
+`tools/inspect-brevo-schema.cjs` provides a read-only inspection command. No mapping
+changes are implemented yet; the 43 email and 52 CRM baseline checks still pass.
+
 Current task: Brevo CRM integration is implemented and disabled by default.
 All website enquiries go to Almond Pipeline/New Inquiry, retaining their actual
 interest. Resend remains the success authority; private Sanity receipts and a daily

@@ -238,7 +238,7 @@ export default function ProjectTransitionProvider({ children }: { children: Reac
 
       const aspect = image.naturalWidth / image.naturalHeight;
       const vw = document.documentElement.clientWidth;
-      // Match the hero's dynamic viewport, including the current browser bars.
+      // Match the hero's small viewport height: stable while browser bars move.
       const vh = probe.offsetHeight || window.innerHeight;
       const endWin: Box = { x: 0, y: 0, w: vw, h: vh };
       const endPic = coverBox(endWin, aspect);
@@ -369,7 +369,7 @@ export default function ProjectTransitionProvider({ children }: { children: Reac
       await settled();
       if (runRef.current?.id !== id) return;
 
-      // The hero is 100dvh by 100% — normally the box we opened to. If the
+      // The hero is 100svh by 100% — normally the box we opened to. If the
       // browser chrome moved in the meantime, glide onto the real box.
       const target = toBox(hero.getBoundingClientRect());
       const off = Math.max(
@@ -460,7 +460,7 @@ export default function ProjectTransitionProvider({ children }: { children: Reac
         ref={probeRef}
         aria-hidden="true"
         className="pointer-events-none invisible fixed left-0 top-0 w-0"
-        style={{ height: '100dvh' }}
+        style={{ height: '100svh' }}
       />
     </TransitionContext.Provider>
   );

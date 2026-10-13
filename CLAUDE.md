@@ -90,8 +90,13 @@ is installed, preventing a photograph from appearing and then wiping in again.
 Mobile motion uses masked words instead of individual characters and a shorter
 image-cover entrance without a simultaneous image scale. About and project image
 drift is desktop-only. `ScrollTrigger.config({ ignoreMobileResize: true })` prevents
-mid-gesture refreshes from browser toolbars; the provider refreshes changed layout
-after scrolling/resizing settles, excluding open dialogs, focused fields and zoom.
+mid-gesture refreshes from browser toolbars; the provider refreshes after a touch
+resize only when the document height actually changed, and never with an open
+dialog, a focused field or zoom. **Full-height sections use `svh`, never `dvh`**
+(the homepage hero, both project heroes, the transition probe): `dvh` grows when
+the toolbar collapses, which pushed every section below the hero down mid-scroll
+and then forced a refresh that jolted scrubbed sections. Only the lightbox
+dialog tracks the dynamic viewport.
 Use `ArrowIcon` for link arrows so mobile fonts cannot substitute emoji glyphs.
 
 ### Image lightbox
@@ -146,11 +151,15 @@ the image, with concise copy and the Register interest CTA stacked to fit one vi
 
 `ProjectsPinned` scrolls under Lenis, so it uses `scrub: true` and snaps by retargeting Lenis
 once input stops — never ScrollTrigger's own `snap`, which fights Lenis at the pin's ends.
-This applies to desktop. Mobile keeps the filmstrip with native CSS sticky positioning,
-stable `100svh` stage geometry and no automatic snap, blur or inner-image pan. Measure
+This applies to desktop only. On phones and touch tablets (`MOBILE_MOTION_QUERY`) the
+same markup is a NATIVE vertical stack (Oct 2026): full-width 3:2 frames that scroll
+one-to-one with the finger, each with the shared image entrance, its name and
+particulars set in ink under the frame (`data-caption`); no sticky stage, no scrubbed
+translate, no blend-mode names and no index. The earlier sticky strip moved at a third
+of finger speed and read as a broken scroll. `ProjectsPinned.module.css` owns the
+breakpoint geometry (`--col-w`, gap, padding); do not put those back inline. Measure
 frame height and the computed CSS gap, never the changing `window.innerHeight`.
-Only the first mobile strip image gets a separate entrance. Responsive sources avoid
-decoding a desktop-sized photograph for every phone frame. MatchMedia owns breakpoint
+Responsive sources avoid decoding a desktop-sized photograph for every phone frame. MatchMedia owns breakpoint
 cleanup so switching screen sizes cannot leave duplicate pins/listeners.
 
 `Interlude.tsx` — BELOW lg (1024px) it is NOT pinned and has no second state: the render is a
@@ -243,7 +252,7 @@ ONLY after the expansion (a mid-flight commit is a visible jump), with the scrol
 still moment. `ProjectHero` claims the run at first render, renders the exact URL the layer decoded
 (`projectHeroUrl` ladder), and calls `handoff()`; the provider refreshes ScrollTrigger, waits for
 smooth frames, then removes the layer and the hero's copy and the navbar enter. The hero image must
-stay 100% × 100dvh object-cover with no transform/filter/dimming on arrival, or the handoff shows.
+stay 100% × 100svh object-cover with no transform/filter/dimming on arrival, or the handoff shows.
 
 ### About page
 

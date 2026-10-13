@@ -20,7 +20,7 @@ import { LightboxTrigger } from '@/components/ui/ImageLightbox';
      renders the exact URL the layer decoded (claim), waits for its own copy
      to decode, and hands off: the layer goes, nothing moves, and the copy
      arrives. The picture must therefore sit exactly where the layer ended —
-     100% × 100dvh, object-cover, centred, no filter, no scale, no dimming
+     100% × 100svh, object-cover, centred, no filter, no scale, no dimming
      baked into the image. The scrim is its own node and fades in after.
 
    · DIRECT load or any other navigation. The photograph opens out of the
@@ -153,7 +153,7 @@ export default function ProjectHero({ project }: ProjectHeroProps) {
       data-lightbox="page"
       aria-label={title}
       className="relative w-full overflow-hidden bg-[#0d0d0d] text-white"
-      style={{ height: '100dvh', fontFamily: 'var(--font-josefin)' }}
+      style={{ height: '100svh', fontFamily: 'var(--font-josefin)' }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img

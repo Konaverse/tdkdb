@@ -6,6 +6,23 @@ Older master plans describe removed features and must not override the current s
 
 ## Current objective and state
 
+The latest task updates the Almond inquiry's CRM deal fields and naming, without
+changing the form UI or deploying. Required mappings are Project=Almond Suites,
+Lead Source=Website, Interested Unit=Undecided, no amount, and Preferred Bedrooms
+Flexible/1/2 for Any residence/1 bedroom/2 bedroom. Exact attribute identifiers and
+option keys must be inspected from the real Brevo account before implementation.
+Schema inspection is currently awaiting local `BREVO_API_KEY` or exported schema
+JSON: Vercel's write-only Secret cannot be pulled by `vercel env run`. The
+read-only helper is `tools/inspect-brevo-schema.cjs`; no mapping changes are made
+yet. The baseline 43 delivery and 52 CRM tests pass. Exact new deal names must
+retain duplicate safety without the existing tracking suffix.
+
+The base CRM integration was committed/pushed as `7c3bd7e`, and its exact Vercel
+Production deployment reported Ready. During that approved rollout, the private
+`CRON_SECRET` was added to Vercel Production without printing or committing its
+value. Its inclusion in the currently serving deployment has not been verified.
+The latest instruction requires fresh approval before deploying mapping changes.
+
 The current task integrates Brevo CRM with both existing form endpoints. The
 owner explicitly confirmed that ALL website enquiries, including general Contact
 and other projects, should create deals in Almond Pipeline. Target list is `3`,
@@ -27,8 +44,9 @@ CRM deliveries view. See `docs/brevo-crm.md` for activation, failure handling an
 manual queue restoration; no extra SDK or service was installed.
 
 The owner reports that `BREVO_API_KEY` is configured in Vercel; local Brevo API
-credentials are still absent. Vercel's `BREVO_ENABLED` and retry-secret configuration
-have not been verified. A private local `CRON_SECRET` was generated without printing
+credentials are still absent. Vercel has a `BREVO_ENABLED` setting, but its value
+has not been verified; the Production retry secret is now configured. A private
+local `CRON_SECRET` was generated without printing
 its value; it is not committed. A real account check
 and an approved end-to-end Preview test remain outstanding. Automated tests sent
 no live email and created no live Brevo/Sanity records. The production preview for
@@ -36,15 +54,20 @@ this task is `http://127.0.0.1:3014/en`, using the existing ignored cached-CMS h
 
 The earlier mobile fixes were committed and pushed as `15940a4`. Physical Safari
 review remains outstanding. Touch-only devices
-now use native scrolling; homepage projects retain their filmstrip with CSS sticky,
-stable small-viewport measurements, no automatic snapping, blur or inner-image pan.
+now use native scrolling. On 2026-10-13 the owner reported the mobile page as not
+smooth: the homepage projects section and sections re-laying out after entering.
+Cause: the heroes used `dvh`, so the collapsing toolbar grew the hero and shifted
+everything below mid-scroll, then a refresh jolted the scrubbed strip; and the
+sticky filmstrip moved at a third of finger speed. Fix: all full-height sections
+use `svh`, the provider refreshes only when document height changed, and on touch
+the projects are a native full-width stack with captions under each frame.
 Mobile text entrances reveal words instead of individual letters, image covers run
 without a simultaneous scale, and About/project photo drift and footer parallax
 remain desktop-only. Shared scroll locks cover the loader, menu, lightbox and project
 transition even without Lenis. Link arrows use `ArrowIcon` SVGs. Fullscreen project
-and hub heroes and the mobile homepage hero use dynamic viewport height; the
+and hub heroes and the mobile homepage hero use the small viewport height; the
 transition measures the same height, and the lightbox tracks `visualViewport` size
-and offset. Toolbar changes refresh scroll geometry after the gesture settles.
+and offset. Toolbar changes no longer move layout, so no refresh follows them.
 
 Prepare the existing website for public launch, with Almond Suites as the main
 sales priority. The accepted layout and lightbox changes were pushed to `origin/main`
