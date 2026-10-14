@@ -11,6 +11,8 @@ import { getProjectBySlug, getAllProjects } from '@/lib/sanity/queries';
 import { bedroomsLabel, displayTitle, sceneImages } from '@/lib/projects/display';
 import { breadcrumbsJsonLd, pageMetadata, projectDescription, projectOgImage } from '@/lib/seo';
 import JsonLd from '@/components/seo/JsonLd';
+import MetaViewContent from '@/components/analytics/MetaViewContent';
+import { ALMOND_SLUG } from '@/lib/projects/updates';
 import type { PortableTextBlock } from '@/lib/sanity/types';
 
 export const revalidate = 60;
@@ -81,6 +83,7 @@ export default async function ProjectDetailPage({ params }: Props) {
   return (
     <main style={{ background: '#ffffff', color: '#111111' }}>
       <JsonLd data={breadcrumbs} />
+      {slug === ALMOND_SLUG && <MetaViewContent name={title} />}
       {/* Full bleed. Arriving from the homepage, this is where the project's
           photograph lands (see ProjectTransition). */}
       <ProjectHero project={project} />

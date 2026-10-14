@@ -8,6 +8,8 @@ import { maskChars, riseIn } from '@/lib/animations/text';
 import TDKSelect from '@/components/forms/TDKSelect';
 import controls from '@/components/forms/FormControls.module.css';
 import { submissionAttempt, type SubmissionAttempt } from '@/lib/contact/attribution';
+import { LEAD_CATEGORIES } from '@/lib/meta/config';
+import { trackMeta } from '@/lib/meta/pixel';
 
 /* ───────────────────────────────────────────────────────────────────────────
    ProjectRegister — the page's last word: leave your details
@@ -120,6 +122,12 @@ export default function ProjectRegister({
       const json = await res.json().catch(() => ({}));
       if (res.ok && json.success) {
         setStatus('sent');
+        // Same event id and parameters as the server's Conversions API copy.
+        trackMeta(
+          'Lead',
+          { content_name: projectName, content_category: LEAD_CATEGORIES.interest },
+          attemptRef.current.submissionId,
+        );
         try {
           (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag?.(
             'event',

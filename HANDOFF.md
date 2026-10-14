@@ -2,7 +2,14 @@
 
 Updated 2026-10-13.
 
-Technical SEO (latest, Claude, 2026-10-13): every page now has a canonical, title
+Meta Pixel + CAPI (branch `feat/meta-pixel-capi`, 2026-10-14, NOT merged or deployed):
+consent banner and cookie, consent-gated Pixel with PageView/ViewContent/Contact/Lead,
+server Conversions API Lead from both form routes with dedup by submission UUID, privacy
+page rewritten with the Meta section. Vercel needs `NEXT_PUBLIC_META_PIXEL_ID`,
+`META_CAPI_ACCESS_TOKEN` and (Preview only) `META_TEST_EVENT_CODE`; see
+`docs/meta-tracking.md` for the test checklist.
+
+Technical SEO (Claude, 2026-10-13): every page now has a canonical, title
 template, description and social cards through `src/lib/seo.ts`; `/el` is a 404; all
 pages prerender (SSG/ISR) instead of request-rendering; robots excludes Studio/API and
 names the populated sitemap; Organization and breadcrumb JSON-LD; permanent root

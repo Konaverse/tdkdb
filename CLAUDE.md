@@ -73,6 +73,22 @@ pages; contact details come from Site Settings. The root `/` redirect is a perma
 `/studio` and `/api` also carry `X-Robots-Tag: noindex`. Security headers live only in
 `next.config.mjs` (the `vercel.json` copy was removed).
 
+### Meta Pixel and Conversions API (Oct 2026, branch feat/meta-pixel-capi)
+
+Consent first: `ConsentProvider` (site layout) owns `tdk_consent=granted|denied` (six
+months); `CookieBanner` shows until a choice exists, with Accept and Reject as identical
+buttons, and reopens from "Cookie settings" in the footer and on the privacy page.
+`MetaPixel` renders the `next/script` bootstrap ONLY while consent is granted (PageView
+on load and route change, Contact on tel:/WhatsApp clicks); Reject revokes the Pixel and
+expires `_fbp`/`_fbc`. `MetaViewContent` fires on Almond Suites. Both forms fire Lead only
+after the server confirms, with the submission UUID as eventID and the parameters in
+`LEAD_CATEGORIES`; `src/lib/meta/capi.ts` sends the server's matching Lead (same id, same
+custom_data, hashed em/ph/fn/ln/country, fbp/fbc, 3 s timeout, never fatal) from both API
+routes, only when the request carries `tdk_consent=granted`. Graph version is the one
+constant in `src/lib/meta/config.ts`. `src/lib/site-origin.ts` holds the origin helpers so
+server utilities never import the CMS client. Never put personal data in browser event
+parameters. See `docs/meta-tracking.md` for env vars and the Test Events checklist.
+
 Bing: ownership is proven three ways and all must stay — the CNAME the owner added,
 `public/BingSiteAuth.xml`, and the `msvalidate.01` meta tag in the root layout's
 `verification`. IndexNow (`src/lib/indexnow.ts`): the key is public by design and lives

@@ -12,6 +12,7 @@ import { usesMobileMotion } from '@/lib/animations/mobile';
 import { LightboxTrigger } from '@/components/ui/ImageLightbox';
 import type { SiteSettings } from '@/lib/sanity/types';
 import SocialGlyph from '@/components/ui/SocialGlyph';
+import CookieSettingsButton from '@/components/consent/CookieSettingsButton';
 import styles from './FooterClient.module.css';
 
 const COMPANY_LINKS = [
@@ -284,6 +285,11 @@ export default function FooterClient({ settings, backdrop }: Props) {
               <Link href={href('terms')} className={styles.link}>
                 <span data-footer-text>Terms &amp; conditions</span>
               </Link>
+            </li>
+            <li>
+              <CookieSettingsButton className={styles.link}>
+                <span data-footer-text>Cookie settings</span>
+              </CookieSettingsButton>
             </li>
             <li className={styles.credit}>
               <span data-footer-text>© {new Date().getFullYear()} TDK</span>

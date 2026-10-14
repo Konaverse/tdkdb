@@ -6,6 +6,9 @@ import ProjectTransitionProvider from '@/components/transition/ProjectTransition
 import ImageLightboxProvider from '@/components/ui/ImageLightbox';
 import AttributionCapture from '@/components/contact/AttributionCapture';
 import JsonLd from '@/components/seo/JsonLd';
+import { ConsentProvider } from '@/components/consent/ConsentProvider';
+import CookieBanner from '@/components/consent/CookieBanner';
+import MetaPixel from '@/components/analytics/MetaPixel';
 import { getSiteSettings } from '@/lib/sanity/queries';
 import { organizationJsonLd } from '@/lib/seo';
 
@@ -13,22 +16,27 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   const settings = await getSiteSettings();
 
   return (
-    <IntroProvider>
-      <AttributionCapture />
-      <JsonLd data={organizationJsonLd(settings)} />
-      <ProjectTransitionProvider>
-        <ImageLightboxProvider>
-          <NavGuard>
-            <Navbar />
-          </NavGuard>
+    <ConsentProvider>
+      <IntroProvider>
+        <AttributionCapture />
+        <JsonLd data={organizationJsonLd(settings)} />
+        <ProjectTransitionProvider>
+          <ImageLightboxProvider>
+            <NavGuard>
+              <Navbar />
+            </NavGuard>
 
-          {children}
+            {children}
 
-          <NavGuard>
-            <Footer />
-          </NavGuard>
-        </ImageLightboxProvider>
-      </ProjectTransitionProvider>
-    </IntroProvider>
+            <NavGuard>
+              <Footer />
+            </NavGuard>
+          </ImageLightboxProvider>
+        </ProjectTransitionProvider>
+        {/* Consent-gated: nothing from Meta loads until the banner's Accept. */}
+        <MetaPixel />
+        <CookieBanner />
+      </IntroProvider>
+    </ConsentProvider>
   );
 }
