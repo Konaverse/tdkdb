@@ -5,6 +5,8 @@ import type { FormEvent } from 'react';
 import TDKSelect from '@/components/forms/TDKSelect';
 import controls from '@/components/forms/FormControls.module.css';
 import { submissionAttempt, type SubmissionAttempt } from '@/lib/contact/attribution';
+import { LEAD_CATEGORIES } from '@/lib/meta/config';
+import { trackMeta } from '@/lib/meta/pixel';
 
 const TYPES = [
   { value: 'residence-enquiry', label: 'A residence' },
@@ -73,8 +75,15 @@ export default function ContactForm({ compact = false }: { compact?: boolean }) 
         }),
       });
       const result = await response.json().catch(() => ({}));
-      if (response.ok && result.success) setStatus('sent');
-      else {
+      if (response.ok && result.success) {
+        setStatus('sent');
+        // Same event id and parameters as the server's Conversions API copy.
+        trackMeta(
+          'Lead',
+          { content_category: LEAD_CATEGORIES.contact },
+          attemptRef.current.submissionId,
+        );
+      } else {
         setStatus('error');
         setServerError(result.error || 'Something went wrong. Please try again.');
       }

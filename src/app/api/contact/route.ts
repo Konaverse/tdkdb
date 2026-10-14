@@ -8,6 +8,7 @@ import {
   queueAcceptedSubmission,
   submissionEmailHtml,
 } from '@/lib/crm/submissions';
+import { sendMetaLead } from '@/lib/meta/capi';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -137,5 +138,17 @@ export async function POST(req: NextRequest) {
   }
 
   await queueAcceptedSubmission(submission, emailId);
+
+  // Meta's server-side Lead, matching the browser's by submission id. Only
+  // with consent, bounded by its own timeout, never part of this result.
+  await sendMetaLead({
+    request: req,
+    kind: 'contact',
+    eventId: parsed.data.submissionId,
+    name,
+    email,
+    phone,
+    attribution: submission.enquiry.attribution,
+  });
   return NextResponse.json({ success: true });
 }

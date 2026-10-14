@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import LegalPlaceholder from '@/components/legal/LegalPlaceholder';
+import PrivacyPolicy from '@/components/legal/PrivacyPolicy';
 import { getSiteSettings } from '@/lib/sanity/queries';
 import { buildMetadata } from '@/lib/seo';
 
@@ -8,14 +8,14 @@ export const revalidate = 60;
 
 export function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
-    title: 'Privacy policy',
-    description: 'How TDK Design & Build handles the details you share with the studio.',
+    title: 'Privacy and cookies',
+    description:
+      'What the TDK Design & Build website collects, why, who receives it, how Meta Pixel and the Conversions API are used with your consent, and how to withdraw it.',
     path: '/en/privacy-policy',
-    noIndex: true,
   });
 }
 
 export default async function PrivacyPolicyPage() {
   const settings = await getSiteSettings();
-  return <LegalPlaceholder title="Privacy policy" email={settings?.email} />;
+  return <PrivacyPolicy settings={settings} />;
 }

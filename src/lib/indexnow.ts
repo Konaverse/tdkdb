@@ -1,4 +1,4 @@
-import { absoluteUrl, siteOrigin } from '@/lib/seo';
+import { absoluteUrl, siteOrigin } from '@/lib/site-origin';
 
 /* ───────────────────────────────────────────────────────────────────────────
    IndexNow: tell Bing (and every engine sharing the protocol) which URLs
