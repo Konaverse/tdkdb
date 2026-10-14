@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test:forms": "node tools/check-form-delivery.cjs",
-    "test:crm": "node tools/check-crm-delivery.cjs"
+    "test:crm": "node tools/check-crm-delivery.cjs",
+    "indexnow": "node --env-file=.env.local tools/submit-indexnow.cjs"
   },
   "dependencies": {
     "@sanity/client": "^7.16.0",

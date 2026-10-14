@@ -72,6 +72,13 @@ project. `JsonLd` renders Organization data in the site layout and breadcrumbs o
 pages; contact details come from Site Settings. The root `/` redirect is a permanent 308;
 `/studio` and `/api` also carry `X-Robots-Tag: noindex`. Security headers live only in
 `next.config.mjs` (the `vercel.json` copy was removed).
+
+Bing: ownership is proven three ways and all must stay — the CNAME the owner added,
+`public/BingSiteAuth.xml`, and the `msvalidate.01` meta tag in the root layout's
+`verification`. IndexNow (`src/lib/indexnow.ts`): the key is public by design and lives
+both in `INDEXNOW_KEY` and as `public/<key>.txt`; the Sanity revalidation webhook submits
+the pages a changed document feeds, and `pnpm indexnow` submits the whole live sitemap
+(or given URLs). A missing key is a quiet no-op; a failed hint never fails the webhook.
 There is no Services section and no Insights/blog section; both were removed in Aug 2026
 along with their Sanity schemas. Do not reintroduce them without being asked.
 

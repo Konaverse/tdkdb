@@ -38,6 +38,8 @@ export async function generateMetadata(): Promise<Metadata> {
       follow: true,
       googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
     },
+    // Bing Webmaster Tools ownership. Keep it after verification succeeds.
+    verification: { other: { 'msvalidate.01': '914944C03F8EFCB0A516B441FE2CFADA' } },
   };
 }
 

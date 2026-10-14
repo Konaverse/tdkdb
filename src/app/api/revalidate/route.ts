@@ -2,6 +2,8 @@ import { revalidatePath } from 'next/cache';
 import { type NextRequest, NextResponse } from 'next/server';
 import { parseBody } from 'next-sanity/webhook';
 
+import { submitIndexNow } from '@/lib/indexnow';
+
 // Ensure this matches the secret you set in the Sanity webhook dashboard
 const secret = process.env.SANITY_REVALIDATE_SECRET;
 
@@ -24,31 +26,33 @@ export async function POST(req: NextRequest) {
 
     const { _type, slug } = body;
 
-    // We can use a tag-based revalidation if tags are setup, but since the requirement
-    // says "revalidate all relevant routes via Next.js cache", let's revalidate all paths
-    // or type-specific paths. Given localization, checking paths might be robust.
-    // However, the simplest way to invalidate everything for site-wide data:
-
     console.log(`[Revalidate Webhook] Updating type: ${_type}, slug: ${slug}`);
 
-    // Assuming we don't have tags set up on all queries, we can manually clear key paths
-    // where 'slug' might be present, or globally clear if it's siteSettings
+    // The pages whose content this document feeds. They are revalidated here
+    // and announced to IndexNow below, so Bing recrawls them promptly.
+    const changed: string[] = [];
 
     if (_type === 'siteSettings') {
       revalidatePath('/', 'layout'); // Revalidate all layouts (navbar/footer updates globally)
+      changed.push('/en', '/en/about', '/en/projects', '/en/contact');
     } else if (_type === 'project') {
       revalidatePath('/en/projects');
       if (slug) revalidatePath(`/en/projects/${slug}`);
       revalidatePath('/en'); // homepage reel + featured residence
+      changed.push('/en', '/en/projects');
+      if (slug) changed.push(`/en/projects/${slug}`);
+    } else if (_type === 'siteImage') {
+      revalidatePath('/', 'layout');
+      changed.push('/en', '/en/about', '/en/contact');
     } else if (_type === 'teamMember') {
       revalidatePath('/en/about');
+      changed.push('/en/about');
     }
 
-    // Since we also support Greek in the future, if you want it to apply site-wide,
-    // we could also just revalidate layouts or everything. Let's do a catch-all layout
-    // revalidate for simplicity if it gets complicated, but for now the paths above are okay.
+    // Best effort: a rejected or failed hint never fails the revalidation.
+    const indexNow = await submitIndexNow(changed);
 
-    return NextResponse.json({ status: 200, revalidated: true, now: Date.now() });
+    return NextResponse.json({ status: 200, revalidated: true, indexNow, now: Date.now() });
   } catch (err: unknown) {
     console.error(err);
     const error = err as Error;
