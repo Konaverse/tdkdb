@@ -39,6 +39,13 @@ Contact blacklist/marketing consent flags are never overwritten. Use
 `docs/brevo-crm.md` for configuration, approved Preview validation and recovery.
 This integration must not be deployed to Production without explicit approval.
 
+`/api/webhooks/brevo-lead` (Oct 2026) is separate from the enquiry flow: Brevo's
+"contact added to a list" marketing webhook, authenticated by `BREVO_WEBHOOK_SECRET`,
+emails the studio a Greek alert with a Meta lead's attributes (list 4, "TDK | Meta
+Leads") via Resend. It always answers 200 after auth, dedupes per email for ten
+minutes in memory plus a Resend idempotency key from Brevo's event id, and never
+touches the Pixel, consent or forms. `pnpm test:lead-alert` covers it.
+
 ## Architecture Overview
 
 This is the **TDK Design & Build** website — a residential developer in Cyprus.

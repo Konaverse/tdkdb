@@ -127,6 +127,36 @@ Sanity. It uses create-if-missing, never sends email, and never calls Brevo.
 The worker then delivers the restored enquiry normally. Do not commit recovery
 files containing customer data.
 
+## Meta lead alerts (Brevo webhook)
+
+Meta Instant Form leads sync into list `4` ("TDK | Meta Leads") with FIRSTNAME,
+SMS, INTERESTED_UNIT, PURCHASE_TIMELINE and LEAD_ROLE. Brevo's "Notify by email"
+automation cannot include those, so `POST /api/webhooks/brevo-lead`
+(`src/lib/crm/lead-alert.ts`) replaces it:
+
+- Brevo's marketing webhook for "contact added to a list" calls the route with
+  `?secret=<BREVO_WEBHOOK_SECRET>` (an `x-webhook-secret` header also works).
+  A missing or wrong secret is a 401; nothing else is ever not a 200.
+- Only `list_addition`/`listAddition` events naming list `4`
+  (`BREVO_META_LEADS_LIST_ID`) act; other events and lists are ignored.
+- The route reads the full contact from Brevo with `BREVO_API_KEY` (this does
+  not depend on `BREVO_ENABLED`) and sends one Greek alert through Resend to
+  `LEAD_ALERT_TO_EMAIL` (falls back to `CONTACT_FORM_TO_EMAIL`): name, phone
+  as a `tel:` link, email, unit, timeline, buyer/agent, then "Καλέστε εντός 5
+  λεπτών." Attribute values have underscores replaced by spaces. A LEAD_ROLE of
+  "μεσίτης" prefixes the subject with "[ΜΕΣΙΤΗΣ] ".
+- Idempotency: an in-memory map allows one alert per email per ten minutes on
+  a given function instance, and the Resend idempotency key derived from
+  Brevo's event id drops a duplicate that reaches another instance within 24 h.
+  A failed attempt releases the guard so Brevo's retry can succeed.
+- `pnpm test:lead-alert` runs the route against an isolated Brevo and Resend.
+
+Brevo setup: Contacts → Settings → Webhooks → Add a new webhook (marketing
+webhooks; the Transactional section has its own). URL:
+`https://tdkdb.com/api/webhooks/brevo-lead?secret=<BREVO_WEBHOOK_SECRET>`,
+event "Contact added to a list". Brevo cannot restrict a webhook to one list;
+the route does that.
+
 ## API references
 
 - [Brevo contact creation/upsert](https://developers.brevo.com/reference/create-contact)
