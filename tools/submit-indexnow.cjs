@@ -3,10 +3,11 @@
 // Pass URLs after the origin to submit only those: ... https://tdkdb.com /en/projects/almond-suites
 const key = process.env.INDEXNOW_KEY?.trim();
 const [, , originArg, ...only] = process.argv;
-const origin = (originArg || process.env.NEXT_PUBLIC_SITE_URL || 'https://tdkdb.com').replace(
-  /\/+$/,
-  '',
-);
+// Same rule as src/lib/seo.ts: a configured https origin, else the live domain.
+const configured = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+const origin = (
+  originArg || (configured && /^https:\/\//.test(configured) ? configured : 'https://tdkdb.com')
+).replace(/\/+$/, '');
 
 (async () => {
   if (!key) {
@@ -43,6 +44,7 @@ const origin = (originArg || process.env.NEXT_PUBLIC_SITE_URL || 'https://tdkdb.
   urlList.forEach((u) => console.log(`  ${u}`));
   if (!response.ok) process.exitCode = 1;
 })().catch((error) => {
-  console.error(error.message || error);
+  const cause = error?.cause ? ` (${error.cause.code || error.cause.message})` : '';
+  console.error(`${error.message || error}${cause}`);
   process.exitCode = 1;
 });
