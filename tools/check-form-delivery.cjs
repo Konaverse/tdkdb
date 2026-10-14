@@ -8,8 +8,9 @@ const { Resend } = require('resend');
 
 // Execute the real handlers with an isolated provider and CMS. No credentials,
 // emails or lead documents leave the test process.
-function handler(kind, scenario = {}) {
+function isolate(scenario = {}) {
   const emails = [],
+    mailOptions = [],
     leads = [],
     logs = [],
     modules = new Map();
@@ -29,6 +30,7 @@ function handler(kind, scenario = {}) {
           const key = scenario.idempotentMail && options?.idempotencyKey;
           if (key && acceptedKeys.has(key)) return acceptedKeys.get(key);
           emails.push(email);
+          mailOptions.push(options || {});
           const notification = emails.length % 2 === 1;
           const result = notification ? scenario.notification : scenario.acknowledgement;
           if (result === 'throw') throw new Error('Test transport failure');
@@ -92,6 +94,11 @@ function handler(kind, scenario = {}) {
     );
     return module.exports;
   }
+  return { environment, emails, mailOptions, leads, logs, load };
+}
+
+function handler(kind, scenario = {}) {
+  const { emails, leads, logs, load } = isolate(scenario);
   const route = kind === 'contact' ? 'contact' : 'project-interest';
   const post = load(path.resolve('src/app/api', route, 'route.ts')).POST;
   const valid = {
@@ -125,7 +132,7 @@ function handler(kind, scenario = {}) {
   return { submit, valid, emails, leads, logs, load };
 }
 
-module.exports = { handler };
+module.exports = { handler, isolate };
 
 if (require.main === module)
   (async () => {

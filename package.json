@@ -9,6 +9,7 @@
     "lint": "next lint",
     "test:forms": "node tools/check-form-delivery.cjs",
     "test:crm": "node tools/check-crm-delivery.cjs",
+    "test:lead-alert": "node tools/check-lead-alert.cjs",
     "indexnow": "node --env-file=.env.local tools/submit-indexnow.cjs"
   },
   "dependencies": {
