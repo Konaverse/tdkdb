@@ -146,9 +146,14 @@ automation cannot include those, so `POST /api/webhooks/brevo-lead`
   λεπτών." Attribute values have underscores replaced by spaces. A LEAD_ROLE of
   "μεσίτης" prefixes the subject with "[ΜΕΣΙΤΗΣ] ".
 - Idempotency: an in-memory map allows one alert per email per ten minutes on
-  a given function instance, and the Resend idempotency key derived from
-  Brevo's event id drops a duplicate that reaches another instance within 24 h.
-  A failed attempt releases the guard so Brevo's retry can succeed.
+  a given function instance, and a Resend idempotency key hashed from the
+  lead's email, the list id and Brevo's event time (`ts`, else `date_time`/
+  `date`, else the current minute) drops a duplicate that reaches another
+  instance within 24 h. Brevo's event `id` is NOT unique per event and must
+  never be used: keying on it refused every real lead after the first with
+  409 `invalid_idempotent_request`. If Resend answers 409 anyway, the alert
+  is resent once without a key rather than dropped. A failed attempt releases
+  the guard so Brevo's retry can succeed.
 - `pnpm test:lead-alert` runs the route against an isolated Brevo and Resend.
 
 Brevo setup: Contacts → Settings → Webhooks → Add a new webhook (marketing

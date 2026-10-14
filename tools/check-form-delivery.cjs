@@ -31,6 +31,15 @@ function isolate(scenario = {}) {
           if (key && acceptedKeys.has(key)) return acceptedKeys.get(key);
           emails.push(email);
           mailOptions.push(options || {});
+          if (scenario.idempotencyConflict && options?.idempotencyKey)
+            return {
+              data: null,
+              error: {
+                name: 'invalid_idempotent_request',
+                statusCode: 409,
+                message: 'Test idempotency conflict',
+              },
+            };
           const notification = emails.length % 2 === 1;
           const result = notification ? scenario.notification : scenario.acknowledgement;
           if (result === 'throw') throw new Error('Test transport failure');

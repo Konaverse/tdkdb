@@ -43,8 +43,10 @@ This integration must not be deployed to Production without explicit approval.
 "contact added to a list" marketing webhook, authenticated by `BREVO_WEBHOOK_SECRET`,
 emails the studio a Greek alert with a Meta lead's attributes (list 4, "TDK | Meta
 Leads") via Resend. It always answers 200 after auth, dedupes per email for ten
-minutes in memory plus a Resend idempotency key from Brevo's event id, and never
-touches the Pixel, consent or forms. `pnpm test:lead-alert` covers it.
+minutes in memory plus a Resend idempotency key hashed from email + list id + Brevo's
+event time (never Brevo's event `id`, which is shared across events and caused 409s;
+a 409 is retried once without a key), and never touches the Pixel, consent or forms.
+`pnpm test:lead-alert` covers it.
 
 ## Architecture Overview
 

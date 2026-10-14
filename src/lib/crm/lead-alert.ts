@@ -46,10 +46,12 @@ export function authorizedWebhook(url: string, headers: Headers, secret: string 
 }
 
 export interface ListAdditionEvent {
-  id?: number | string;
   email: string;
   listIds: number[];
-  ts?: number;
+  /** When Brevo says it happened: `ts` (unix seconds), else the `date_time`
+      or `date` text. Brevo's `id` is deliberately not kept: it is NOT unique
+      per event, so it must never identify an alert. */
+  occurredAt?: string;
 }
 
 /** Brevo's marketing webhook for "contact added to a list". The docs spell
@@ -68,9 +70,12 @@ export function parseListAddition(body: unknown): ListAdditionEvent | null {
   const listIds = (Array.isArray(raw) ? raw : [raw])
     .map((value) => Number(value))
     .filter((value) => Number.isSafeInteger(value) && value > 0);
-  const id = typeof event.id === 'number' || typeof event.id === 'string' ? event.id : undefined;
-  const ts = typeof event.ts === 'number' ? event.ts : undefined;
-  return { id, email, listIds, ts };
+  const ts = typeof event.ts === 'number' && Number.isFinite(event.ts) ? String(event.ts) : '';
+  const dateText = [event.date_time, event.date].find(
+    (value) => typeof value === 'string' && value.trim(),
+  );
+  const occurredAt = ts || (typeof dateText === 'string' ? dateText.trim() : '');
+  return { email, listIds, occurredAt: occurredAt || undefined };
 }
 
 /** Attribute values arrive as Meta form option keys: "2_υπνοδωμάτια_με_ιδιωτικό_roof_garden". */
@@ -153,12 +158,31 @@ export function resetRecentAlerts(): void {
   recentAlerts.clear();
 }
 
-/** Brevo retries a webhook it did not get a 200 for; the same event carries
-    the same id, so Resend drops a second copy of the same alert. */
-export function alertIdempotencyKey(event: ListAdditionEvent): string {
-  const subject =
-    event.id !== undefined ? `id:${event.id}` : `email:${event.email}:${event.ts ?? ''}`;
+/** Resend refuses a second send with the same key for 24 h, which covers
+    Brevo retrying one delivery onto another function instance. The key is
+    the lead, the list and the event's time: a retry of one event repeats
+    all three, two leads never share an email. (Brevo's event `id` is shared
+    across events, so keying on it made every alert after the first a 409.)
+    Without a time from Brevo, the current minute stands in. */
+export function alertIdempotencyKey(
+  event: ListAdditionEvent,
+  listId: number,
+  now = Date.now(),
+): string {
+  const moment = event.occurredAt ?? `minute:${Math.floor(now / 60_000)}`;
+  const subject = `${event.email}|${listId}|${moment}`;
   return `brevo-lead/${createHash('sha256').update(subject).digest('hex').slice(0, 40)}`;
+}
+
+/** Resend answers 409 when a key is reused with a different body (or while
+    the first send with it is still in flight). The alert matters more than
+    the dedup, so one retry goes out without a key. */
+function idempotencyConflict(error: { name?: string; statusCode?: number | null }): boolean {
+  return (
+    error.statusCode === 409 ||
+    error.name === 'invalid_idempotent_request' ||
+    error.name === 'concurrent_idempotent_requests'
+  );
 }
 
 export async function fetchLeadContact(email: string): Promise<LeadContact | null> {
@@ -201,12 +225,18 @@ export async function handleListAddition(body: unknown): Promise<LeadAlertOutcom
       console.error('Lead alert: contact not found in Brevo');
       return 'missing_contact';
     }
-    const message = leadAlertEmail(contact);
+    const email = { from: settings.mail.from, to: settings.mail.to, ...leadAlertEmail(contact) };
     const resend = new Resend(settings.mail.apiKey);
-    const result = await resend.emails.send(
-      { from: settings.mail.from, to: settings.mail.to, ...message },
-      { idempotencyKey: alertIdempotencyKey(event) },
-    );
+    let result = await resend.emails.send(email, {
+      idempotencyKey: alertIdempotencyKey(event, settings.listId),
+    });
+    if (result.error && idempotencyConflict(result.error)) {
+      console.error('Lead alert idempotency key refused by Resend; resending without one', {
+        name: result.error.name,
+        statusCode: result.error.statusCode,
+      });
+      result = await resend.emails.send(email);
+    }
     if (result.error) {
       console.error('Lead alert rejected by Resend', {
         name: result.error.name,

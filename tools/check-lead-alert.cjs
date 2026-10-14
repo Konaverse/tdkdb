@@ -200,6 +200,75 @@ async function run() {
     checks++;
   }
   {
+    // Brevo's event id is NOT unique per event: two leads arriving with the
+    // same id must both send, with different Resend idempotency keys.
+    const f = fixture();
+    const first = await f.call(event({ id: 987654, email: 'first@example.test', ts: 1792000000 }));
+    const second = await f.call(
+      event({ id: 987654, email: 'second@example.test', ts: 1792000000 }),
+    );
+    assert.deepEqual(first.body.outcomes, ['sent']);
+    assert.deepEqual(second.body.outcomes, ['sent']);
+    assert.equal(f.emails.length, 2);
+    assert.deepEqual(f.brevoCalls, [
+      '/v3/contacts/first%40example.test',
+      '/v3/contacts/second%40example.test',
+    ]);
+    const [a, b] = f.mailOptions.map((options) => options.idempotencyKey);
+    assert.match(a, /^brevo-lead\/[a-f0-9]{40}$/);
+    assert.match(b, /^brevo-lead\/[a-f0-9]{40}$/);
+    assert.notEqual(a, b);
+    checks += 2;
+  }
+  {
+    // The key is the lead + list + event time: a Brevo retry of one event on
+    // another instance repeats it; a later addition of the same lead, or no
+    // timestamp at all, does not.
+    const keyFor = async (body) => {
+      const f = fixture();
+      await f.call(body);
+      return f.mailOptions[0].idempotencyKey;
+    };
+    const retried = await keyFor(event({ id: 1 }));
+    assert.equal(retried, await keyFor(event({ id: 2 })));
+    assert.notEqual(retried, await keyFor(event({ ts: 1792000600 })));
+    assert.notEqual(retried, await keyFor(event({ list_id: [4], email: 'x@example.test' })));
+    // Without `ts`, the date text identifies the event; without either, the
+    // current minute does, and the alert still carries a key.
+    const dated = await keyFor(event({ ts: undefined, date_time: '2026-10-14 12:00:00' }));
+    assert.equal(dated, await keyFor(event({ ts: undefined, date: '2026-10-14 12:00:00' })));
+    assert.notEqual(dated, retried);
+    const bare = await keyFor(event({ ts: undefined, date: undefined }));
+    assert.match(bare, /^brevo-lead\/[a-f0-9]{40}$/);
+    assert.notEqual(
+      bare,
+      await keyFor(event({ ts: undefined, date: undefined, email: 'y@example.test' })),
+    );
+    checks += 2;
+  }
+  {
+    // Resend 409 invalid_idempotent_request: resend once without a key rather
+    // than drop the alert; the in-memory guard still holds afterwards.
+    const f = fixture({ mail: { idempotencyConflict: true } });
+    const result = await f.call(event());
+    assert.deepEqual(result.body.outcomes, ['sent']);
+    assert.equal(f.emails.length, 2);
+    assert.equal(f.emails[0].subject, f.emails[1].subject);
+    assert.match(f.mailOptions[0].idempotencyKey, /^brevo-lead\//);
+    assert.equal(f.mailOptions[1].idempotencyKey, undefined);
+    assert.ok(f.logs.some((log) => log.includes('invalid_idempotent_request')));
+    assert.ok(f.logs.every((log) => !log.includes('lead@example.test')));
+    assert.deepEqual((await f.call(event())).body.outcomes, ['duplicate']);
+    assert.equal(f.emails.length, 2);
+    // If the keyless retry is refused too, the alert fails and the guard opens.
+    const g = fixture({ mail: { idempotencyConflict: true, acknowledgement: 'reject' } });
+    assert.deepEqual((await g.call(event())).body.outcomes, ['failed']);
+    assert.equal(g.emails.length, 2);
+    assert.deepEqual((await g.call(event())).body.outcomes, ['failed']);
+    assert.equal(g.emails.length, 4);
+    checks += 2;
+  }
+  {
     // Brevo outage: 200 to Brevo, nothing sent, nothing sensitive logged, and
     // the guard is released so the next delivery of the event gets through.
     const f = fixture({ contactStatus: 503 });
