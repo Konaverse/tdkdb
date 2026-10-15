@@ -10,6 +10,7 @@ import {
   upsertContact,
   findDeal,
   dealName,
+  createDeal,
   enquiryNotes,
   findNote,
 } from './brevo';
@@ -162,21 +163,10 @@ export async function processSubmission(id: string, budgetMs = 40000): Promise<s
         // ambiguous earlier POST is reconciled, never blindly repeated.
         if (record.crm.dealAttempted) throw new ReviewRequired('deal_outcome_unknown');
         await checkpoint({ 'crm.dealAttempted': true });
-        const settings = brevoSettings()!;
-        let deal: { id?: string };
+        let dealId: string | null;
         try {
-          deal = await brevoRequest(
-            'deal_create',
-            '/crm/deals',
-            {
-              name: dealName(record),
-              attributes: {
-                pipeline: settings.pipelineId,
-                deal_stage: settings.stageId,
-                ...(settings.owner ? { deal_owner: settings.owner } : {}),
-              },
-              linkedContactsIds: [record.crm.contactId],
-            },
+          dealId = await createDeal(
+            { name: dealName(record), contactId: record.crm.contactId! },
             deadline,
           );
         } catch (error) {
@@ -187,9 +177,8 @@ export async function processSubmission(id: string, budgetMs = 40000): Promise<s
             await checkpoint({ 'crm.dealAttempted': false });
           throw error;
         }
-        if (!deal?.id || typeof deal.id !== 'string')
-          throw new ReviewRequired('deal_outcome_unknown');
-        await checkpoint({ 'crm.dealId': deal.id });
+        if (!dealId) throw new ReviewRequired('deal_outcome_unknown');
+        await checkpoint({ 'crm.dealId': dealId });
       }
     }
     const notes = enquiryNotes(record);

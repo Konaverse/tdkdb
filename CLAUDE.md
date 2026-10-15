@@ -46,7 +46,16 @@ Leads") via Resend. It always answers 200 after auth, dedupes per email for ten
 minutes in memory plus a Resend idempotency key hashed from email + list id + Brevo's
 event time (never Brevo's event `id`, which is shared across events and caused 409s;
 a 409 is retried once without a key), and never touches the Pixel, consent or forms.
-`pnpm test:lead-alert` covers it.
+After the alert it gives the lead a Brevo deal (`src/lib/crm/lead-deal.ts`) through
+the website's `createDeal` (same pipeline, New Inquiry stage, owner; named
+"Almond Suites — <name>"). Deal fields are matched against the account's own deal
+attributes by label/internal name (Lead Source = "Meta Lead Ad", Interested Unit,
+Preferred Bedrooms, Purchase Timeline, Lead Role/Contact Type); a field the deal
+model lacks is logged by name, never invented. A contact with an open deal in the
+pipeline (stage not won/lost/closed) gets no second one; the deal step runs after
+the alert and can never delay or fail it. The webhook response lists `outcomes`
+(alert) and `deals`. `pnpm backfill:meta-deals` plans (and with `--apply`
+creates) deals for list 4 contacts without one. `pnpm test:lead-alert` covers it.
 
 ## Architecture Overview
 

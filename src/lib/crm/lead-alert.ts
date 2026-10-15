@@ -3,23 +3,34 @@ import { Resend } from 'resend';
 
 import { escapeHtml } from '@/lib/contact/delivery';
 import { brevoRequest, BrevoError } from './brevo';
+import {
+  ensureLeadDeal,
+  humanize,
+  isAgent,
+  type LeadContact,
+  type LeadDealOutcome,
+} from './lead-deal';
 
 /* ───────────────────────────────────────────────────────────────────────────
    Instant alert for Meta Instant Form leads. Meta leads sync into the Brevo
    list "TDK | Meta Leads"; Brevo's "contact added to a list" marketing
    webhook calls /api/webhooks/brevo-lead, which reads the full contact back
-   from Brevo and emails the studio its details in Greek. Brevo's own
-   "Notify by email" automation cannot include the attributes.
+   from Brevo, emails the studio its details in Greek, and then gives the
+   lead the same Brevo deal a website enquiry gets (`lead-deal.ts`). Brevo's
+   own "Notify by email" automation cannot include the attributes.
 
    Nothing here touches the website forms, the CRM queue, the Pixel or
    consent. Failures are logged; the webhook still answers 200 so Brevo does
-   not keep retrying a lead the studio will see in Brevo anyway.
+   not keep retrying a lead the studio will see in Brevo anyway. The deal
+   comes strictly after the alert and can never delay or fail it.
    ─────────────────────────────────────────────────────────────────────────── */
 
 const DEFAULT_META_LEADS_LIST_ID = 4;
 const ALERT_WINDOW_MS = 10 * 60 * 1000;
 const BREVO_TIMEOUT_MS = 6000;
-const AGENT_ROLE = 'μεσίτης';
+
+export { humanize, isAgent };
+export type { LeadContact };
 
 export function leadAlertSettings() {
   const secret = process.env.BREVO_WEBHOOK_SECRET?.trim();
@@ -78,25 +89,10 @@ export function parseListAddition(body: unknown): ListAdditionEvent | null {
   return { email, listIds, occurredAt: occurredAt || undefined };
 }
 
-/** Attribute values arrive as Meta form option keys: "2_υπνοδωμάτια_με_ιδιωτικό_roof_garden". */
-export function humanize(value: unknown): string {
-  if (value === undefined || value === null) return '';
-  return String(value).replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-export function isAgent(role: unknown): boolean {
-  return humanize(role).toLowerCase() === AGENT_ROLE;
-}
-
 /** `tel:` wants digits with a leading `+`; Brevo stores SMS with or without it. */
 export function telHref(phone: string): string | null {
   const digits = phone.replace(/\D/g, '');
   return /^\d{7,15}$/.test(digits) ? `tel:+${digits}` : null;
-}
-
-export interface LeadContact {
-  email: string;
-  attributes: Record<string, unknown>;
 }
 
 export function leadAlertEmail(contact: LeadContact): {
@@ -187,14 +183,22 @@ function idempotencyConflict(error: { name?: string; statusCode?: number | null 
 
 export async function fetchLeadContact(email: string): Promise<LeadContact | null> {
   try {
-    const contact = await brevoRequest<{ email?: string; attributes?: Record<string, unknown> }>(
+    const contact = await brevoRequest<{
+      id?: number;
+      email?: string;
+      attributes?: Record<string, unknown>;
+    }>(
       'contact_lookup',
       `/contacts/${encodeURIComponent(email)}`,
       undefined,
       Date.now() + BREVO_TIMEOUT_MS,
     );
     if (!contact || typeof contact !== 'object') return null;
-    return { email: contact.email?.toLowerCase() || email, attributes: contact.attributes || {} };
+    return {
+      id: Number.isSafeInteger(contact.id) && contact.id! > 0 ? contact.id : undefined,
+      email: contact.email?.toLowerCase() || email,
+      attributes: contact.attributes || {},
+    };
   } catch (error) {
     if (error instanceof BrevoError && error.status === 404) return null;
     throw error;
@@ -209,22 +213,33 @@ export type LeadAlertOutcome =
   | 'not_configured'
   | 'failed';
 
-/** Runs the whole alert. Never throws: the route answers 200 regardless. */
-export async function handleListAddition(body: unknown): Promise<LeadAlertOutcome> {
-  const event = parseListAddition(body);
-  const settings = leadAlertSettings();
-  if (!event || !event.listIds.includes(settings.listId)) return 'ignored';
+export interface LeadOutcome {
+  alert: LeadAlertOutcome;
+  /** 'skipped' when the event never reached the deal step. */
+  deal: LeadDealOutcome | 'skipped';
+}
+
+const logFailure = (what: string, error: unknown) =>
+  // Codes only: never the lead's details or any credential.
+  console.error(
+    what,
+    error instanceof BrevoError
+      ? `${error.operation}:${error.status}:${error.code}`
+      : error instanceof Error
+        ? error.message
+        : 'unknown error',
+  );
+
+async function sendLeadAlert(
+  event: ListAdditionEvent,
+  contact: LeadContact,
+  settings: ReturnType<typeof leadAlertSettings>,
+): Promise<LeadAlertOutcome> {
   if (!settings.mail) {
     console.error('Lead alert email is not configured');
     return 'not_configured';
   }
-  if (recentlyAlerted(event.email)) return 'duplicate';
   try {
-    const contact = await fetchLeadContact(event.email);
-    if (!contact) {
-      console.error('Lead alert: contact not found in Brevo');
-      return 'missing_contact';
-    }
     const email = { from: settings.mail.from, to: settings.mail.to, ...leadAlertEmail(contact) };
     const resend = new Resend(settings.mail.apiKey);
     let result = await resend.emails.send(email, {
@@ -248,16 +263,35 @@ export async function handleListAddition(body: unknown): Promise<LeadAlertOutcom
     }
     return 'sent';
   } catch (error) {
-    // Codes only: never the lead's details or any credential.
-    console.error(
-      'Lead alert failed',
-      error instanceof BrevoError
-        ? `${error.operation}:${error.status}:${error.code}`
-        : error instanceof Error
-          ? error.message
-          : 'unknown error',
-    );
+    logFailure('Lead alert failed', error);
     recentAlerts.delete(event.email);
     return 'failed';
   }
+}
+
+/** Runs the whole lead: contact, alert, then deal. Never throws: the route
+    answers 200 regardless. */
+export async function handleListAddition(body: unknown): Promise<LeadOutcome> {
+  const event = parseListAddition(body);
+  const settings = leadAlertSettings();
+  if (!event || !event.listIds.includes(settings.listId))
+    return { alert: 'ignored', deal: 'skipped' };
+  if (recentlyAlerted(event.email)) return { alert: 'duplicate', deal: 'skipped' };
+  let contact: LeadContact | null;
+  try {
+    contact = await fetchLeadContact(event.email);
+  } catch (error) {
+    logFailure('Lead alert failed', error);
+    recentAlerts.delete(event.email);
+    return { alert: 'failed', deal: 'skipped' };
+  }
+  if (!contact) {
+    console.error('Lead alert: contact not found in Brevo');
+    return { alert: 'missing_contact', deal: 'skipped' };
+  }
+  const alert = await sendLeadAlert(event, contact, settings);
+  // The deal follows the alert and cannot change its outcome; a failure is
+  // logged and reconciled by the backfill script or the next event.
+  const deal = await ensureLeadDeal(contact);
+  return { alert, deal };
 }

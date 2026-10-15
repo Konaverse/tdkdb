@@ -154,7 +154,39 @@ automation cannot include those, so `POST /api/webhooks/brevo-lead`
   409 `invalid_idempotent_request`. If Resend answers 409 anyway, the alert
   is resent once without a key rather than dropped. A failed attempt releases
   the guard so Brevo's retry can succeed.
-- `pnpm test:lead-alert` runs the route against an isolated Brevo and Resend.
+- After the alert, the lead gets a Brevo deal (`src/lib/crm/lead-deal.ts`)
+  through the same `createDeal` the website uses: the Almond pipeline, the
+  New Inquiry stage, `BREVO_DEAL_OWNER` when set, linked to the contact and
+  named "Almond Suites — <first name> <last name>" (the website's
+  "<interest> — <name>" shape; no private marker, because a Meta lead's deal
+  is found again through its contact link). The deal's extra fields are
+  resolved against the account's deal attributes (`GET /crm/attributes/deals`,
+  cached for an hour per instance) by label or internal name: Lead Source =
+  "Meta Lead Ad", Interested Unit, Preferred Bedrooms (the leading digit of
+  the unit), Purchase Timeline and Lead Role (also matched to a Buyer/Agent
+  "Contact Type" select). A select field takes the option key whose value
+  matches; a field the model lacks, or a value its select lacks, is logged
+  by field name and left out. Code never creates deal attributes.
+- No duplicate: deals linked to the contact (`filters[linkedContactsIds]`) in
+  the pipeline block a new one unless they sit in a stage whose name says
+  won/lost/closed (read once from `/crm/pipeline/details`; if that read
+  fails, every deal counts as open). Brevo's quick retries of one event are
+  stopped by the ten-minute guard before any Brevo call.
+- The deal step runs strictly after the alert and never changes its
+  outcome: a failure is logged as `Lead deal failed <operation>:<status>:<code>`
+  and the route still answers 200. The response carries `outcomes` (alert)
+  and `deals` (`created` | `exists` | `failed` | `not_configured` |
+  `skipped`) per event. The deal does not depend on `BREVO_ENABLED`, only on
+  `BREVO_API_KEY` and the pipeline/stage settings.
+- Backfill: `pnpm backfill:meta-deals` (`tools/backfill-meta-deals.cjs`)
+  lists every contact in list 4, prints the deal model, and for each contact
+  either the deal it would create (name, fields, fields the model lacks) or
+  why it is skipped (excluded address, existing open deal). Nothing is
+  written without `--apply`, which then creates the planned deals one by one
+  through the same code. Needs `BREVO_API_KEY` in `.env.local`.
+- `pnpm test:lead-alert` runs the route against an isolated Brevo and Resend,
+  including the deal: created after the alert, duplicate skipped, failures
+  that leave the alert untouched.
 
 Brevo setup: Contacts → Settings → Webhooks → Add a new webhook (marketing
 webhooks; the Transactional section has its own). URL:

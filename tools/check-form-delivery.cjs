@@ -8,6 +8,9 @@ const { Resend } = require('resend');
 
 // Execute the real handlers with an isolated provider and CMS. No credentials,
 // emails or lead documents leave the test process.
+const stringify = (args) =>
+  args.map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg))).join(' ');
+
 function isolate(scenario = {}) {
   const emails = [],
     mailOptions = [],
@@ -86,10 +89,8 @@ function isolate(scenario = {}) {
         AbortSignal,
         Buffer,
         console: {
-          error: (...args) =>
-            logs.push(
-              args.map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg))).join(' '),
-            ),
+          error: (...args) => logs.push(stringify(args)),
+          warn: (...args) => logs.push(stringify(args)),
         },
         require: (name) => {
           if (name === 'resend') return { Resend: scenario.realSdk ? Resend : MailProvider };
