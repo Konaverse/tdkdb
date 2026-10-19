@@ -148,7 +148,9 @@ create it inside a GSAP context so deferred work is owned by that context.
 is installed, preventing a photograph from appearing and then wiping in again.
 
 Mobile motion uses masked words instead of individual characters and a shorter
-image-cover entrance without a simultaneous image scale. About and project image
+image-cover entrance without a simultaneous image scale. `maskChars` masks must keep
+`vertical-align: top`: Safari (every iPhone browser) bases a clipped inline-block on
+its bottom edge, which opened every split line by about a third until the revert. About and project image
 drift is desktop-only. `ScrollTrigger.config({ ignoreMobileResize: true })` prevents
 mid-gesture refreshes from browser toolbars; the provider refreshes after a touch
 resize only when the document height actually changed, and never with an open

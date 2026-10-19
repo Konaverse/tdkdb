@@ -60,7 +60,7 @@ export default function ProjectRegister({
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     const ctx = gsap.context(() => {
-      const words = maskChars(gsap.utils.toArray<HTMLElement>('[data-word]')).chars;
+      const words = maskChars(root.querySelector('[data-heading]')).chars;
       const rise = gsap.utils.toArray<HTMLElement>('[data-rise]');
       gsap.set(rise, { autoAlpha: 0, y: 24 });
       const tl = gsap
@@ -163,16 +163,9 @@ export default function ProjectRegister({
           id="register-heading"
           className="text-[clamp(56px,7.2vw,138px)] font-[300] leading-[0.92] tracking-[-0.01em]"
         >
-          {heading.split(' ').map((w, i) => (
-            <span
-              key={i}
-              className="-mb-[0.1em] -mt-[0.18em] block overflow-hidden pb-[0.1em] pt-[0.18em]"
-            >
-              <span data-word className="block">
-                {w}
-              </span>
-            </span>
-          ))}
+          <span data-heading className="block">
+            {heading}
+          </span>
         </h2>
         <p
           data-rise

@@ -46,6 +46,9 @@ export function maskChars(target: gsap.DOMTarget) {
   gsap.set(split.masks, {
     display: 'inline-block',
     position: 'relative',
+    // Safari bases a clipped inline-block on its bottom edge, which opened
+    // every line until the split was reverted; top keeps the original leading.
+    verticalAlign: 'top',
     paddingTop: '0.2em',
     paddingBottom: '0.14em',
     marginTop: '-0.2em',
