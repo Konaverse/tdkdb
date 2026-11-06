@@ -16,7 +16,7 @@ export function applyProjectUpdates(project: Project): Project {
     progressLabel: 'Under construction',
     technicalSpecificationsHref: ALMOND_SPECIFICATIONS_HREF,
     units: project.units?.map((unit) =>
-      ['102', '104'].includes(unit.floor.trim()) ? { ...unit, status: 'sold' } : unit,
+      ['101', '102', '104'].includes(unit.floor.trim()) ? { ...unit, status: 'sold' } : unit,
     ),
   };
 }
